@@ -77,7 +77,7 @@ export default async function PayoutsPage() {
                       </p>
                       <p className="text-2xl font-extrabold text-accent-green font-mono flex items-center justify-center">
                         <DollarSign className="w-5 h-5 text-accent-green" />
-                        {payout.amount.toLocaleString()}
+                        {payout.amount.toLocaleString('en-US')}
                       </p>
                     </div>
 

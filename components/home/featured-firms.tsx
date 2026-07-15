@@ -131,7 +131,7 @@ export function FeaturedFirms({ firms }: FeaturedFirmsProps) {
                   <div>
                     <span className="text-text-muted block mb-1">Max Allocation</span>
                     <span className="font-semibold text-text-primary font-mono">
-                      ${firm.max_allocation?.toLocaleString() || 'N/A'}
+                      ${firm.max_allocation?.toLocaleString('en-US') || 'N/A'}
                     </span>
                   </div>
                   <div>

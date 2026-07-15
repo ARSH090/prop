@@ -107,7 +107,7 @@ export default function LeaderboardClient({ payouts, firms }: LeaderboardClientP
                   </span>
                   <span className="text-lg font-bold text-accent-green flex items-center justify-end">
                     <DollarSign className="w-4 h-4 text-accent-green" />
-                    {trader.totalAmount.toLocaleString()}
+                    {trader.totalAmount.toLocaleString('en-US')}
                   </span>
                 </div>
               </AFXCard>

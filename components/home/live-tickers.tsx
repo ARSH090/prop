@@ -39,7 +39,7 @@ export function LiveTickers({ tickers }: LiveTickersProps) {
                       {ticker.symbol}
                     </span>
                     <span className="text-xs font-bold font-mono text-text-primary">
-                      {ticker.price?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      {ticker.price?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div
