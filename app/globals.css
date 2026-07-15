@@ -1,0 +1,168 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Font configuration */
+:root {
+  --font-playfair: 'Playfair Display', serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-jetbrains: 'JetBrains Mono', monospace;
+}
+
+@theme inline {
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-purple: var(--accent-purple);
+  --color-accent-green: var(--accent-green);
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-card: var(--bg-card);
+  --color-border-subtle: var(--border-subtle);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: dark;
+  /* AFX Dark Theme - Premium Trading UI */
+  --bg-base: #05070D;
+  --bg-surface: #0B0F1A;
+  --bg-card: #0F1420;
+  --border-subtle: #1E2536;
+  --text-primary: #FFFFFF;
+  --text-secondary: #9AA3B2;
+  --text-muted: #5C6478;
+  --accent-cyan: #22D3EE;
+  --accent-blue: #3B82F6;
+  --accent-purple: #8B5CF6;
+  --accent-green: #22C55E;
+  
+  /* Map to standard tokens */
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent-blue);
+  --primary-foreground: var(--text-primary);
+  --secondary: var(--accent-purple);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--text-muted);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--accent-cyan);
+  --accent-foreground: var(--bg-base);
+  --destructive: #EF4444;
+  --border: var(--border-subtle);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: var(--accent-cyan);
+  --chart-1: var(--accent-cyan);
+  --chart-2: var(--accent-blue);
+  --chart-3: var(--accent-purple);
+  --chart-4: var(--accent-green);
+  --chart-5: #EC4899;
+  --radius: 0.75rem;
+  --sidebar: var(--bg-surface);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent-blue);
+  --sidebar-primary-foreground: var(--text-primary);
+  --sidebar-accent: var(--accent-cyan);
+  --sidebar-accent-foreground: var(--bg-base);
+  --sidebar-border: var(--border-subtle);
+  --sidebar-ring: var(--accent-cyan);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* AFX-specific utilities */
+  .afx-gradient-heading {
+    background: linear-gradient(90deg, #FFFFFF 0%, #22D3EE 45%, #8B5CF6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .afx-card {
+    @apply rounded-[12px] border backdrop-blur-sm;
+    border-color: var(--border-subtle);
+    background-color: var(--bg-card);
+  }
+
+  .afx-badge-live {
+    @apply inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-semibold;
+    background-color: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.2);
+    color: var(--accent-green);
+  }
+
+  .afx-badge-code {
+    @apply inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-semibold;
+    background-color: rgba(34, 211, 238, 0.1);
+    border-color: rgba(34, 211, 238, 0.2);
+    color: var(--accent-cyan);
+  }
+
+  .afx-btn-secondary {
+    @apply px-6 py-2.5 rounded-[12px] font-semibold border transition-colors;
+    border-color: var(--border-subtle);
+    color: var(--text-primary);
+  }
+
+  .afx-btn-secondary:hover {
+    background-color: var(--bg-surface);
+  }
+
+  .afx-glow-cyan:hover {
+    @apply shadow-lg transition-shadow;
+    box-shadow: 0 0 20px 0 rgba(34, 211, 238, 0.2);
+  }
+}

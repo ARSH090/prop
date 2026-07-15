@@ -1,0 +1,223 @@
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { AFXCard } from '@/components/ui/afx-card'
+import { AFXButton } from '@/components/ui/afx-button'
+import { ArrowLeft, Save } from 'lucide-react'
+import Link from 'next/link'
+
+interface Firm {
+  id: string
+  name: string
+}
+
+export default function NewDealPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [firms, setFirms] = useState<Firm[]>([])
+  const [formData, setFormData] = useState({
+    code: '',
+    title: '',
+    discount_label: '',
+    description: '',
+    firm_id: '',
+    is_featured: false,
+    expires_at: '',
+    status: 'active',
+  })
+
+  // Load firms for selection dropdown
+  useEffect(() => {
+    async function loadFirms() {
+      try {
+        const res = await fetch('/api/admin/firms')
+        if (res.ok) {
+          const data = await res.json()
+          const list = data.data || []
+          setFirms(list)
+          if (list.length > 0) {
+            setFormData((prev) => ({ ...prev, firm_id: list[0].id }))
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    loadFirms()
+  }, [])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    setFormData((prev) => ({ ...prev, [name]: val }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const res = await fetch('/api/admin/deals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+
+      if (res.ok) {
+        router.push('/admin/deals')
+      } else {
+        alert('Failed to create promo deal')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error creating promo deal')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Link
+          href="/admin/deals"
+          className="p-2 rounded-xl bg-bg-surface border border-border-subtle text-text-muted hover:text-text-primary transition-all"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-text-primary mb-2 afx-gradient-heading">
+            Create Promo Code
+          </h1>
+          <p className="text-text-secondary text-sm">Configure coupon codes, discount labels, and details.</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="max-w-2xl">
+        <AFXCard className="bg-bg-surface border-border-subtle p-6 space-y-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-text-secondary">Promo Code</label>
+              <input
+                type="text"
+                name="code"
+                value={formData.code}
+                onChange={handleChange}
+                required
+                placeholder="e.g. AFX-SUMMIT20"
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-text-secondary">Discount Label</label>
+              <input
+                type="text"
+                name="discount_label"
+                value={formData.discount_label}
+                onChange={handleChange}
+                placeholder="e.g. 20% OFF / FREE TRIAL"
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-text-secondary">Prop Firm / Broker</label>
+              <select
+                name="firm_id"
+                value={formData.firm_id}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+              >
+                {firms.map((firm) => (
+                  <option key={firm.id} value={firm.id}>
+                    {firm.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-text-secondary">Expiration Date</label>
+              <input
+                type="date"
+                name="expires_at"
+                value={formData.expires_at}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-text-secondary">Campaign Title</label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+              placeholder="e.g. 20% Off Summit Challenges"
+              className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-text-secondary">Description</label>
+            <textarea
+              name="description"
+              rows={3}
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Provide context or instructions on where to apply the code..."
+              className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors resize-none"
+            />
+          </div>
+
+          <div className="flex justify-between items-center gap-4 pt-4 border-t border-border-subtle">
+            <div className="flex gap-6">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="is_featured"
+                  checked={formData.is_featured}
+                  onChange={handleChange}
+                  className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+                />
+                <span className="text-xs font-semibold text-text-primary">Featured Offer</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <span className="text-xs font-semibold text-text-secondary">Status:</span>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="px-2 py-1 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan"
+                >
+                  <option value="active">Active</option>
+                  <option value="draft">Draft / Expired</option>
+                </select>
+              </label>
+            </div>
+
+            <AFXButton
+              type="submit"
+              disabled={loading}
+              variant="primary"
+              className="bg-gradient-to-r from-accent-cyan to-accent-purple font-bold flex items-center gap-2 px-6 py-2.5 rounded-xl text-bg-base text-sm"
+            >
+              <Save className="w-4 h-4" />
+              {loading ? 'Creating...' : 'Create Code'}
+            </AFXButton>
+          </div>
+        </AFXCard>
+      </form>
+    </div>
+  )
+}
