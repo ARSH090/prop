@@ -350,7 +350,7 @@ export async function getFirms(type?: 'prop_firm' | 'broker'): Promise<any[]> {
       return type ? MOCK_FIRMS.filter((f) => f.type === type) : MOCK_FIRMS
     }
     const list: any[] = []
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: any) => {
       list.push({ id: doc.id, ...doc.data() })
     })
     return list
