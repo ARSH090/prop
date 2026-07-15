@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -16,16 +16,24 @@ import {
   Menu,
   X,
   LogOut,
+  Award,
+  ArrowUpDown,
+  DollarSign,
+  Mail,
 } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Page Builder', href: '/admin/page-builder', icon: FileText },
   { name: 'Firms', href: '/admin/firms', icon: Building2 },
+  { name: 'Challenges', href: '/admin/challenges', icon: Award },
   { name: 'Deals', href: '/admin/deals', icon: Percent },
   { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
   { name: 'Blog', href: '/admin/blog', icon: Newspaper },
   { name: 'Market Tickers', href: '/admin/market-ticker', icon: TrendingUp },
+  { name: 'Broker Spreads', href: '/admin/spreads', icon: ArrowUpDown },
+  { name: 'Payout Proofs', href: '/admin/payouts', icon: DollarSign },
+  { name: 'Contact Messages', href: '/admin/messages', icon: Mail },
   { name: 'Media Library', href: '/admin/media', icon: Image },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
@@ -34,9 +42,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  // In a real application, we would check for Firebase Auth state here.
-  // We allow seamless access for local development.
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary flex">
@@ -127,3 +132,4 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </div>
   )
 }
+export const dynamic = 'force-dynamic'

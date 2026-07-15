@@ -1,7 +1,9 @@
 'use client'
 
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { AFXButton } from '@/components/ui/afx-button'
+import { ChevronDown } from 'lucide-react'
 
 interface NavLink {
   label: string
@@ -13,13 +15,25 @@ interface NavBarProps {
 }
 
 const defaultNavLinks = [
-  { label: 'Prop Firms', href: '/firms' },
-  { label: 'Brokers', href: '/brokers' },
-  { label: 'Deals', href: '/deals' },
-  { label: 'Blog', href: '/blog' },
+  { label: 'Firms', href: '/firms' },
+  { label: 'Challenges', href: '/challenges' },
+  { label: 'Offers', href: '/deals' },
+  { label: 'Best Sellers', href: '/best-sellers' },
+  { label: 'Compare', href: '/compare' },
+  { label: 'Favorites', href: '/favorites' },
+]
+
+const toolsLinks = [
+  { label: 'Rules Comparison', href: '/rules' },
+  { label: 'Broker Spreads', href: '/spreads' },
+  { label: 'Payout Proofs', href: '/payouts' },
+  { label: 'Payout Leaderboard', href: '/leaderboard' },
+  { label: 'Demo Accounts', href: '/demo-accounts' },
 ]
 
 export function NavBar({ links = defaultNavLinks }: NavBarProps) {
+  const [toolsOpen, setToolsOpen] = useState(false)
+
   return (
     <nav className="sticky top-0 z-50 border-b border-border-subtle bg-bg-surface/80 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -35,16 +49,42 @@ export function NavBar({ links = defaultNavLinks }: NavBarProps) {
           </Link>
 
           {/* Center Navigation Links */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-6">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-text-secondary hover:text-accent-cyan transition-colors text-sm font-medium"
+                className="text-text-secondary hover:text-accent-cyan transition-colors text-xs font-semibold uppercase tracking-wider"
               >
                 {link.label}
               </Link>
             ))}
+
+            {/* Tools Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setToolsOpen(true)}
+              onMouseLeave={() => setToolsOpen(false)}
+            >
+              <button className="flex items-center gap-1 text-text-secondary hover:text-accent-cyan transition-colors text-xs font-semibold uppercase tracking-wider focus:outline-none">
+                Tools
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+
+              {toolsOpen && (
+                <div className="absolute top-4 left-0 w-48 bg-bg-surface border border-border-subtle rounded-xl shadow-xl py-2 mt-1 backdrop-blur-md animate-fade-in">
+                  {toolsLinks.map((tool) => (
+                    <Link
+                      key={tool.href}
+                      href={tool.href}
+                      className="block px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
+                    >
+                      {tool.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right-side Actions */}
@@ -55,7 +95,7 @@ export function NavBar({ links = defaultNavLinks }: NavBarProps) {
               </AFXButton>
             </Link>
             <Link href="/deals">
-              <AFXButton variant="primary" size="sm">
+              <AFXButton variant="primary" size="sm" className="bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base font-bold">
                 Get Codes
               </AFXButton>
             </Link>

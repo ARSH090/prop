@@ -3,23 +3,30 @@
 import Link from 'next/link'
 
 const footerLinks = {
-  platform: [
-    { label: 'Firms', href: '/firms' },
-    { label: 'Brokers', href: '/brokers' },
-    { label: 'Deals', href: '/deals' },
+  propFirms: [
+    { label: 'All Firms', href: '/firms' },
+    { label: 'Challenges', href: '/challenges' },
+    { label: 'Best Sellers', href: '/best-sellers' },
+    { label: 'Favorites', href: '/favorites' },
+    { label: 'Rules Comparison', href: '/rules' },
     { label: 'Reviews', href: '/reviews' },
+    { label: 'Payout Proofs', href: '/payouts' },
+    { label: 'Leaderboard', href: '/leaderboard' },
+    { label: 'Demo Accounts', href: '/demo-accounts' },
+  ],
+  offers: [
+    { label: 'Promo Deals', href: '/deals' },
+    { label: 'Loyalty PTS Program', href: '/loyalty' },
+    { label: 'Affiliate Referrals', href: '/affiliate-program' },
   ],
   resources: [
-    { label: 'Blog', href: '/blog' },
-    { label: 'Tools', href: '/tools' },
-    { label: 'Community', href: '/community' },
-    { label: 'Compare', href: '/compare' },
+    { label: 'Trading Insights Blog', href: '/blog' },
   ],
   company: [
-    { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
-    { label: 'Transparency', href: '/transparency' },
-    { label: 'Careers', href: '/careers' },
+    { label: 'About Anuraj FX', href: '/about' },
+    { label: 'Transparency Audit', href: '/transparency' },
+    { label: 'How It Works', href: '/how-it-works' },
+    { label: 'Contact Support', href: '/contact' },
   ],
 }
 
@@ -35,9 +42,9 @@ export function Footer({
   return (
     <footer className="bg-bg-surface border-t border-border-subtle">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           {/* Brand Column */}
-          <div className="space-y-4">
+          <div className="col-span-2 space-y-4">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center font-bold text-white text-xs">
                 A
@@ -49,15 +56,15 @@ export function Footer({
             <p className="text-text-secondary text-sm max-w-xs">{brandDescription}</p>
           </div>
 
-          {/* Footer Links */}
+          {/* Prop Firms Column */}
           <div>
-            <h4 className="font-semibold text-text-primary mb-4">Platform</h4>
+            <h4 className="font-semibold text-text-primary mb-4 text-xs font-mono uppercase tracking-wider">Prop Programs</h4>
             <ul className="space-y-2">
-              {footerLinks.platform.map((link) => (
+              {footerLinks.propFirms.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-text-secondary hover:text-accent-cyan transition-colors text-sm"
+                    className="text-text-secondary hover:text-accent-cyan transition-colors text-xs"
                   >
                     {link.label}
                   </Link>
@@ -66,32 +73,49 @@ export function Footer({
             </ul>
           </div>
 
-          {/* Resources Links */}
-          <div>
-            <h4 className="font-semibold text-text-primary mb-4">Resources</h4>
-            <ul className="space-y-2">
-              {footerLinks.resources.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-text-secondary hover:text-accent-cyan transition-colors text-sm"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* Offers & Resources */}
+          <div className="space-y-6">
+            <div>
+              <h4 className="font-semibold text-text-primary mb-4 text-xs font-mono uppercase tracking-wider">Offers</h4>
+              <ul className="space-y-2">
+                {footerLinks.offers.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-text-secondary hover:text-accent-cyan transition-colors text-xs"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-text-primary mb-4 text-xs font-mono uppercase tracking-wider">Resources</h4>
+              <ul className="space-y-2">
+                {footerLinks.resources.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-text-secondary hover:text-accent-cyan transition-colors text-xs"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* Company Links */}
+          {/* Company Column */}
           <div>
-            <h4 className="font-semibold text-text-primary mb-4">Company</h4>
+            <h4 className="font-semibold text-text-primary mb-4 text-xs font-mono uppercase tracking-wider">Company</h4>
             <ul className="space-y-2">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-text-secondary hover:text-accent-cyan transition-colors text-sm"
+                    className="text-text-secondary hover:text-accent-cyan transition-colors text-xs"
                   >
                     {link.label}
                   </Link>
@@ -104,16 +128,16 @@ export function Footer({
         {/* Bottom Section */}
         <div className="pt-8 border-t border-border-subtle">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-text-muted text-sm">© 2026 ANURAJ FX. All rights reserved.</p>
-            <div className="flex gap-6 text-sm text-text-muted">
-              <Link href="/privacy" className="hover:text-accent-cyan transition-colors">
-                Privacy
+            <p className="text-text-muted text-xs">© 2026 ANURAJ FX. All rights reserved.</p>
+            <div className="flex gap-6 text-xs text-text-muted">
+              <Link href="/privacy-policy" className="hover:text-accent-cyan transition-colors">
+                Privacy Policy
               </Link>
-              <Link href="/terms" className="hover:text-accent-cyan transition-colors">
-                Terms
+              <Link href="/terms-and-conditions" className="hover:text-accent-cyan transition-colors">
+                Terms & Conditions
               </Link>
-              <Link href="/disclaimer" className="hover:text-accent-cyan transition-colors">
-                Risk Disclaimer
+              <Link href="/transparency" className="hover:text-accent-cyan transition-colors">
+                Audited Transparency
               </Link>
             </div>
           </div>
@@ -121,7 +145,7 @@ export function Footer({
 
         {/* India-focused disclaimer */}
         <div className="mt-8 pt-8 border-t border-border-subtle">
-          <p className="text-xs text-text-muted leading-relaxed">
+          <p className="text-[11px] text-text-muted leading-relaxed">
             <span className="font-semibold text-text-secondary">Trading Risk Disclaimer:</span>{' '}
             {riskDisclaimer}
           </p>

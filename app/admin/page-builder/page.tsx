@@ -13,8 +13,21 @@ interface ContentItem {
   value: string
 }
 
+const pageList = [
+  { id: 'home', label: 'Homepage Sections' },
+  { id: 'nav', label: 'Header Navigation' },
+  { id: 'footer', label: 'Footer Content' },
+  { id: 'about', label: 'About Us Page' },
+  { id: 'transparency', label: 'Transparency Audit Page' },
+  { id: 'how_it_works', label: 'How It Works Page' },
+  { id: 'loyalty', label: 'Loyalty PTS Program' },
+  { id: 'affiliate_program', label: 'Affiliate Referrals' },
+  { id: 'privacy_policy', label: 'Privacy Policy' },
+  { id: 'terms_conditions', label: 'Terms & Conditions' },
+] as const
+
 export default function PageBuilder() {
-  const [selectedPage, setSelectedPage] = useState<'home' | 'nav' | 'footer'>('home')
+  const [selectedPage, setSelectedPage] = useState<string>('home')
   const [items, setItems] = useState<ContentItem[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -120,17 +133,17 @@ export default function PageBuilder() {
           <span className="text-text-muted text-[10px] font-bold tracking-wider uppercase font-mono block px-2 mb-2">
             Select Site Area
           </span>
-          {(['home', 'nav', 'footer'] as const).map((page) => (
+          {pageList.map((page) => (
             <button
-              key={page}
-              onClick={() => setSelectedPage(page)}
+              key={page.id}
+              onClick={() => setSelectedPage(page.id)}
               className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition-all border ${
-                selectedPage === page
+                selectedPage === page.id
                   ? 'bg-bg-surface border-accent-cyan/30 text-accent-cyan'
                   : 'bg-transparent border-transparent text-text-secondary hover:text-text-primary hover:bg-bg-surface/50'
               }`}
             >
-              {page === 'home' ? 'Homepage Sections' : page === 'nav' ? 'Header Navigation' : 'Footer Content'}
+              {page.label}
             </button>
           ))}
         </div>
@@ -143,6 +156,7 @@ export default function PageBuilder() {
             <div className="space-y-6">
               {items.map((item) => {
                 const isJson = item.content_type === 'json'
+                const isLongText = item.section_key === 'body' || item.section_key === 'risk_disclaimer'
 
                 return (
                   <AFXCard key={item.id} className="bg-bg-surface border-border-subtle p-6 space-y-4">
@@ -157,12 +171,21 @@ export default function PageBuilder() {
 
                     {/* Standard text inputs */}
                     {item.content_type === 'text' && (
-                      <input
-                        type="text"
-                        value={item.value}
-                        onChange={(e) => handleTextChange(item.id, e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
-                      />
+                      isLongText ? (
+                        <textarea
+                          rows={6}
+                          value={item.value}
+                          onChange={(e) => handleTextChange(item.id, e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors resize-none font-sans leading-relaxed"
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={item.value}
+                          onChange={(e) => handleTextChange(item.id, e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                        />
+                      )
                     )}
 
                     {/* Repeatable & custom lists editor (JSON types) */}
@@ -189,6 +212,11 @@ export default function PageBuilder() {
                   </AFXCard>
                 )
               })}
+              {items.length === 0 && (
+                <div className="border border-border-subtle bg-bg-surface/50 p-12 text-center rounded-3xl text-text-secondary text-sm font-semibold">
+                  This page has no customizable layout parameters. Headline and Body will use default static copy.
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -355,3 +383,4 @@ function SectionOrderEditor({ list, onChange }: { list: string[]; onChange: (lis
     </div>
   )
 }
+export const dynamic = 'force-dynamic'

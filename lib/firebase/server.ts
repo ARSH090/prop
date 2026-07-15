@@ -240,6 +240,84 @@ const MOCK_BLOGS = [
   },
 ]
 
+const MOCK_CHALLENGES = [
+  {
+    id: 'ch-ftmo-100k',
+    firm_id: 'ftmo',
+    account_size: 100000,
+    steps: 2,
+    profit_target_p1: 10,
+    profit_target_p2: 5,
+    daily_loss_pct: 5,
+    max_loss_pct: 10,
+    pt_dd_ratio: '1:1',
+    profit_split_pct: 80,
+    payout_freq: 'Bi-weekly',
+    loyalty_points: 500,
+    popularity_score: 95,
+    price: 540,
+    original_price: 540,
+    currency: 'USD',
+    deal_id: 'deal-ftmo',
+    affiliate_url: 'https://ftmo.com/ref/anurajfx',
+    is_active: true,
+  },
+  {
+    id: 'ch-topstep-50k',
+    firm_id: 'topstep',
+    account_size: 50000,
+    steps: 1,
+    profit_target_p1: 6,
+    profit_target_p2: 0,
+    daily_loss_pct: 3,
+    max_loss_pct: 4,
+    pt_dd_ratio: '1.5:1',
+    profit_split_pct: 90,
+    payout_freq: 'Weekly',
+    loyalty_points: 150,
+    popularity_score: 88,
+    price: 49,
+    original_price: 150,
+    currency: 'USD',
+    deal_id: 'deal-topstep',
+    affiliate_url: 'https://topsteptrader.com/ref/anuraj',
+    is_active: true,
+  },
+  {
+    id: 'ch-5ers-100k',
+    firm_id: '5ers',
+    account_size: 100000,
+    steps: 2,
+    profit_target_p1: 8,
+    profit_target_p2: 5,
+    daily_loss_pct: 4,
+    max_loss_pct: 8,
+    pt_dd_ratio: '1:1',
+    profit_split_pct: 80,
+    payout_freq: 'Bi-weekly',
+    loyalty_points: 450,
+    popularity_score: 75,
+    price: 495,
+    original_price: 495,
+    currency: 'USD',
+    deal_id: 'deal-5ers',
+    affiliate_url: 'https://5ers.com/ref/anurajfx',
+    is_active: true,
+  },
+]
+
+const MOCK_SPREADS = [
+  { id: 'sp-1', firm_id: 'zerodha', instrument: 'EURUSD', spread_pips: 0.2, commission_note: '$2 per lot', updated_at: new Date().toISOString() },
+  { id: 'sp-2', firm_id: 'zerodha', instrument: 'XAUUSD', spread_pips: 1.5, commission_note: '$3 per lot', updated_at: new Date().toISOString() },
+  { id: 'sp-3', firm_id: 'zerodha', instrument: 'GBPUSD', spread_pips: 0.4, commission_note: '$2 per lot', updated_at: new Date().toISOString() },
+]
+
+const MOCK_PAYOUTS = [
+  { id: 'p-1', firm_id: 'ftmo', trader_display_name: 'Rahul S.', amount: 4850, currency: 'USD', proof_image_url: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=300', payout_date: new Date().toISOString(), is_verified: true },
+  { id: 'p-2', firm_id: 'topstep', trader_display_name: 'Aditya K.', amount: 3200, currency: 'USD', proof_image_url: 'https://images.unsplash.com/photo-1642390091310-70f1a87d6677?w=300', payout_date: new Date().toISOString(), is_verified: true },
+  { id: 'p-3', firm_id: '5ers', trader_display_name: 'Pooja M.', amount: 1540, currency: 'USD', proof_image_url: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=300', payout_date: new Date().toISOString(), is_verified: true },
+]
+
 export async function getSiteContent(page: string): Promise<Record<string, any>> {
   try {
     const snapshot = await db.collection('site_content').where('page', '==', page).get()
@@ -254,10 +332,9 @@ export async function getSiteContent(page: string): Promise<Record<string, any>>
           data.content_type === 'json' ? JSON.parse(data.value) : data.value
       }
     })
-    // Merge fallbacks for missing keys
     return { ...(MOCK_SITE_CONTENT[page] || {}), ...content }
   } catch (error) {
-    console.warn(`Firestore read failed for site_content page "${page}". Returning mock fallbacks.`, error)
+    console.warn(`Firestore read failed for site_content page "${page}". Returning mock fallbacks.`)
     return MOCK_SITE_CONTENT[page] || {}
   }
 }
@@ -278,7 +355,7 @@ export async function getFirms(type?: 'prop_firm' | 'broker'): Promise<any[]> {
     })
     return list
   } catch (error) {
-    console.warn('Firestore read failed for firms. Returning mock fallbacks.', error)
+    console.warn('Firestore read failed for firms. Returning mock fallbacks.')
     return type ? MOCK_FIRMS.filter((f) => f.type === type) : MOCK_FIRMS
   }
 }
@@ -295,7 +372,7 @@ export async function getDeals(): Promise<any[]> {
     })
     return list
   } catch (error) {
-    console.warn('Firestore read failed for deals. Returning mock fallbacks.', error)
+    console.warn('Firestore read failed for deals. Returning mock fallbacks.')
     return MOCK_DEALS
   }
 }
@@ -312,7 +389,7 @@ export async function getTickers(): Promise<any[]> {
     })
     return list
   } catch (error) {
-    console.warn('Firestore read failed for market_tickers. Returning mock fallbacks.', error)
+    console.warn('Firestore read failed for market_tickers. Returning mock fallbacks.')
     return MOCK_TICKERS
   }
 }
@@ -329,7 +406,72 @@ export async function getBlogs(): Promise<any[]> {
     })
     return list
   } catch (error) {
-    console.warn('Firestore read failed for blog_posts. Returning mock fallbacks.', error)
+    console.warn('Firestore read failed for blog_posts. Returning mock fallbacks.')
     return MOCK_BLOGS
+  }
+}
+
+export async function getChallenges(): Promise<any[]> {
+  try {
+    const snapshot = await db.collection('challenges').get()
+    if (snapshot.empty) {
+      return MOCK_CHALLENGES
+    }
+    const list: any[] = []
+    snapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() })
+    })
+    return list
+  } catch (error) {
+    console.warn('Firestore read failed for challenges. Returning mock fallbacks.')
+    return MOCK_CHALLENGES
+  }
+}
+
+export async function getBrokerSpreads(): Promise<any[]> {
+  try {
+    const snapshot = await db.collection('broker_spreads').get()
+    if (snapshot.empty) {
+      return MOCK_SPREADS
+    }
+    const list: any[] = []
+    snapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() })
+    })
+    return list
+  } catch (error) {
+    console.warn('Firestore read failed for spreads. Returning mock fallbacks.')
+    return MOCK_SPREADS
+  }
+}
+
+export async function getPayouts(): Promise<any[]> {
+  try {
+    const snapshot = await db.collection('payouts').get()
+    if (snapshot.empty) {
+      return MOCK_PAYOUTS
+    }
+    const list: any[] = []
+    snapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() })
+    })
+    return list
+  } catch (error) {
+    console.warn('Firestore read failed for payouts. Returning mock fallbacks.')
+    return MOCK_PAYOUTS
+  }
+}
+
+export async function getFavorites(userId: string): Promise<any[]> {
+  try {
+    const snapshot = await db.collection('favorites').where('user_id', '==', userId).get()
+    const list: any[] = []
+    snapshot.forEach((doc) => {
+      list.push({ id: doc.id, ...doc.data() })
+    })
+    return list
+  } catch (error) {
+    console.warn('Firestore read failed for favorites.')
+    return []
   }
 }
