@@ -17,11 +17,15 @@ let storage: any
 if (hasCredentials) {
   const apps = getApps()
   if (!apps.length) {
+    const formattedPrivateKey = privateKey
+      .replace(/^["']|["']$/g, '') // Strip leading/trailing quotes if they exist
+      .replace(/\\n/g, '\n')       // Replace literal '\n' with actual newlines
+
     firebaseApp = initializeApp({
       credential: cert({
         projectId,
         clientEmail,
-        privateKey: privateKey.replace(/\\n/g, '\n'),
+        privateKey: formattedPrivateKey,
       }),
       storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     })
