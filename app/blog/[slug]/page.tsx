@@ -5,6 +5,8 @@ import { Calendar, ArrowLeft, Share2 } from 'lucide-react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
 import ReactMarkdown from 'react-markdown'
+import { AFXCard } from '@/components/ui/afx-card'
+import { AFXButton } from '@/components/ui/afx-button'
 
 export const revalidate = 10
 
