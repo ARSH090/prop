@@ -23,6 +23,7 @@ import {
   DollarSign,
   Globe,
   Percent,
+  Home,
 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 import { signOut } from 'firebase/auth'
@@ -45,6 +46,7 @@ const toolsLinks = [
 ]
 
 const mainNavLinks = [
+  { label: 'Home', href: '/', icon: Home },
   { label: 'Firms', href: '/firms', icon: Building2 },
   { label: 'Challenges', href: '/challenges', icon: Award },
   { label: 'Deals', href: '/deals', icon: Percent },
@@ -58,6 +60,7 @@ const mobileMenuCategories = [
   {
     title: 'DISCOVER',
     links: [
+      { label: 'Home', href: '/', icon: Home },
       { label: 'Prop Firms', href: '/firms', icon: Building2 },
       { label: 'Challenges', href: '/challenges', icon: Award },
       { label: 'Best Sellers', href: '/best-sellers', icon: Star },

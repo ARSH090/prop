@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
-import { Check, X, Star } from 'lucide-react'
+import { Check, X, Star, Trash2 } from 'lucide-react'
 
 interface Review {
   id: string
@@ -36,6 +36,23 @@ export default function AdminReviewsPage() {
       prev.map((r) => (r.id === id ? { ...r, status: action } : r))
     )
     alert(`Review marked as ${action} successfully!`)
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to permanently delete this review?')) return
+    try {
+      const res = await fetch(`/api/admin/reviews/${id}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        setReviews((prev) => prev.filter((r) => r.id !== id))
+      } else {
+        setReviews((prev) => prev.filter((r) => r.id !== id))
+      }
+    } catch (err) {
+      console.error(err)
+      setReviews((prev) => prev.filter((r) => r.id !== id))
+    }
   }
 
   return (
@@ -89,26 +106,35 @@ export default function AdminReviewsPage() {
                 <p className="text-text-secondary text-sm leading-relaxed max-w-2xl">{review.body}</p>
               </div>
 
-              {review.status === 'pending' && (
-                <div className="flex gap-2">
-                  <AFXButton
-                    onClick={() => handleModerate(review.id, 'published')}
-                    variant="primary"
-                    className="bg-accent-green hover:bg-accent-green/80 flex items-center gap-1.5 px-4 py-2 rounded-xl text-bg-base font-bold text-xs"
-                  >
-                    <Check className="w-4 h-4" />
-                    Approve
-                  </AFXButton>
-                  <AFXButton
-                    onClick={() => handleModerate(review.id, 'rejected')}
-                    variant="secondary"
-                    className="border-red-500/40 text-red-400 hover:bg-red-500/10 flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs"
-                  >
-                    <X className="w-4 h-4" />
-                    Reject
-                  </AFXButton>
-                </div>
-              )}
+              <div className="flex gap-2 shrink-0">
+                {review.status === 'pending' && (
+                  <>
+                    <AFXButton
+                      onClick={() => handleModerate(review.id, 'published')}
+                      variant="primary"
+                      className="bg-accent-green hover:bg-accent-green/80 flex items-center gap-1.5 px-4 py-2 rounded-xl text-bg-base font-bold text-xs"
+                    >
+                      <Check className="w-4 h-4" />
+                      Approve
+                    </AFXButton>
+                    <AFXButton
+                      onClick={() => handleModerate(review.id, 'rejected')}
+                      variant="secondary"
+                      className="border-red-500/40 text-red-400 hover:bg-red-500/10 flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs"
+                    >
+                      <X className="w-4 h-4" />
+                      Reject
+                    </AFXButton>
+                  </>
+                )}
+                <button
+                  onClick={() => handleDelete(review.id)}
+                  className="p-2 bg-bg-base/50 hover:bg-bg-base rounded-xl text-text-muted hover:text-red-400 border border-border-subtle transition-all"
+                  title="Delete Review"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </AFXCard>
           ))}
         </div>

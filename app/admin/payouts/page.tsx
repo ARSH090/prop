@@ -76,6 +76,23 @@ export default function AdminPayoutsPage() {
     }
   }
 
+  const handleToggleVerify = async (id: string, currentStatus: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/payouts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_verified: !currentStatus }),
+      })
+      if (res.ok) {
+        setPayouts((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, is_verified: !currentStatus } : p))
+        )
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newPayout.firm_id || !newPayout.trader_display_name || !newPayout.amount) return
@@ -230,13 +247,26 @@ export default function AdminPayoutsPage() {
                           ${p.amount.toLocaleString('en-US')}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <button
-                            onClick={() => handleDelete(p.id)}
-                            className="p-2 bg-bg-base/50 hover:bg-bg-base rounded-xl text-text-muted hover:text-red-400 border border-border-subtle transition-all"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleToggleVerify(p.id, p.is_verified)}
+                              className={`p-2 rounded-xl border transition-all ${
+                                p.is_verified
+                                  ? 'bg-accent-green/10 text-accent-green border-accent-green/20 hover:bg-amber-500/10 hover:text-amber-400/80 hover:border-amber-500/30'
+                                  : 'bg-bg-base/50 text-text-secondary border-border-subtle hover:text-accent-green'
+                              }`}
+                              title={p.is_verified ? 'Mark Unverified' : 'Mark Verified'}
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(p.id)}
+                              className="p-2 bg-bg-base/50 hover:bg-bg-base rounded-xl text-text-muted hover:text-red-400 border border-border-subtle transition-all"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

@@ -44,7 +44,7 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
       .where('firm_id', '==', firm.id)
       .where('status', '==', 'published')
       .get()
-    reviews = reviewsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    reviews = reviewsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
   } catch (e) {
     console.warn('Reviews fetch failed, using empty list')
   }
@@ -57,7 +57,7 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
       .where('firm_id', '==', firm.id)
       .where('status', '==', 'active')
       .get()
-    deals = dealsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    deals = dealsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
   } catch (e) {
     console.warn('Deals fetch failed')
   }
@@ -71,8 +71,8 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
       .limit(4)
       .get()
     relatedFirms = relatedSnap.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((f) => f.id !== firm.id)
+      .map((doc: any) => ({ id: doc.id, ...doc.data() }))
+      .filter((f: any) => f.id !== firm.id)
   } catch (e) {
     console.warn('Related firms fetch failed')
   }
