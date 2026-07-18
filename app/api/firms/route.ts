@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const snapshot = await db.collection('firms').where('type', '==', type).get()
 
     let firms: any[] = []
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: any) => {
       const data = doc.data()
       if (data.status === 'active') {
         firms.push({ id: doc.id, ...data })

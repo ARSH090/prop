@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const snapshot = await db.collection('challenges').get()
     const challenges: any[] = []
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: any) => {
       challenges.push({ id: doc.id, ...doc.data() })
     })
     return NextResponse.json({ data: challenges })

@@ -45,7 +45,7 @@ export function BlogPreview({ posts }: BlogPreviewProps) {
             const dateStr = post.published_at
               ? new Date(
                   post.published_at.seconds ? post.published_at.seconds * 1000 : post.published_at
-                ).toLocaleDateString()
+                ).toLocaleDateString('en-US')
               : 'Recent'
             return (
               <Link key={post.id} href={`/blog/${post.slug}`} className="block group">

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const snapshot = await db.collection('site_content').where('page', '==', page).get()
 
     const items: any[] = []
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: any) => {
       items.push({ id: doc.id, ...doc.data() })
     })
 

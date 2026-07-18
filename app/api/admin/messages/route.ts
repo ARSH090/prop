@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const snapshot = await db.collection('contact_messages').orderBy('created_at', 'desc').get()
     const messages: any[] = []
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: any) => {
       messages.push({ id: doc.id, ...doc.data() })
     })
     return NextResponse.json({ data: messages })
@@ -21,17 +21,30 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, status } = body
+    const { id, status, reply, replyText } = body
 
-    if (!id || !status) {
-      return NextResponse.json({ error: 'Message ID and Status are required' }, { status: 400 })
+    if (!id) {
+      return NextResponse.json({ error: 'Message ID is required' }, { status: 400 })
     }
 
     const ref = db.collection('contact_messages').doc(id)
-    await ref.update({
-      status,
+
+    const updateData: any = {
       updated_at: FieldValue.serverTimestamp(),
-    })
+    }
+
+    if (status) {
+      updateData.status = status
+    }
+
+    // If a reply is being saved
+    if (reply && replyText) {
+      updateData.admin_reply = replyText
+      updateData.replied_at = FieldValue.serverTimestamp()
+      updateData.status = 'resolved'
+    }
+
+    await ref.update(updateData)
 
     return NextResponse.json({ success: true })
   } catch (error) {

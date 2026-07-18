@@ -289,7 +289,7 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
                       <p className="text-text-muted text-[10px] mt-3 font-mono font-semibold">
                         by {review.full_name || 'Anonymous'} •{' '}
                         {review.created_at
-                          ? new Date(review.created_at.seconds ? review.created_at.seconds * 1000 : review.created_at).toLocaleDateString()
+                          ? new Date(review.created_at.seconds ? review.created_at.seconds * 1000 : review.created_at).toLocaleDateString('en-US')
                           : 'Recent'}
                       </p>
                     </div>

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     const snapshot = await db.collection('favorites').where('user_id', '==', userId).get()
     const favorites: any[] = []
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: any) => {
       favorites.push({ id: doc.id, ...doc.data() })
     })
 

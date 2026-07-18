@@ -14,13 +14,13 @@ export async function GET(request: NextRequest) {
     ])
 
     const firmsMap = new Map()
-    firmsSnap.forEach((doc) => {
+    firmsSnap.forEach((doc: any) => {
       const data = doc.data()
       firmsMap.set(doc.id, { name: data.name, slug: data.slug })
     })
 
     let deals: any[] = []
-    dealsSnap.forEach((doc) => {
+    dealsSnap.forEach((doc: any) => {
       const data = doc.data()
       const firm = firmsMap.get(data.firm_id) || null
       deals.push({

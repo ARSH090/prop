@@ -19,7 +19,7 @@ export default async function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">
       <NavBar />
-      <main className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-6">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-text-primary mb-2 afx-gradient-heading">
             Payout Leaderboard

@@ -65,7 +65,7 @@ export default async function BlogPage() {
                               publishedPosts[0].published_at.seconds
                                 ? publishedPosts[0].published_at.seconds * 1000
                                 : publishedPosts[0].published_at
-                            ).toLocaleDateString()}
+                            ).toLocaleDateString('en-US')}
                           </div>
                         )}
                       </div>
@@ -86,7 +86,7 @@ export default async function BlogPage() {
                 const dateStr = post.published_at
                   ? new Date(
                       post.published_at.seconds ? post.published_at.seconds * 1000 : post.published_at
-                    ).toLocaleDateString()
+                    ).toLocaleDateString('en-US')
                   : 'Recent'
                 return (
                   <Link key={post.id} href={`/blog/${post.slug}`}>

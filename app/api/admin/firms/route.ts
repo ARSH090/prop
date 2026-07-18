@@ -4,18 +4,31 @@ import { FieldValue } from 'firebase-admin/firestore'
 
 export const dynamic = 'force-dynamic'
 
+const MOCK_FIRMS_FALLBACK = [
+  { id: 'ftmo', name: 'FTMO', type: 'prop_firm', status: 'active' },
+  { id: 'topstep', name: 'TopStep Trader', type: 'prop_firm', status: 'active' },
+  { id: '5ers', name: '5ers', type: 'prop_firm', status: 'active' },
+  { id: 'zerodha', name: 'Zerodha', type: 'broker', status: 'active' },
+]
+
 export async function GET(request: NextRequest) {
   try {
     const snapshot = await db.collection('firms').get()
     const firms: any[] = []
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: any) => {
       firms.push({ id: doc.id, ...doc.data() })
     })
+
+    // If Firestore is empty, return mock firms so forms always have options
+    if (firms.length === 0) {
+      return NextResponse.json({ data: MOCK_FIRMS_FALLBACK })
+    }
 
     return NextResponse.json({ data: firms })
   } catch (error) {
     console.error('Error fetching admin firms:', error)
-    return NextResponse.json({ error: 'Failed to fetch firms' }, { status: 500 })
+    // Return mock fallback on error so deals/challenges forms still work
+    return NextResponse.json({ data: MOCK_FIRMS_FALLBACK })
   }
 }
 

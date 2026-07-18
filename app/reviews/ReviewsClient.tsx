@@ -272,7 +272,7 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
               const dateStr = rev.created_at
                 ? new Date(
                     rev.created_at.seconds ? rev.created_at.seconds * 1000 : rev.created_at
-                  ).toLocaleDateString()
+                  ).toLocaleDateString('en-US')
                 : 'Recent'
               return (
                 <AFXCard key={rev.id} className="bg-bg-surface border border-border-subtle p-6 space-y-3">

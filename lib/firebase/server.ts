@@ -325,7 +325,7 @@ export async function getSiteContent(page: string): Promise<Record<string, any>>
       return MOCK_SITE_CONTENT[page] || {}
     }
     const content: Record<string, any> = {}
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: any) => {
       const data = doc.data()
       if (data.is_active) {
         content[data.section_key] =
@@ -337,6 +337,29 @@ export async function getSiteContent(page: string): Promise<Record<string, any>>
     console.warn(`Firestore read failed for site_content page "${page}". Returning mock fallbacks.`)
     return MOCK_SITE_CONTENT[page] || {}
   }
+}
+
+// Serialize Firestore documents to plain JSON-safe objects
+// Firestore Timestamps (_seconds/_nanoseconds) cause RSC serialization errors
+function serializeDoc(data: any): any {
+  if (data === null || data === undefined) return data
+  if (typeof data !== 'object') return data
+  if (Array.isArray(data)) return data.map(serializeDoc)
+  // Check for Firestore Timestamp-like objects
+  if (typeof data._seconds === 'number' && typeof data._nanoseconds === 'number') {
+    return new Date(data._seconds * 1000 + data._nanoseconds / 1000000).toISOString()
+  }
+  // Also handle Timestamp objects with toDate method
+  if (typeof data.toDate === 'function') {
+    return data.toDate().toISOString()
+  }
+  const result: any = {}
+  for (const key in data) {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      result[key] = serializeDoc(data[key])
+    }
+  }
+  return result
 }
 
 export async function getFirms(type?: 'prop_firm' | 'broker'): Promise<any[]> {
@@ -351,7 +374,7 @@ export async function getFirms(type?: 'prop_firm' | 'broker'): Promise<any[]> {
     }
     const list: any[] = []
     snapshot.forEach((doc: any) => {
-      list.push({ id: doc.id, ...doc.data() })
+      list.push(serializeDoc({ id: doc.id, ...doc.data() }))
     })
     return list
   } catch (error) {
@@ -367,8 +390,8 @@ export async function getDeals(): Promise<any[]> {
       return MOCK_DEALS
     }
     const list: any[] = []
-    snapshot.forEach((doc) => {
-      list.push({ id: doc.id, ...doc.data() })
+    snapshot.forEach((doc: any) => {
+      list.push(serializeDoc({ id: doc.id, ...doc.data() }))
     })
     return list
   } catch (error) {
@@ -384,8 +407,8 @@ export async function getTickers(): Promise<any[]> {
       return MOCK_TICKERS
     }
     const list: any[] = []
-    snapshot.forEach((doc) => {
-      list.push({ id: doc.id, ...doc.data() })
+    snapshot.forEach((doc: any) => {
+      list.push(serializeDoc({ id: doc.id, ...doc.data() }))
     })
     return list
   } catch (error) {
@@ -401,8 +424,8 @@ export async function getBlogs(): Promise<any[]> {
       return MOCK_BLOGS
     }
     const list: any[] = []
-    snapshot.forEach((doc) => {
-      list.push({ id: doc.id, ...doc.data() })
+    snapshot.forEach((doc: any) => {
+      list.push(serializeDoc({ id: doc.id, ...doc.data() }))
     })
     return list
   } catch (error) {
@@ -418,8 +441,8 @@ export async function getChallenges(): Promise<any[]> {
       return MOCK_CHALLENGES
     }
     const list: any[] = []
-    snapshot.forEach((doc) => {
-      list.push({ id: doc.id, ...doc.data() })
+    snapshot.forEach((doc: any) => {
+      list.push(serializeDoc({ id: doc.id, ...doc.data() }))
     })
     return list
   } catch (error) {
@@ -435,8 +458,8 @@ export async function getBrokerSpreads(): Promise<any[]> {
       return MOCK_SPREADS
     }
     const list: any[] = []
-    snapshot.forEach((doc) => {
-      list.push({ id: doc.id, ...doc.data() })
+    snapshot.forEach((doc: any) => {
+      list.push(serializeDoc({ id: doc.id, ...doc.data() }))
     })
     return list
   } catch (error) {
@@ -452,8 +475,8 @@ export async function getPayouts(): Promise<any[]> {
       return MOCK_PAYOUTS
     }
     const list: any[] = []
-    snapshot.forEach((doc) => {
-      list.push({ id: doc.id, ...doc.data() })
+    snapshot.forEach((doc: any) => {
+      list.push(serializeDoc({ id: doc.id, ...doc.data() }))
     })
     return list
   } catch (error) {
@@ -466,8 +489,8 @@ export async function getFavorites(userId: string): Promise<any[]> {
   try {
     const snapshot = await db.collection('favorites').where('user_id', '==', userId).get()
     const list: any[] = []
-    snapshot.forEach((doc) => {
-      list.push({ id: doc.id, ...doc.data() })
+    snapshot.forEach((doc: any) => {
+      list.push(serializeDoc({ id: doc.id, ...doc.data() }))
     })
     return list
   } catch (error) {

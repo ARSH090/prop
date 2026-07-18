@@ -48,7 +48,7 @@ export default async function PayoutsPage() {
               const dateStr = payout.payout_date
                 ? new Date(
                     payout.payout_date.seconds ? payout.payout_date.seconds * 1000 : payout.payout_date
-                  ).toLocaleDateString()
+                  ).toLocaleDateString('en-US')
                 : 'Recent'
               return (
                 <AFXCard

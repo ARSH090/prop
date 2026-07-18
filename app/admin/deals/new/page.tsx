@@ -53,9 +53,12 @@ export default function NewDealPage() {
     setFormData((prev) => ({ ...prev, [name]: val }))
   }
 
+  const [error, setError] = useState<string | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
 
     try {
       const res = await fetch('/api/admin/deals', {
@@ -64,14 +67,16 @@ export default function NewDealPage() {
         body: JSON.stringify(formData),
       })
 
+      const data = await res.json()
+
       if (res.ok) {
         router.push('/admin/deals')
       } else {
-        alert('Failed to create promo deal')
+        setError(data.error || 'Failed to create promo deal. Please try again.')
       }
     } catch (err) {
       console.error(err)
-      alert('Error creating promo deal')
+      setError('Network error. Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
@@ -178,6 +183,12 @@ export default function NewDealPage() {
               className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors resize-none"
             />
           </div>
+
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-400 font-mono">
+              {error}
+            </div>
+          )}
 
           <div className="flex justify-between items-center gap-4 pt-4 border-t border-border-subtle">
             <div className="flex gap-6">

@@ -55,8 +55,8 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
       .limit(4)
       .get()
     relatedPosts = relatedSnap.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((p) => p.id !== post.id)
+      .map((doc: any) => ({ id: doc.id, ...doc.data() }))
+      .filter((p: any) => p.id !== post.id)
       .slice(0, 3)
   } catch (e) {
     console.warn('Failed to fetch related posts')
@@ -162,7 +162,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
                       relatedPost.published_at.seconds
                         ? relatedPost.published_at.seconds * 1000
                         : relatedPost.published_at
-                    ).toLocaleDateString()
+                    ).toLocaleDateString('en-US')
                   : 'Recent'
                 return (
                   <Link key={relatedPost.id} href={`/blog/${relatedPost.slug}`}>
