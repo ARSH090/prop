@@ -107,6 +107,9 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
           rating: '5',
           title: '',
           body: '',
+          rating_rules: '5',
+          rating_support: '5',
+          rating_payout: '5',
         })
         setTimeout(() => {
           setSuccess(false)
