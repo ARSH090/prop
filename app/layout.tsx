@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Playfair_Display, Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
+import { NotificationToast } from '@/components/ui/notification-toast'
 
 const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
@@ -50,6 +51,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfairDisplay.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="antialiased bg-background">
         {children}
+        <NotificationToast />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

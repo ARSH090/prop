@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
-import { Star, MessageSquare, Check, ShieldCheck } from 'lucide-react'
+import { Star, MessageSquare, Check, ShieldCheck, HelpCircle, CheckCircle2, Clock } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 
 interface Review {
@@ -30,6 +30,8 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
+  const [myQueries, setMyQueries] = useState<any[]>([])
+  const [loadingQueries, setLoadingQueries] = useState(false)
 
   // Filter params
   const [filterFirm, setFilterFirm] = useState('all')
@@ -42,6 +44,9 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
     rating: '5',
     title: '',
     body: '',
+    rating_rules: '5',
+    rating_support: '5',
+    rating_payout: '5',
   })
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -49,6 +54,14 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
       setCurrentUser(user)
+      if (user) {
+        setLoadingQueries(true)
+        fetch(`/api/contact?email=${encodeURIComponent(user.email || '')}`)
+          .then((r) => r.json())
+          .then((d) => setMyQueries(d.data || []))
+          .catch(() => setMyQueries([]))
+          .finally(() => setLoadingQueries(false))
+      }
     })
     return unsub
   }, [])
@@ -179,6 +192,49 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
             to write trader reviews.
           </div>
         )}
+
+        {/* My Queries Section — visible after sign-in */}
+        {currentUser && (
+          <AFXCard className="bg-bg-surface border border-border-subtle p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-accent-purple" />
+              <h3 className="text-sm font-bold text-text-primary">My Support Queries</h3>
+            </div>
+            {loadingQueries ? (
+              <p className="text-xs text-text-muted">Loading...</p>
+            ) : myQueries.length === 0 ? (
+              <div className="text-center py-4 space-y-2">
+                <p className="text-xs text-text-muted">No queries submitted yet.</p>
+                <a href="/contact" className="text-xs text-accent-cyan underline hover:no-underline">Submit a query</a>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myQueries.slice(0, 5).map((q: any) => (
+                  <div key={q.id} className="p-3 bg-bg-base rounded-xl border border-border-subtle space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-semibold text-text-primary line-clamp-1">{q.message?.slice(0, 60)}...</p>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase border shrink-0 ${
+                        q.status === 'resolved'
+                          ? 'bg-accent-green/10 text-accent-green border-accent-green/20'
+                          : q.status === 'read'
+                          ? 'bg-accent-cyan/10 text-accent-cyan border-accent-cyan/20'
+                          : 'bg-amber-400/10 text-amber-400 border-amber-400/20'
+                      }`}>
+                        {q.status === 'resolved' ? '✓ Resolved' : q.status === 'read' ? 'Read' : 'New'}
+                      </span>
+                    </div>
+                    {q.admin_reply && (
+                      <div className="p-2 bg-accent-cyan/5 border border-accent-cyan/20 rounded-lg">
+                        <p className="text-[9px] font-bold text-accent-cyan uppercase mb-0.5">Team Reply</p>
+                        <p className="text-[10px] text-text-secondary">{q.admin_reply}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </AFXCard>
+        )}
       </div>
 
       {/* Main Reviews Panel */}
@@ -225,6 +281,24 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
                       <option value="1">1 Star</option>
                     </select>
                   </div>
+                </div>
+
+                {/* Aspect Ratings */}
+                <div className="grid grid-cols-3 gap-3 p-3 bg-bg-base rounded-xl border border-border-subtle">
+                  {[['rating_rules', 'Rules Clarity'], ['rating_support', 'Support Quality'], ['rating_payout', 'Payout Process']].map(([field, label]) => (
+                    <div key={field} className="space-y-1 text-center">
+                      <p className="text-[9px] font-bold text-text-muted uppercase">{label}</p>
+                      <div className="flex justify-center gap-0.5">
+                        {[1,2,3,4,5].map((s) => (
+                          <button key={s} type="button"
+                            onClick={() => setFormData((p) => ({ ...p, [field]: String(s) }))}
+                            className={(formData as any)[field] >= s ? 'text-yellow-400' : 'text-text-muted/30'}>
+                            <Star className="w-3.5 h-3.5 fill-current" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="space-y-1">

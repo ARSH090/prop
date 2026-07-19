@@ -143,14 +143,41 @@ function BlogEditor({ post, onSave, onCancel, isSaving }: BlogEditorProps) {
               {/* Cover Image */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-text-secondary">Cover Image URL</label>
-                <input
-                  type="url"
-                  name="cover_image_url"
-                  value={form.cover_image_url}
-                  onChange={handleChange}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    name="cover_image_url"
+                    value={form.cover_image_url}
+                    onChange={handleChange}
+                    placeholder="https://images.unsplash.com/..."
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                  />
+                  {form.cover_image_url && (
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, cover_image_url: '' }))}
+                      className="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {/* Image Preview */}
+                {form.cover_image_url && (
+                  <div className="rounded-xl overflow-hidden border border-border-subtle bg-bg-base relative">
+                    <img
+                      src={form.cover_image_url}
+                      alt="Cover preview"
+                      className="w-full h-64 object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none'
+                      }}
+                    />
+                    <div className="absolute bottom-2 right-2 px-2 py-1 bg-bg-base/80 rounded-lg text-[10px] text-text-muted font-mono border border-border-subtle">
+                      Preview · 16:9
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Excerpt */}
@@ -235,20 +262,6 @@ function BlogEditor({ post, onSave, onCancel, isSaving }: BlogEditorProps) {
             />
           )}
         </AFXCard>
-
-        {/* Cover Preview */}
-        {form.cover_image_url && (
-          <div className="rounded-2xl overflow-hidden border border-border-subtle">
-            <img
-              src={form.cover_image_url}
-              alt="Cover preview"
-              className="w-full h-48 object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none'
-              }}
-            />
-          </div>
-        )}
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between gap-4 pt-2">

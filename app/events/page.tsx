@@ -15,6 +15,7 @@ const EVENTS = [
     id: 'evt-1',
     title: 'ANURAJ FX Trading Tournament Q3 2025',
     type: 'tournament',
+    image_url: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80',
     description:
       'Compete in a 2-week live trading tournament with a $10,000 prize pool. Trade XAUUSD, NQ, and EURUSD on demo accounts. Top 10 traders win cash prizes and prop firm vouchers.',
     date: 'August 15–29, 2025',
@@ -30,6 +31,7 @@ const EVENTS = [
     id: 'evt-2',
     title: 'Prop Firm Bootcamp — Beginner to Funded',
     type: 'bootcamp',
+    image_url: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
     description:
       'Intensive 3-day online bootcamp covering prop firm rules, risk management, challenge strategies, and how to pass FTMO, TopStep, and 5ers evaluations. Includes live mentoring.',
     date: 'July 28–30, 2025',
@@ -45,6 +47,7 @@ const EVENTS = [
     id: 'evt-3',
     title: 'Live Market Session — US Open & London Close',
     type: 'session',
+    image_url: '',
     description:
       'Weekly live trading session streamed on YouTube. Trade alongside Anuraj and his team during the US Open session. Q&A, trade breakdowns, and market structure analysis.',
     date: 'Every Friday',
@@ -122,11 +125,24 @@ function EventCard({ event }: { event: (typeof EVENTS)[0] }) {
   const TypeIcon = typeConfig.icon
 
   return (
-    <div className="bg-bg-surface border border-border-subtle hover:border-accent-cyan/30 rounded-3xl p-6 space-y-4 transition-all group relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-accent-cyan/2 to-accent-purple/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+    <div className="bg-bg-surface border border-border-subtle hover:border-accent-cyan/30 rounded-3xl overflow-hidden transition-all group relative">
+      {/* Banner Image */}
+      {(event as any).image_url && (
+        <div className="h-40 overflow-hidden relative">
+          <img
+            src={(event as any).image_url}
+            alt={event.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-surface via-bg-surface/20 to-transparent" />
+        </div>
+      )}
 
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 relative">
+      <div className="p-6 space-y-4 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent-cyan/2 to-accent-purple/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 relative">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shrink-0 ${typeConfig.bg}`}>
           <TypeIcon className={`w-5 h-5 ${typeConfig.color}`} />
         </div>
@@ -207,7 +223,8 @@ function EventCard({ event }: { event: (typeof EVENTS)[0] }) {
             Event Ended
           </div>
         )}
-      </div>
+      </div>{/* /pt-2 */}
+      </div>{/* /p-6 space-y-4 */}
     </div>
   )
 }

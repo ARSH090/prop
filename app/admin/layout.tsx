@@ -20,6 +20,7 @@ import {
   ArrowUpDown,
   DollarSign,
   Mail,
+  Calendar,
 } from 'lucide-react'
 
 const navigation = [
@@ -33,6 +34,7 @@ const navigation = [
   { name: 'Market Tickers', href: '/admin/market-ticker', icon: TrendingUp },
   { name: 'Broker Spreads', href: '/admin/spreads', icon: ArrowUpDown },
   { name: 'Payout Proofs', href: '/admin/payouts', icon: DollarSign },
+  { name: 'Events', href: '/admin/events', icon: Calendar },
   { name: 'Contact Messages', href: '/admin/messages', icon: Mail },
   { name: 'Media Library', href: '/admin/media', icon: Image },
   { name: 'Settings', href: '/admin/settings', icon: Settings },

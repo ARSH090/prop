@@ -4,6 +4,31 @@ import { FieldValue } from 'firebase-admin/firestore'
 
 export const dynamic = 'force-dynamic'
 
+// GET — returns contact messages for a specific email
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const email = searchParams.get('email')
+
+    let query: FirebaseFirestore.Query = db.collection('contact_messages')
+    if (email) {
+      query = query.where('email', '==', email)
+    }
+
+    const snap = await query.orderBy('created_at', 'desc').limit(20).get()
+    const data = snap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      created_at: doc.data().created_at?.toDate?.().toISOString() || null,
+      replied_at: doc.data().replied_at?.toDate?.().toISOString() || null,
+    }))
+    return NextResponse.json({ data })
+  } catch (error) {
+    console.error('Error fetching contact messages:', error)
+    return NextResponse.json({ data: [] })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

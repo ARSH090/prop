@@ -161,6 +161,7 @@ export default function EditDealPage() {
                 required
                 className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
               >
+                <option value="" disabled>— Select a Firm —</option>
                 {firms.map((firm) => (
                   <option key={firm.id} value={firm.id}>
                     {firm.name}
