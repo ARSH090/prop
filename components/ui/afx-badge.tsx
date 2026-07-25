@@ -9,10 +9,10 @@ interface AFXBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
 export const AFXBadge = React.forwardRef<HTMLDivElement, AFXBadgeProps>(
   ({ className, variant = 'info', ...props }, ref) => {
     const variantStyles = {
-      live: 'inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent-green/10 border border-accent-green/20 text-accent-green',
-      code: 'inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan',
-      info: 'inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent-blue/10 border border-accent-blue/20 text-accent-blue',
-      success: 'inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent-green/10 border border-accent-green/20 text-accent-green',
+      live: 'inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent-green/25 border border-accent-green/50 text-white font-semibold shadow-sm',
+      code: 'inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent-cyan/25 border border-accent-cyan/50 text-white font-semibold shadow-sm',
+      info: 'inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent-blue/25 border border-accent-blue/50 text-white font-semibold shadow-sm',
+      success: 'inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent-green/25 border border-accent-green/50 text-white font-semibold shadow-sm',
     }
 
     return (

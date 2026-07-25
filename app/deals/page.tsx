@@ -9,14 +9,24 @@ export const metadata = {
   title: 'Exclusive Deals & Promo Codes - ANURAJ FX',
 }
 
-export default async function DealsPage() {
+export default async function DealsPage({ params }: { params?: Promise<{ category?: string }> }) {
+  const resolvedParams = params ? await params : null
+  const category = resolvedParams?.category || 'forex'
+
   const [deals, firms] = await Promise.all([getDeals(), getFirms()])
+
+  // Filter active firms by category
+  const activeFirms = firms.filter((f) => {
+    if (f.status !== 'active') return false
+    const cats = f.category || []
+    return cats.map((c: string) => c.toLowerCase()).includes(category.toLowerCase())
+  })
 
   // Enrich deal records with firm metadata (name, slug, affiliate URL)
   const enrichedDeals = deals
-    .filter((deal) => deal.status === 'active')
+    .filter((deal) => deal.status === 'active' && activeFirms.some((f) => f.id === deal.firm_id))
     .map((deal) => {
-      const firm = firms.find((f) => f.id === deal.firm_id)
+      const firm = activeFirms.find((f) => f.id === deal.firm_id)
       return {
         ...deal,
         firms: firm

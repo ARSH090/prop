@@ -1,7 +1,9 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
+import { RatingBadge } from '@/components/ui/rating-badge'
+import { cn } from '@/lib/utils'
 import {
   DollarSign, Trophy, Medal, Award, Star, TrendingUp, Crown,
   Clock, Users, Filter, BarChart2, ChevronUp, ChevronDown,
@@ -32,6 +34,7 @@ interface Firm {
 interface LeaderboardClientProps {
   payouts: Payout[]
   firms: Firm[]
+  category?: string
 }
 
 const RANK_CONFIG = [
@@ -111,11 +114,18 @@ function PayoutBar({ amount, max }: { amount: number; max: number }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // TAB 1 — Firm Payouts Table (like Image 3 in screenshots)
 // ─────────────────────────────────────────────────────────────────────────────
-function FirmPayoutsTab({ payouts, firms }: { payouts: Payout[]; firms: Firm[] }) {
+function FirmPayoutsTab({ payouts, firms, category }: { payouts: Payout[]; firms: any[]; category?: string }) {
   const [assetFilter, setAssetFilter] = useState<string>('All')
-  const [period, setPeriod] = useState<'all' | 'month' | 'week'>('all')
+  const [period, setPeriod] = useState<'all' | 'month'>('month') // Default is "This Month"
   const [sortBy, setSortBy] = useState<'total' | 'count' | 'biggest'>('total')
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc')
+
+  // Synchronize asset filter with global category prop
+  useEffect(() => {
+    if (category) {
+      setAssetFilter(category.charAt(0).toUpperCase() + category.slice(1))
+    }
+  }, [category])
 
   const filteredPayouts = useMemo(() => {
     return payouts.filter((p) => {
@@ -123,9 +133,7 @@ function FirmPayoutsTab({ payouts, firms }: { payouts: Payout[]; firms: Firm[] }
       const assetOk = assetFilter === 'All' || firm?.category?.includes(assetFilter.toLowerCase())
       const now = Date.now()
       const ts = p.payout_date?.seconds ? p.payout_date.seconds * 1000 : new Date(p.payout_date || now).getTime()
-      const periodOk = period === 'all' ? true
-        : period === 'month' ? ts >= now - 30 * 86400000
-        : ts >= now - 7 * 86400000
+      const periodOk = period === 'all' ? true : ts >= now - 30 * 86400000
       return assetOk && periodOk
     })
   }, [payouts, firms, assetFilter, period])
@@ -173,24 +181,27 @@ function FirmPayoutsTab({ payouts, firms }: { payouts: Payout[]; firms: Firm[] }
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Asset tabs */}
-        <div className="flex gap-1 bg-bg-surface border border-border-subtle p-1 rounded-xl">
+        <div className="flex gap-1 bg-bg-surface border border-border-default p-1 rounded-xl">
           {ASSET_TABS.map((tab) => (
             <button key={tab} onClick={() => setAssetFilter(tab)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 assetFilter === tab ? 'bg-accent-cyan text-bg-base' : 'text-text-muted hover:text-text-primary'
               }`}>
               {tab}
             </button>
           ))}
         </div>
-        {/* Period */}
-        <div className="flex gap-1 bg-bg-surface border border-border-subtle p-1 rounded-xl">
-          {(['all', 'month', 'week'] as const).map((p) => (
-            <button key={p} onClick={() => setPeriod(p)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                period === p ? 'bg-accent-purple text-white' : 'text-text-muted hover:text-text-primary'
+        {/* Period toggle */}
+        <div className="flex gap-1 bg-bg-surface border border-border-default p-1 rounded-xl">
+          {[
+            { id: 'month', label: 'This Month' },
+            { id: 'all', label: 'All Time' },
+          ].map((p) => (
+            <button key={p.id} onClick={() => setPeriod(p.id as any)}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                period === p.id ? 'bg-accent-purple text-white shadow-sm' : 'text-text-muted hover:text-text-primary'
               }`}>
-              {p === 'all' ? 'All Time' : p === 'month' ? '30 Days' : '7 Days'}
+              {p.label}
             </button>
           ))}
         </div>
@@ -201,11 +212,11 @@ function FirmPayoutsTab({ payouts, firms }: { payouts: Payout[]; firms: Firm[] }
       </div>
 
       {/* Table */}
-      <AFXCard className="overflow-hidden border border-border-subtle bg-bg-surface p-0">
+      <AFXCard className="overflow-hidden border border-border-default bg-bg-surface p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border-subtle bg-bg-base/30 text-text-muted text-xs font-mono uppercase tracking-wider">
+              <tr className="border-b border-border-default bg-bg-base/30 text-text-muted text-xs font-mono uppercase tracking-wider">
                 <th className="px-5 py-4 text-left">Firm / Rank</th>
                 <th className="px-5 py-4 text-right cursor-pointer hover:text-text-primary" onClick={() => toggleSort('total')}>
                   Total Payouts <SortIcon col="total" />
@@ -228,67 +239,88 @@ function FirmPayoutsTab({ payouts, firms }: { payouts: Payout[]; firms: Firm[] }
                   </td>
                 </tr>
               ) : (
-                firmStats.map(({ firmId, firm, total, count, biggest, avg, maxTotal, maxAvg }, idx) => (
-                  <tr key={firmId} className="border-b border-border-subtle/50 hover:bg-bg-base/20 transition-colors">
-                    {/* Firm */}
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold font-mono shrink-0 ${
-                          idx === 0 ? 'bg-yellow-400/20 text-yellow-400 neon-border-gold border' :
-                          idx === 1 ? 'bg-slate-300/10 text-slate-300 border border-slate-300/20' :
-                          idx === 2 ? 'bg-amber-600/10 text-amber-600 border border-amber-600/20' :
-                          'bg-bg-base text-text-muted border border-border-subtle'
-                        }`}>
-                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
-                        </div>
-                        <div className="w-8 h-8 rounded-lg bg-bg-base border border-border-subtle flex items-center justify-center overflow-hidden shrink-0">
-                          {firm?.logo_url ? (
-                            <img src={firm.logo_url} alt={firm?.name} className="w-7 h-7 object-contain" />
-                          ) : (
-                            <span className="text-xs font-bold text-accent-cyan">{firm?.name?.[0] ?? '?'}</span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-bold text-text-primary text-sm">{firm?.name ?? firmId}</p>
-                          <div className="flex gap-1 mt-0.5">
-                            {firm?.category?.slice(0, 2).map((c) => (
-                              <span key={c} className="text-[9px] px-1.5 py-0.5 rounded bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20 font-mono uppercase">
-                                {c}
-                              </span>
-                            ))}
+                firmStats.map(({ firmId, firm, total, count, biggest, avg, maxTotal, maxAvg }, idx) => {
+                  const isTop3 = idx < 3
+                  const rankStyles = cn(
+                    "border-b border-border-default transition-all duration-300 hover:bg-bg-base/30",
+                    idx === 0 && "bg-gradient-to-r from-yellow-500/15 via-amber-500/5 to-transparent border-l-4 border-l-yellow-400 py-6 md:py-8 text-base shadow-lg shadow-yellow-500/5 border border-yellow-500/40 relative z-10",
+                    idx === 1 && "bg-gradient-to-r from-accent-cyan/10 via-cyan-500/5 to-transparent border-l-4 border-l-accent-cyan py-5",
+                    idx === 2 && "bg-gradient-to-r from-accent-purple/10 via-purple-500/5 to-transparent border-l-4 border-l-accent-purple py-5"
+                  )
+
+                  return (
+                    <tr key={firmId} className={rankStyles}>
+                      {/* Firm / Rank Column */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center border font-bold shrink-0 ${
+                            idx === 0 ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/40 shadow-sm shadow-yellow-400/10' :
+                            idx === 1 ? 'bg-accent-cyan/20 text-accent-cyan border-accent-cyan/40 shadow-sm shadow-cyan-400/10' :
+                            idx === 2 ? 'bg-accent-purple/20 text-accent-purple border-accent-purple/40 shadow-sm shadow-purple-400/10' :
+                            'bg-bg-base text-text-muted border-border-default'
+                          }`}>
+                            {idx === 0 && <Trophy className="w-5 h-5 text-yellow-400 animate-pulse" />}
+                            {idx === 1 && <Medal className="w-5 h-5 text-accent-cyan" />}
+                            {idx === 2 && <Award className="w-5 h-5 text-accent-purple" />}
+                            {idx > 2 && <span className="text-xs font-mono">#{idx + 1}</span>}
+                          </div>
+                          <div className="w-10 h-10 rounded-xl bg-bg-base border border-border-default flex items-center justify-center overflow-hidden shrink-0">
+                            {firm?.logo_url ? (
+                              <img src={firm.logo_url} alt={firm?.name} className="w-8 h-8 object-contain" />
+                            ) : (
+                              <span className="text-xs font-bold text-accent-cyan">{firm?.name?.[0] ?? '?'}</span>
+                            )}
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-extrabold text-text-primary text-sm tracking-tight">{firm?.name ?? firmId}</span>
+                              <RatingBadge rating={firm?.rating || 4.5} fontVariant="sans" className="scale-85 origin-left py-0.5 px-1.5 border-0 bg-transparent" />
+                              {firm?.activeDeal && (
+                                <span className="px-2 py-0.5 rounded-full bg-accent-green/25 border border-accent-green/50 text-[9px] font-bold text-white font-mono shrink-0">
+                                  {firm.activeDeal.discount_label}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex gap-1 mt-0.5">
+                              {firm?.category?.slice(0, 2).map((c: string) => (
+                                <span key={c} className="text-[9px] px-1.5 py-0.5 rounded bg-accent-cyan/15 border border-accent-cyan/30 text-accent-cyan font-mono uppercase">
+                                  {c}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    {/* Total */}
-                    <td className="px-5 py-4 text-right">
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="font-bold text-accent-green font-mono">{formatAmount(total)}</span>
-                        <div className="w-24 h-1.5 bg-bg-base rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-accent-cyan to-accent-purple rounded-full"
-                            style={{ width: `${(total / firmStats[0].total) * 100}%` }} />
+                      </td>
+                      {/* Total Payouts */}
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="font-bold text-accent-green font-mono">{formatAmount(total)}</span>
+                          <div className="w-24 h-1.5 bg-bg-base rounded-full overflow-hidden border border-border-default/50">
+                            <div className="h-full bg-gradient-to-r from-accent-cyan to-accent-purple rounded-full"
+                              style={{ width: `${(total / firmStats[0].total) * 100}%` }} />
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    {/* Count */}
-                    <td className="px-5 py-4 text-right font-mono text-text-primary font-bold">{count.toLocaleString()}</td>
-                    {/* Biggest */}
-                    <td className="px-5 py-4 text-right font-mono text-yellow-400 font-bold">{formatAmount(biggest)}</td>
-                    {/* Avg Gauge */}
-                    <td className="px-5 py-4 text-center">
-                      <PayoutGauge amount={avg} max={maxAvg} />
-                    </td>
-                    {/* Action */}
-                    <td className="px-5 py-4 text-right">
-                      <a
-                        href={`/firms/${firmId}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-border-subtle bg-bg-base hover:border-accent-cyan/40 hover:text-accent-cyan text-text-secondary transition-all"
-                      >
-                        View
-                      </a>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      {/* Count */}
+                      <td className="px-5 py-4 text-right font-mono text-text-primary font-bold">{count.toLocaleString()}</td>
+                      {/* Largest Single */}
+                      <td className="px-5 py-4 text-right font-mono text-yellow-400 font-bold">{formatAmount(biggest)}</td>
+                      {/* Avg Gauge */}
+                      <td className="px-5 py-4 text-center">
+                        <PayoutGauge amount={avg} max={maxAvg} />
+                      </td>
+                      {/* Action */}
+                      <td className="px-5 py-4 text-right">
+                        <a
+                          href={`/firms/${firmId}`}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-border-default bg-bg-base hover:border-accent-cyan/40 hover:text-accent-cyan text-text-secondary transition-all"
+                        >
+                          View
+                        </a>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
@@ -532,13 +564,13 @@ function TraderLeaderboardTab({ payouts, firms }: { payouts: Payout[]; firms: Fi
 // ─────────────────────────────────────────────────────────────────────────────
 // Main export
 // ─────────────────────────────────────────────────────────────────────────────
-export default function LeaderboardClient({ payouts, firms }: LeaderboardClientProps) {
+export default function LeaderboardClient({ payouts, firms, category }: LeaderboardClientProps) {
   const [activeTab, setActiveTab] = useState<'payouts' | 'traders'>('payouts')
 
   return (
     <div className="space-y-8">
       {/* Tab switcher */}
-      <div className="flex items-center gap-2 bg-bg-surface border border-border-subtle rounded-2xl p-1.5 w-fit">
+      <div className="flex items-center gap-2 bg-bg-surface border border-border-default rounded-2xl p-1.5 w-fit">
         <button
           onClick={() => setActiveTab('payouts')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
@@ -564,7 +596,7 @@ export default function LeaderboardClient({ payouts, firms }: LeaderboardClientP
       </div>
 
       {activeTab === 'payouts' ? (
-        <FirmPayoutsTab payouts={payouts} firms={firms} />
+        <FirmPayoutsTab payouts={payouts} firms={firms} category={category} />
       ) : (
         <TraderLeaderboardTab payouts={payouts} firms={firms} />
       )}

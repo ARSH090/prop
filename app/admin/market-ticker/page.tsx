@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
-import { Save, TrendingUp } from 'lucide-react'
+import { Save, TrendingUp, RefreshCw } from 'lucide-react'
 
 interface Ticker {
   symbol: string
@@ -12,12 +12,25 @@ interface Ticker {
 }
 
 export default function AdminTickerPage() {
-  const [tickers, setTickers] = useState<Ticker[]>([
-    { symbol: 'XAUUSD', price: 2418.62, change_pct: 0.45 },
-    { symbol: 'NQ', price: 18450.75, change_pct: 1.23 },
-    { symbol: 'ES', price: 5725.5, change_pct: 0.87 },
-  ])
+  const [tickers, setTickers] = useState<Ticker[]>([])
   const [loading, setLoading] = useState(false)
+  const [autoUpdating, setAutoUpdating] = useState(false)
+
+  const loadTickers = async () => {
+    try {
+      const res = await fetch('/api/admin/market-ticker')
+      const data = await res.json()
+      if (data.success && data.tickers) {
+        setTickers(data.tickers)
+      }
+    } catch (e) {
+      console.error('Failed to load tickers', e)
+    }
+  }
+
+  useEffect(() => {
+    loadTickers()
+  }, [])
 
   const handlePriceChange = (index: number, val: string) => {
     const updated = [...tickers]
@@ -31,12 +44,46 @@ export default function AdminTickerPage() {
     setTickers(updated)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setLoading(true)
-    setTimeout(() => {
+    try {
+      // Save all overrides in parallel
+      await Promise.all(
+        tickers.map((t) =>
+          fetch('/api/admin/market-ticker', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(t),
+          })
+        )
+      )
+      alert('Pricing overrides saved successfully!')
+      loadTickers()
+    } catch (e) {
+      console.error('Failed to save overrides', e)
+      alert('Failed to save overrides. Please check logs.')
+    } finally {
       setLoading(false)
-      alert('Pricing feeds updated successfully!')
-    }, 1000)
+    }
+  }
+
+  const handleAutoUpdate = async () => {
+    setAutoUpdating(true)
+    try {
+      const res = await fetch('/api/admin/market-ticker/auto-update', { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        alert('Automatic pricing feeds updated successfully from Yahoo Finance!')
+        loadTickers()
+      } else {
+        alert(`Error: ${data.error}`)
+      }
+    } catch (e) {
+      console.error('Auto update request failed', e)
+      alert('Failed to connect to update server.')
+    } finally {
+      setAutoUpdating(false)
+    }
   }
 
   return (
@@ -47,17 +94,29 @@ export default function AdminTickerPage() {
           <h1 className="text-4xl font-extrabold tracking-tight text-text-primary mb-2 afx-gradient-heading">
             Live Pricing Override
           </h1>
-          <p className="text-text-secondary text-sm">Force override pricing parameters if market ticker APIs stall.</p>
+          <p className="text-text-secondary text-sm">Force override pricing parameters or run live market sync.</p>
         </div>
-        <AFXButton
-          onClick={handleSave}
-          disabled={loading}
-          variant="primary"
-          className="bg-gradient-to-r from-accent-cyan to-accent-purple font-bold flex items-center gap-2 px-6 py-2.5 rounded-xl text-bg-base text-sm"
-        >
-          <Save className="w-4 h-4" />
-          {loading ? 'Updating...' : 'Save Overrides'}
-        </AFXButton>
+        <div className="flex gap-3">
+          <AFXButton
+            onClick={handleAutoUpdate}
+            disabled={autoUpdating}
+            variant="secondary"
+            className="border-accent-cyan/30 hover:border-accent-cyan/60 hover:bg-accent-cyan/10 flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm"
+          >
+            <RefreshCw className={`w-4 h-4 ${autoUpdating ? 'animate-spin' : ''}`} />
+            {autoUpdating ? 'Syncing...' : 'Sync Live Prices'}
+          </AFXButton>
+          
+          <AFXButton
+            onClick={handleSave}
+            disabled={loading || tickers.length === 0}
+            variant="primary"
+            className="bg-gradient-to-r from-accent-cyan to-accent-purple font-bold flex items-center gap-2 px-6 py-2.5 rounded-xl text-bg-base text-sm"
+          >
+            <Save className="w-4 h-4" />
+            {loading ? 'Saving...' : 'Save Overrides'}
+          </AFXButton>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

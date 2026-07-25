@@ -69,7 +69,8 @@
   --bg-base: #05070D;
   --bg-surface: #0B0F1A;
   --bg-card: #0F1420;
-  --border-subtle: #1E2536;
+  --border-default: #2A3348;
+  --border-subtle: #2A3348;
   --text-primary: #FFFFFF;
   --text-secondary: #9AA3B2;
   --text-muted: #5C6478;
@@ -94,7 +95,7 @@
   --accent: var(--accent-cyan);
   --accent-foreground: var(--bg-base);
   --destructive: #EF4444;
-  --border: var(--border-subtle);
+  --border: var(--border-default);
   --input: rgba(255, 255, 255, 0.08);
   --ring: var(--accent-cyan);
   --chart-1: var(--accent-cyan);
@@ -124,6 +125,10 @@
 
 @layer components {
   /* AFX-specific utilities */
+  .bg-gradient-cta {
+    background: linear-gradient(90deg, #22D3EE 0%, #3B82F6 50%, #8B5CF6 100%);
+  }
+
   .afx-gradient-heading {
     background: linear-gradient(90deg, #FFFFFF 0%, #22D3EE 45%, #8B5CF6 100%);
     -webkit-background-clip: text;
@@ -133,22 +138,22 @@
 
   .afx-card {
     @apply rounded-[12px] border backdrop-blur-sm;
-    border-color: var(--border-subtle);
+    border-color: var(--border-default);
     background-color: var(--bg-card);
   }
 
   .afx-badge-live {
     @apply inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-semibold;
-    background-color: rgba(34, 197, 94, 0.1);
-    border-color: rgba(34, 197, 94, 0.2);
-    color: var(--accent-green);
+    background-color: rgba(34, 197, 94, 0.25);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #FFFFFF;
   }
 
   .afx-badge-code {
     @apply inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-semibold;
-    background-color: rgba(34, 211, 238, 0.1);
-    border-color: rgba(34, 211, 238, 0.2);
-    color: var(--accent-cyan);
+    background-color: rgba(34, 211, 238, 0.25);
+    border-color: rgba(34, 211, 238, 0.5);
+    color: #FFFFFF;
   }
 
   .afx-btn-secondary {
@@ -204,3 +209,30 @@
 .animate-slide-in-left  { animation: slide-in-left  0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
 .animate-slide-out-left { animation: slide-out-left 0.35s cubic-bezier(0.16,1,0.3,1) forwards; }
 .animate-fade-in-up     { animation: fade-in-up     0.35s ease-out both; }
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+.bg-gradient-cta {
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 50%, var(--accent-purple) 100%) !important;
+}

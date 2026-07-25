@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Star, Filter, Search, CheckCircle } from 'lucide-react'
 import { NavBar } from '@/components/nav/nav-bar'
+import { RatingBadge } from '@/components/ui/rating-badge'
 import { Footer } from '@/components/footer'
 
 interface Firm {
@@ -234,21 +235,8 @@ export default function FirmsPage() {
 
                       <p className="text-text-secondary text-sm mb-4 line-clamp-2">{firm.description}</p>
 
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < Math.round(firm.rating)
-                                  ? 'fill-accent-cyan text-accent-cyan'
-                                  : 'text-text-muted'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-text-secondary text-sm">{firm.rating}/5</span>
-                        <span className="text-text-muted text-xs">({firm.review_count})</span>
+                      <div className="mb-4">
+                        <RatingBadge rating={firm.rating} reviewCount={firm.review_count} fontVariant="sans" />
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-4">

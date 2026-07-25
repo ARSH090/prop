@@ -10,9 +10,16 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-export default async function ReviewsPage() {
+export default async function ReviewsPage({ params }: { params?: Promise<{ category?: string }> }) {
+  const resolvedParams = params ? await params : null
+  const category = resolvedParams?.category || 'forex'
+
   const firms = await getFirms('prop_firm')
-  const activeFirms = firms.filter((f) => f.status === 'active')
+  const activeFirms = firms.filter((f) => {
+    if (f.status !== 'active') return false
+    const cats = f.category || []
+    return cats.map((c: string) => c.toLowerCase()).includes(category.toLowerCase())
+  })
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">

@@ -11,7 +11,10 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-export default async function ChallengesPage() {
+export default async function ChallengesPage({ params }: { params?: Promise<{ category?: string }> }) {
+  const resolvedParams = params ? await params : null
+  const category = resolvedParams?.category || 'forex'
+
   const [challenges, firms, deals] = await Promise.all([
     getChallenges(),
     getFirms(),
@@ -19,9 +22,13 @@ export default async function ChallengesPage() {
   ])
 
   // Filter active challenges
-  const activeChallenges = challenges.filter((c) => c.is_active !== false)
-  const activeFirms = firms.filter((f) => f.status === 'active')
-  const activeDeals = deals.filter((d) => d.status === 'active')
+  const activeFirms = firms.filter((f) => {
+    if (f.status !== 'active') return false
+    const cats = f.category || []
+    return cats.map((c: string) => c.toLowerCase()).includes(category.toLowerCase())
+  })
+  const activeChallenges = challenges.filter((c) => c.is_active !== false && activeFirms.some((f) => f.id === c.firm_id))
+  const activeDeals = deals.filter((d) => d.status === 'active' && activeFirms.some((f) => f.id === d.firm_id))
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">

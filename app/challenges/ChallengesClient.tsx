@@ -5,6 +5,7 @@ import { Search, Filter, Bookmark, Copy, ExternalLink, HelpCircle, Check, ArrowU
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
 import { auth } from '@/lib/firebase/client'
+import { RatingBadge } from '@/components/ui/rating-badge'
 
 interface Challenge {
   id: string
@@ -59,7 +60,6 @@ export default function ChallengesClient({
   
   // Filters & State
   const [search, setSearch] = useState('')
-  const [categoryTab, setCategoryTab] = useState('all') // all, forex, futures, crypto
   const [showDrawer, setShowDrawer] = useState(false)
   const [filterFirm, setFilterFirm] = useState('all')
   const [filterSteps, setFilterSteps] = useState('all')
@@ -172,15 +172,6 @@ export default function ChallengesClient({
   // Filter & Sort Pipeline
   let challenges = [...initialChallenges]
 
-  // 1. Category Tab Filter
-  if (categoryTab !== 'all') {
-    challenges = challenges.filter((c) => {
-      const f = getFirm(c.firm_id) as any
-      const cats = f?.category || ['forex']
-      return cats.some((cat: string) => cat.toLowerCase() === categoryTab.toLowerCase())
-    })
-  }
-
   // 2. Search Filter (by firm name)
   if (search) {
     challenges = challenges.filter((c) => {
@@ -249,44 +240,7 @@ export default function ChallengesClient({
 
   return (
     <div className="space-y-6">
-      {/* Category Selection Tabs - Styled Exactly like Screenshot */}
       <div className="flex flex-col space-y-4">
-        <div className="inline-flex bg-[#0A0D18]/90 border border-[#231A32] rounded-full p-1 self-start select-none shadow-inner shadow-black/40">
-          {[
-            { id: 'all', label: 'All' },
-            { id: 'forex', label: 'Forex' },
-            { id: 'futures', label: 'Futures' },
-            { id: 'crypto', label: 'Crypto', badge: 'NEW' },
-          ].map((tab) => {
-            const isActive = categoryTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setCategoryTab(tab.id)
-                  setCurrentPage(1)
-                }}
-                className={`relative px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 focus:outline-none ${
-                  isActive
-                    ? 'bg-gradient-to-r from-orange-500 via-pink-600 to-[#8B5CF6] text-white shadow-md shadow-pink-900/10'
-                    : 'text-text-secondary hover:text-white bg-transparent'
-                }`}
-              >
-                <span>{tab.label}</span>
-                {tab.badge && (
-                  <span className={`text-[8px] font-sans font-extrabold px-1.5 py-0.5 rounded tracking-wide ${
-                    isActive 
-                      ? 'bg-white text-pink-600' 
-                      : 'bg-[#0e372e] text-[#10b981]'
-                  }`}>
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-
         {/* Subcategory selectors matching screenshot */}
         <div className="flex items-center gap-6 px-2 text-xs font-semibold text-text-secondary">
           <button 
@@ -530,11 +484,9 @@ export default function ChallengesClient({
                             {firm?.name[0] || 'P'}
                           </div>
                         )}
-                        <div className="flex flex-col text-xs">
-                          <span className="text-[13px]">{firm?.name || 'Program'}</span>
-                          <span className="text-[10px] text-text-muted font-mono">
-                            {firm?.rating || 4.5} ★ ({firm?.review_count || 100})
-                          </span>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="text-[13px] font-bold text-text-primary">{firm?.name || 'Program'}</span>
+                          <RatingBadge rating={firm?.rating || 4.5} reviewCount={firm?.review_count || 100} fontVariant="sans" />
                         </div>
                       </td>
 

@@ -1,0 +1,34 @@
+# Task List - AFX Revision Round
+
+- [x] Global text-contrast + border-brightness fixes (Items 2–3)
+  - [x] Update `app/globals.css` with `--border-default` (#2A3348) and `--border-subtle` (#2A3348)
+  - [x] Restyle `components/ui/afx-badge.tsx` for higher contrast and opacity
+- [x] Rating badge restyle (Item 8)
+  - [x] Create `components/ui/rating-badge.tsx`
+  - [x] Update `components/home/featured-firms.tsx` to use `RatingBadge`
+  - [x] Update `app/challenges/ChallengesClient.tsx` to use `RatingBadge`
+  - [x] Update `app/firms/[slug]/page.tsx` to use `RatingBadge`
+  - [x] Update `app/firms/page.tsx` to use `RatingBadge`
+- [x] Category tabs global rollout (Item 4)
+  - [x] Implement persistent Category Tab Bar in `components/nav/nav-bar.tsx`
+  - [x] Set up route groups under `app/[category]`
+  - [x] Filter Firestore data in Home, Challenges, Deals, Best Sellers, Leaderboard, and Reviews page components
+- [x] Remove old section / insert Verified Firms logo strip (Items 5–7)
+  - [x] Remove redundant local category switchers in homepage and challenges page
+  - [x] Create `components/home/logo-marquee.tsx` auto-scrolling strip
+  - [x] Insert `Also Verified Prop Firms` logo strip into homepage
+- [x] Payout Leaderboard polish (Item 1)
+  - [x] Update rankings style for ranks 1-3 with trophy icons and gradient weights in `LeaderboardClient.tsx`
+  - [x] Refactor time toggle to "This Month" / "All Time"
+  - [x] Link leaderboard filter state with the global category segment
+- [x] Watchlist + Comments (Item 10)
+  - [x] Setup Comments component and database schema models
+  - [x] Setup Watchlist gated widget
+  - [x] Add comments component to firm page
+  - [x] Create dedicated `/community` page
+- [x] Awards system (Item 9)
+  - [x] Seed award categories and structure in database
+  - [x] Implement live voting and calculations
+  - [x] Build `/awards` page
+  - [x] Build `/admin/awards` page
+- [x] Full acceptance verification and Next.js build verification

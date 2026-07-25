@@ -5,6 +5,8 @@ import { Star, CheckCircle, ExternalLink } from 'lucide-react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
 import { CopyButton } from '@/components/ui/copy-button'
+import { RatingBadge } from '@/components/ui/rating-badge'
+import { CommentsSection } from '@/components/ui/comments-section'
 
 export const revalidate = 10 // ISR: revalidate every 10 seconds
 
@@ -116,22 +118,8 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
                 )}
               </div>
 
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex items-center gap-1">
-                  <div className="flex text-accent-yellow">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-4 h-4 ${
-                          i < Math.round(avgRating) ? 'fill-current' : 'text-text-muted'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-text-secondary text-sm font-semibold ml-2">
-                    {avgRating.toFixed(1)}/5 ({firm.review_count || 0} reviews)
-                  </span>
-                </div>
+              <div className="mb-4">
+                <RatingBadge rating={avgRating} reviewCount={firm.review_count} fontVariant="sans" />
               </div>
 
               <p className="text-text-secondary text-sm md:text-base mb-6 max-w-2xl leading-relaxed">
@@ -300,6 +288,11 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
                   No reviews yet. Be the first to review this firm!
                 </p>
               )}
+            </div>
+
+            {/* Discussion Thread */}
+            <div className="bg-bg-surface border border-border-default p-6 rounded-3xl mt-8">
+              <CommentsSection firmId={firm.id} />
             </div>
           </div>
 

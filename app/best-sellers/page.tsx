@@ -11,10 +11,17 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-export default async function BestSellersPage() {
+export default async function BestSellersPage({ params }: { params?: Promise<{ category?: string }> }) {
+  const resolvedParams = params ? await params : null
+  const category = resolvedParams?.category || 'forex'
+
   const [challenges, firms] = await Promise.all([getChallenges(), getFirms()])
 
-  const activeFirms = firms.filter((f) => f.status === 'active')
+  const activeFirms = firms.filter((f) => {
+    if (f.status !== 'active') return false
+    const cats = f.category || []
+    return cats.map((c: string) => c.toLowerCase()).includes(category.toLowerCase())
+  })
   const activeChallenges = challenges
     .filter((c) => c.is_active !== false)
     .map((c) => {

@@ -1,9 +1,9 @@
 import React from 'react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
-import { getPayouts, getFirms } from '@/lib/firebase/server'
+import { getPayouts, getFirms, getDeals } from '@/lib/firebase/server'
 import LeaderboardClient from './LeaderboardClient'
-import { BarChart2, Trophy } from 'lucide-react'
+import { BarChart2 } from 'lucide-react'
 
 export const metadata = {
   title: 'Prop Firm Payouts Tracker & Trader Leaderboard - ANURAJ FX',
@@ -12,11 +12,28 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-export default async function LeaderboardPage() {
-  const [payouts, firms] = await Promise.all([getPayouts(), getFirms()])
+export default async function LeaderboardPage({ params }: { params?: Promise<{ category?: string }> }) {
+  const resolvedParams = params ? await params : null
+  const category = resolvedParams?.category || 'forex'
 
-  const verifiedPayouts = payouts.filter((p: any) => p.is_verified)
-  const activeFirms = firms.filter((f: any) => f.status === 'active')
+  const [payouts, firms, deals] = await Promise.all([
+    getPayouts(),
+    getFirms(),
+    getDeals(),
+  ])
+
+  const activeFirms = firms.filter((f: any) => {
+    if (f.status !== 'active') return false
+    const cats = f.category || []
+    return cats.map((c: string) => c.toLowerCase()).includes(category.toLowerCase())
+  })
+  
+  const enrichedFirms = activeFirms.map((firm) => {
+    const activeDeal = deals.find((d) => d.firm_id === firm.id && d.status === 'active')
+    return { ...firm, activeDeal }
+  })
+
+  const verifiedPayouts = payouts.filter((p: any) => p.is_verified && activeFirms.some((f) => f.id === p.firm_id))
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">
@@ -37,7 +54,7 @@ export default async function LeaderboardPage() {
           </p>
         </div>
 
-        <LeaderboardClient payouts={verifiedPayouts} firms={activeFirms} />
+        <LeaderboardClient payouts={verifiedPayouts} firms={enrichedFirms} category={category} />
       </main>
       <Footer />
     </div>

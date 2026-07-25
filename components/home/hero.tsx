@@ -15,36 +15,14 @@ interface HeroProps {
 
 // Neon cursor-aware glow background component
 function NeonBackground() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     setIsHydrated(true)
-    const handleMouseMove = (e: MouseEvent) => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect()
-        setMousePos({
-          x: ((e.clientX - rect.left) / rect.width) * 100,
-          y: ((e.clientY - rect.top) / rect.height) * 100,
-        })
-      }
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
   return (
-    <div ref={containerRef} className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Animated gradient blobs */}
-      <div
-        className="absolute w-[600px] h-[600px] rounded-full opacity-20 blur-3xl transition-all duration-1000 ease-out"
-        style={{
-          background: 'radial-gradient(circle, #22D3EE 0%, transparent 70%)',
-          left: isHydrated ? `calc(${mousePos.x}% - 300px)` : '-200px',
-          top: isHydrated ? `calc(${mousePos.y}% - 300px)` : '-200px',
-        }}
-      />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
       <div className="absolute w-96 h-96 rounded-full opacity-15 blur-3xl animate-pulse top-1/4 left-1/4"
         style={{ background: 'radial-gradient(circle, #8B5CF6 0%, transparent 70%)' }}
       />
@@ -93,8 +71,34 @@ export function HeroSection({
   ctaExplore = 'Explore Firms',
   ctaBrokers = 'Get Broker Links',
 }: HeroProps) {
+  const [tickers, setTickers] = useState([
+    { label: 'XAUUSD', value: '$2,418', change: '+0.45%', up: true },
+    { label: 'NQ Futures', value: '18,450', change: '+1.23%', up: true },
+    { label: 'EURUSD', value: '1.0856', change: '-0.12%', up: false },
+  ])
+
+  useEffect(() => {
+    const fetchTickers = async () => {
+      try {
+        const res = await fetch('/api/ticker-prices')
+        const data = await res.json()
+        if (data.success && data.data) {
+          const d = data.data
+          setTickers([
+            { label: 'XAUUSD', value: d.XAUUSD?.value || '$2,418', change: d.XAUUSD?.change || '+0.45%', up: d.XAUUSD?.up !== false },
+            { label: 'NQ Futures', value: d.NQ_Futures?.value || '18,450', change: d.NQ_Futures?.change || '+1.23%', up: d.NQ_Futures?.up !== false },
+            { label: 'EURUSD', value: d.EURUSD?.value || '1.0856', change: d.EURUSD?.change || '-0.12%', up: d.EURUSD?.up !== false },
+          ])
+        }
+      } catch (e) {
+        console.error('Failed to load live tickers', e)
+      }
+    }
+    fetchTickers()
+  }, [])
+
   return (
-    <section className="relative min-h-screen bg-bg-base overflow-hidden pt-20 flex items-center">
+    <section className="relative min-h-screen bg-bg-base overflow-hidden pt-10 flex items-center">
       {/* Dynamic Neon Background */}
       <NeonBackground />
 
@@ -102,13 +106,6 @@ export function HeroSection({
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left Column - Content */}
           <div className="space-y-8">
-            <div className="inline-flex">
-              <AFXBadge variant="live">
-                <span className="w-2 h-2 bg-accent-green rounded-full animate-pulse mr-1.5"></span>
-                LIVE DESK ACTIVE
-              </AFXBadge>
-            </div>
-
             <h1 className="text-5xl md:text-7xl font-bold leading-tight tracking-tight">
               <span className="afx-gradient-heading">{headlinePart1}</span>
               <br />
@@ -171,11 +168,7 @@ export function HeroSection({
                   ⚡ INTELLIGENCE DECK
                 </div>
                 <div className="space-y-3 text-left">
-                  {[
-                    { label: 'XAUUSD', value: '$2,418', change: '+0.45%', up: true },
-                    { label: 'NQ Futures', value: '18,450', change: '+1.23%', up: true },
-                    { label: 'EURUSD', value: '1.0856', change: '-0.12%', up: false },
-                  ].map((item) => (
+                  {tickers.map((item) => (
                     <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-border-subtle/30 last:border-0">
                       <span className="text-xs text-text-muted font-mono">{item.label}</span>
                       <div className="text-right">

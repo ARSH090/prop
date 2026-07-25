@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { AFXButton } from '@/components/ui/afx-button'
 import {
   ChevronDown,
@@ -24,6 +24,7 @@ import {
   Globe,
   Percent,
   Home,
+  Users,
 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 import { signOut } from 'firebase/auth'
@@ -42,6 +43,7 @@ const toolsLinks = [
   { label: 'Broker Spreads', href: '/spreads', icon: ArrowUpDown },
   { label: 'Payout Proofs', href: '/payouts', icon: DollarSign },
   { label: 'Payout Leaderboard', href: '/leaderboard', icon: Trophy },
+  { label: 'Industry Awards', href: '/awards', icon: Award },
   { label: 'Demo Accounts', href: '/demo-accounts', icon: Globe },
 ]
 
@@ -52,6 +54,7 @@ const mainNavLinks = [
   { label: 'Deals', href: '/deals', icon: Percent },
   { label: 'Best Sellers', href: '/best-sellers', icon: Star },
   { label: 'Compare', href: '/compare', icon: BarChart3 },
+  { label: 'Community', href: '/community', icon: Users },
   { label: 'Blog', href: '/blog', icon: BookOpen },
   { label: 'Events', href: '/events', icon: Calendar },
 ]
@@ -81,12 +84,14 @@ const mobileMenuCategories = [
       { label: 'Broker Spreads', href: '/spreads', icon: ArrowUpDown },
       { label: 'Payout Proofs', href: '/payouts', icon: DollarSign },
       { label: 'Payout Leaderboard', href: '/leaderboard', icon: Trophy },
+      { label: 'Industry Awards', href: '/awards', icon: Award },
       { label: 'Demo Accounts', href: '/demo-accounts', icon: Globe },
     ],
   },
   {
     title: 'COMMUNITY',
     links: [
+      { label: 'Discussions Hub', href: '/community', icon: Users },
       { label: 'Blog & Guides', href: '/blog', icon: BookOpen },
       { label: 'Events', href: '/events', icon: Calendar },
     ],
@@ -101,6 +106,45 @@ export function NavBar({ links = mainNavLinks }: NavBarProps) {
   const toolsCloseTimer = useRef<NodeJS.Timeout | null>(null)
   const userMenuCloseTimer = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
+  const pathname = usePathname()
+
+  // Allowed routes where the persistent category bar is visible
+  const allowedPaths = [
+    '/', '/futures', '/crypto',
+    '/challenges', '/futures/challenges', '/crypto/challenges',
+    '/deals', '/futures/deals', '/crypto/deals',
+    '/best-sellers', '/futures/best-sellers', '/crypto/best-sellers',
+    '/leaderboard', '/futures/leaderboard', '/crypto/leaderboard',
+    '/reviews', '/futures/reviews', '/crypto/reviews'
+  ]
+
+  const isTabVisible = allowedPaths.includes(pathname)
+
+  // Determine active category and relative path
+  let activeCategory = 'forex'
+  let relativePath = pathname
+
+  if (pathname.startsWith('/futures')) {
+    activeCategory = 'futures'
+    relativePath = pathname.replace('/futures', '') || '/'
+  } else if (pathname.startsWith('/crypto')) {
+    activeCategory = 'crypto'
+    relativePath = pathname.replace('/crypto', '') || '/'
+  }
+
+  if (!relativePath.startsWith('/')) {
+    relativePath = '/' + relativePath
+  }
+
+  const handleCategoryChange = (newCat: string) => {
+    let targetPath = ''
+    if (newCat === 'forex') {
+      targetPath = relativePath
+    } else {
+      targetPath = `/${newCat}${relativePath === '/' ? '' : relativePath}`
+    }
+    router.push(targetPath)
+  }
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
@@ -287,6 +331,35 @@ export function NavBar({ links = mainNavLinks }: NavBarProps) {
           </div>
         </div>
       </nav>
+
+      {isTabVisible && (
+        <div className="bg-transparent py-1">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex justify-center">
+            <div className="flex items-center gap-1 bg-bg-base border border-border-default rounded-full p-1 shadow-lg shadow-black/20 animate-fade-in-up">
+              {[
+                { id: 'forex', label: 'Forex' },
+                { id: 'futures', label: 'Futures' },
+                { id: 'crypto', label: 'Crypto' },
+              ].map((tab) => {
+                const isActive = activeCategory === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleCategoryChange(tab.id)}
+                    className={`relative px-5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-cta text-bg-base shadow-md shadow-cyan-500/10'
+                        : 'text-text-secondary hover:text-text-primary bg-transparent'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Menu Overlay */}
       {mobileOpen && (

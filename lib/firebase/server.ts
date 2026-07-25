@@ -529,3 +529,20 @@ export async function getFavorites(userId: string): Promise<any[]> {
     return []
   }
 }
+
+export async function getCommentsCountForFirms(): Promise<Record<string, number>> {
+  try {
+    const snapshot = await db.collection('comments').where('status', '==', 'visible').get()
+    const counts: Record<string, number> = {}
+    snapshot.forEach((doc: any) => {
+      const data = doc.data()
+      if (data.firm_id) {
+        counts[data.firm_id] = (counts[data.firm_id] || 0) + 1
+      }
+    })
+    return counts
+  } catch (e) {
+    console.warn('Firestore read failed for comments count.')
+    return {}
+  }
+}
