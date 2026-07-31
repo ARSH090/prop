@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
 import { AFXCard } from '@/components/ui/afx-card'
@@ -35,24 +36,37 @@ function DiamondIcon({ className = "w-5 h-5" }: { className?: string }) {
 }
 
 export default function LoyaltyPage() {
+  const router = useRouter()
   const [activeMenu, setActiveMenu] = useState('Overview')
   const [loyaltyTab, setLoyaltyTab] = useState<'Accounts' | 'History'>('Accounts')
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [promoCode, setPromoCode] = useState('')
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser(user)
+        setLoading(false)
       } else {
         setCurrentUser(null)
+        setLoading(false)
+        router.push('/auth/login?redirect=/loyalty')
       }
     })
     return unsub
-  }, [])
+  }, [router])
 
-  const userDisplayName = currentUser?.displayName || 'Anuraj Barala'
-  const userEmail = currentUser?.email || 'anurajkumarjaat@gmail.com'
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bg-base flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-accent-cyan border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  const userDisplayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Trader'
+  const userEmail = currentUser?.email || ''
   const userInitials = userDisplayName.charAt(0).toUpperCase()
 
   const sidebarMenuItems = [

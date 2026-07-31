@@ -13,12 +13,12 @@ export const metadata = {
 const EVENTS = [
   {
     id: 'evt-1',
-    title: 'ANURAJ FX Trading Tournament Q3 2025',
+    title: 'ANURAJ FX Trading Tournament Q3 2026',
     type: 'tournament',
     image_url: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80',
     description:
       'Compete in a 2-week live trading tournament with a $10,000 prize pool. Trade XAUUSD, NQ, and EURUSD on demo accounts. Top 10 traders win cash prizes and prop firm vouchers.',
-    date: 'August 15–29, 2025',
+    date: 'August 15–29, 2026',
     time: '9:00 AM – Market Close (IST)',
     format: 'Online (Demo Trading)',
     seats: 500,
@@ -34,7 +34,7 @@ const EVENTS = [
     image_url: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
     description:
       'Intensive 3-day online bootcamp covering prop firm rules, risk management, challenge strategies, and how to pass FTMO, TopStep, and 5ers evaluations. Includes live mentoring.',
-    date: 'July 28–30, 2025',
+    date: 'July 28–30, 2026',
     time: '7:00 PM – 10:00 PM (IST)',
     format: 'Online (Zoom)',
     seats: 100,
@@ -65,7 +65,7 @@ const EVENTS = [
     type: 'tournament',
     description:
       'Week-long crypto futures tournament. Trade BTC, ETH, and SOL futures. Leaderboard ranked by profit % on a fixed starting balance. Entry fee: Free.',
-    date: 'September 1–7, 2025',
+    date: 'September 1–7, 2026',
     time: '24/7 (Open Market Hours)',
     format: 'Online (Demo)',
     seats: 1000,
@@ -80,7 +80,7 @@ const EVENTS = [
     type: 'session',
     description:
       'Expert-level 2-hour session on position sizing, drawdown control, and psychological discipline in prop trading. Case studies from funded traders who have achieved consistent payouts.',
-    date: 'August 3, 2025',
+    date: 'August 3, 2026',
     time: '6:00 PM – 8:00 PM (IST)',
     format: 'Online (Zoom)',
     seats: 200,
@@ -95,7 +95,7 @@ const EVENTS = [
     type: 'gaming',
     description:
       'Fun trading tournament with a gaming twist! Build your portfolio with virtual stocks and forex. Compete for bragging rights and community badges. No real money involved.',
-    date: 'August 10–20, 2025',
+    date: 'August 10–20, 2026',
     time: 'Any time',
     format: 'Online (Web App)',
     seats: 2000,

@@ -9,9 +9,7 @@ import {
   Menu,
   X,
   LogOut,
-  User,
   Star,
-  Settings,
   Building2,
   Award,
   BarChart3,
@@ -25,6 +23,7 @@ import {
   Percent,
   Home,
   Users,
+  Search,
 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 import { signOut } from 'firebase/auth'
@@ -47,16 +46,16 @@ const toolsLinks = [
   { label: 'Demo Accounts', href: '/demo-accounts', icon: Globe },
 ]
 
-const mainNavLinks = [
-  { label: 'Home', href: '/', icon: Home },
-  { label: 'Firms', href: '/firms', icon: Building2 },
-  { label: 'Challenges', href: '/challenges', icon: Award },
-  { label: 'Deals', href: '/deals', icon: Percent },
-  { label: 'Best Sellers', href: '/best-sellers', icon: Star },
-  { label: 'Compare', href: '/compare', icon: BarChart3 },
-  { label: 'Community', href: '/community', icon: Users },
-  { label: 'Blog', href: '/blog', icon: BookOpen },
-  { label: 'Events', href: '/events', icon: Calendar },
+const subNavLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'Offers', href: '/deals' },
+  { label: 'Challenges', href: '/challenges' },
+  { label: 'Best Sellers', href: '/best-sellers' },
+  { label: 'Reviews', href: '/reviews' },
+  { label: 'Favorite Firms', href: '/favorites' },
+  { label: 'Prop Firm Rules', href: '/rules' },
+  { label: 'Spreads', href: '/spreads' },
+  { label: 'Payouts', href: '/payouts' },
 ]
 
 const mobileMenuCategories = [
@@ -98,7 +97,7 @@ const mobileMenuCategories = [
   },
 ]
 
-export function NavBar({ links = mainNavLinks }: NavBarProps) {
+export function NavBar({ links = subNavLinks }: NavBarProps) {
   const [toolsOpen, setToolsOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -107,18 +106,6 @@ export function NavBar({ links = mainNavLinks }: NavBarProps) {
   const userMenuCloseTimer = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const pathname = usePathname()
-
-  // Allowed routes where the persistent category bar is visible
-  const allowedPaths = [
-    '/', '/futures', '/crypto',
-    '/challenges', '/futures/challenges', '/crypto/challenges',
-    '/deals', '/futures/deals', '/crypto/deals',
-    '/best-sellers', '/futures/best-sellers', '/crypto/best-sellers',
-    '/leaderboard', '/futures/leaderboard', '/crypto/leaderboard',
-    '/reviews', '/futures/reviews', '/crypto/reviews'
-  ]
-
-  const isTabVisible = allowedPaths.includes(pathname)
 
   // Determine active category and relative path
   let activeCategory = 'forex'
@@ -143,7 +130,20 @@ export function NavBar({ links = mainNavLinks }: NavBarProps) {
     } else {
       targetPath = `/${newCat}${relativePath === '/' ? '' : relativePath}`
     }
+    // Safeguard to redirect home if on a non-category route
+    const allowedBasePaths = ['/', '/best-sellers', '/challenges', '/deals', '/leaderboard', '/offers', '/reviews']
+    if (!allowedBasePaths.includes(relativePath)) {
+      targetPath = newCat === 'forex' ? '/' : `/${newCat}`
+    }
     router.push(targetPath)
+  }
+
+  const getSubNavLinkHref = (href: string) => {
+    if (activeCategory === 'forex') return href
+    if (href === '/') return `/${activeCategory}`
+    const isGlobalRoute = ['/favorites', '/rules', '/spreads', '/payouts'].includes(href)
+    if (isGlobalRoute) return href
+    return `/${activeCategory}${href}`
   }
 
   useEffect(() => {
@@ -200,59 +200,56 @@ export function NavBar({ links = mainNavLinks }: NavBarProps) {
     <>
       <nav className="sticky top-0 z-50 border-b border-border-subtle bg-bg-surface/80 backdrop-blur-md">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+          
+          {/* Row 1: Brand Logo, Mock Search, Category Switcher & Main Actions */}
+          <div className="flex h-16 items-center justify-between gap-4 border-b border-border-subtle/30">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 text-text-primary shrink-0">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center font-bold text-white text-xs">
-                A
-              </div>
-              <span className="text-lg font-bold">
-                ANURAJ <span className="text-accent-cyan">FX</span>
+            <Link href="/" className="flex items-center gap-3 text-text-primary shrink-0">
+              <img src="/logo.png" alt="EMPIRIAL Logo" className="h-8 w-auto rounded-lg object-contain" />
+              <span className="text-lg font-black tracking-tight afx-gradient-heading">
+                EMPIRIAL
               </span>
             </Link>
 
-            {/* Center Navigation Links — desktop only */}
-            <div className="hidden lg:flex items-center gap-5">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-text-secondary hover:text-accent-cyan transition-colors text-xs font-semibold uppercase tracking-wider"
-                >
-                  {link.label}
-                </Link>
-              ))}
+            {/* Mock Search & Category Switcher Row */}
+            <div className="hidden lg:flex items-center gap-4 flex-1 max-w-xl justify-center">
+              {/* Mock Search */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-base border border-border-subtle w-44 text-text-secondary text-xs">
+                <Search className="w-3.5 h-3.5 text-text-muted" />
+                <span className="text-text-muted">Search...</span>
+              </div>
 
-              {/* Tools Dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={handleToolsMouseEnter}
-                onMouseLeave={handleToolsMouseLeave}
-              >
-                <button className="flex items-center gap-1 text-text-secondary hover:text-accent-cyan transition-colors text-xs font-semibold uppercase tracking-wider focus:outline-none">
-                  Tools
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${toolsOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {toolsOpen && (
-                  <div className="absolute top-6 left-0 w-52 bg-bg-surface border border-border-subtle rounded-xl shadow-xl py-2 mt-1 backdrop-blur-md animate-fade-in z-50">
-                    {toolsLinks.map((tool) => (
-                      <Link
-                        key={tool.href}
-                        href={tool.href}
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
-                        onClick={() => setToolsOpen(false)}
-                      >
-                        <tool.icon className="w-3.5 h-3.5 text-accent-cyan/60" />
-                        {tool.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
+              {/* Category Pills Switcher */}
+              <div className="flex items-center gap-1 bg-bg-base border border-border-subtle rounded-full p-1 shadow-lg shadow-black/10">
+                {[
+                  { id: 'forex', label: 'Forex', badge: null },
+                  { id: 'futures', label: 'Futures', badge: null },
+                  { id: 'crypto', label: 'Crypto', badge: 'NEW' },
+                ].map((tab) => {
+                  const isActive = activeCategory === tab.id
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleCategoryChange(tab.id)}
+                      className={`relative px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                        isActive
+                          ? 'bg-gradient-cta text-bg-base shadow-sm shadow-cyan-500/10'
+                          : 'text-text-secondary hover:text-text-primary bg-transparent'
+                      }`}
+                    >
+                      {tab.label}
+                      {tab.badge && (
+                        <span className="bg-emerald-500 text-white text-[8px] font-black px-1 py-0.5 rounded leading-none">
+                          {tab.badge}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
-            {/* Right-side Actions */}
+            {/* Action Buttons & Hamburger Menu */}
             <div className="flex items-center gap-3">
               {currentUser ? (
                 /* Logged-in User Menu */
@@ -306,83 +303,102 @@ export function NavBar({ links = mainNavLinks }: NavBarProps) {
                   )}
                 </div>
               ) : (
-                <Link href="/auth/login" className="hidden sm:block">
-                  <AFXButton variant="ghost" size="sm">
-                    Sign In
-                  </AFXButton>
-                </Link>
+                <>
+                  <Link href="/auth/login" className="hidden sm:block">
+                    <AFXButton variant="ghost" size="sm">
+                      Sign In
+                    </AFXButton>
+                  </Link>
+                  <Link href="/auth/sign-up" className="hidden sm:block">
+                    <AFXButton variant="primary" size="sm" className="bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base font-bold">
+                      Sign Up
+                    </AFXButton>
+                  </Link>
+                </>
               )}
 
-              <Link href="/deals" className="hidden sm:block">
-                <AFXButton variant="primary" size="sm" className="bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base font-bold">
-                  Get Codes
-                </AFXButton>
-              </Link>
+              {/* Tools Dropdown Button */}
+              <div
+                className="relative hidden lg:block"
+                onMouseEnter={handleToolsMouseEnter}
+                onMouseLeave={handleToolsMouseLeave}
+              >
+                <button className="flex items-center gap-1 text-text-secondary hover:text-accent-cyan transition-colors text-xs font-semibold uppercase tracking-wider focus:outline-none">
+                  Tools
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${toolsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {toolsOpen && (
+                  <div className="absolute top-6 right-0 w-52 bg-bg-surface border border-border-subtle rounded-xl shadow-xl py-2 mt-1 backdrop-blur-md animate-fade-in z-50">
+                    {toolsLinks.map((tool) => (
+                      <Link
+                        key={tool.href}
+                        href={tool.href}
+                        className="flex items-center gap-3 px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
+                        onClick={() => setToolsOpen(false)}
+                      >
+                        <tool.icon className="w-3.5 h-3.5 text-accent-cyan/60" />
+                        {tool.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-              {/* Hamburger — mobile */}
+              {/* Hamburger Button (Always visible on all screen sizes next to actions) */}
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="lg:hidden p-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary hover:border-accent-cyan/40 transition-all"
+                className="p-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary hover:border-accent-cyan/40 transition-all"
                 aria-label="Toggle menu"
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
+
+          {/* Row 2: Sub-navigation links */}
+          <div className="flex h-12 items-center justify-start md:justify-center overflow-x-auto scrollbar-none gap-6 md:gap-8 pt-2 pb-1">
+            {links.map((link) => {
+              const resolvedHref = getSubNavLinkHref(link.href)
+              const isActive = pathname === resolvedHref
+              return (
+                <Link
+                  key={link.href}
+                  href={resolvedHref}
+                  className={`relative pb-2 text-[11px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap ${
+                    isActive 
+                      ? 'text-text-primary border-b-2 border-[#EC4899]' 
+                      : 'text-text-secondary hover:text-text-primary'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
+          </div>
+
         </div>
       </nav>
-
-      {isTabVisible && (
-        <div className="bg-transparent py-1">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex justify-center">
-            <div className="flex items-center gap-1 bg-bg-base border border-border-default rounded-full p-1 shadow-lg shadow-black/20 animate-fade-in-up">
-              {[
-                { id: 'forex', label: 'Forex' },
-                { id: 'futures', label: 'Futures' },
-                { id: 'crypto', label: 'Crypto' },
-              ].map((tab) => {
-                const isActive = activeCategory === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => handleCategoryChange(tab.id)}
-                    className={`relative px-5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-                      isActive
-                        ? 'bg-gradient-cta text-bg-base shadow-md shadow-cyan-500/10'
-                        : 'text-text-secondary hover:text-text-primary bg-transparent'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Mobile Menu Overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Mobile Slide-in Sidebar */}
       <div
-        className={`lg:hidden fixed top-0 right-0 z-50 h-full w-80 max-w-[90vw] bg-bg-surface border-l border-border-subtle flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 z-50 h-full w-80 max-w-[90vw] bg-bg-surface border-l border-border-subtle flex flex-col transition-transform duration-300 ease-in-out ${
           mobileOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-border-subtle">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center font-bold text-white text-xs">
-              A
-            </div>
-            <span className="text-lg font-bold text-text-primary">
-              ANURAJ <span className="text-accent-cyan">FX</span>
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="EMPIRIAL Logo" className="h-8 w-auto rounded-lg object-contain" />
+            <span className="text-lg font-black tracking-tight text-text-primary">
+              EMPIRIAL
             </span>
           </div>
           <button
@@ -424,6 +440,32 @@ export function NavBar({ links = mainNavLinks }: NavBarProps) {
 
         {/* Mobile Navigation Categories */}
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+          {/* Mobile Category pills switcher */}
+          <div className="px-3 mb-4">
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2">Category</p>
+            <div className="flex items-center gap-1 bg-bg-base border border-border-subtle rounded-full p-1 shadow-lg w-full justify-around">
+              {['forex', 'futures', 'crypto'].map((tab) => {
+                const isActive = activeCategory === tab
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => {
+                      handleCategoryChange(tab)
+                      setMobileOpen(false)
+                    }}
+                    className={`relative px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex-1 text-center ${
+                      isActive
+                        ? 'bg-gradient-cta text-bg-base'
+                        : 'text-text-secondary hover:text-text-primary bg-transparent'
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           {mobileMenuCategories.map((category) => (
             <div key={category.title}>
               <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-3 mb-2">{category.title}</p>

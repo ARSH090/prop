@@ -1,11 +1,13 @@
 import { NavBar } from '@/components/nav/nav-bar'
 import { HeroSection } from '@/components/home/hero'
+import { ExplainerCards } from '@/components/home/explainer-cards'
 import { FeaturedFirms } from '@/components/home/featured-firms'
 import { TrustStats } from '@/components/home/trust-stats'
 import { LiveTickers } from '@/components/home/live-tickers'
 import { FeaturedDeals } from '@/components/home/featured-deals'
 import { BlogPreview } from '@/components/home/blog-preview'
 import { Newsletter } from '@/components/home/newsletter'
+import { HomeFAQ } from '@/components/home/faq'
 import { Footer } from '@/components/footer'
 import { LogoMarquee } from '@/components/home/logo-marquee'
 import { CursorGlow } from '@/components/home/cursor-glow'
@@ -17,6 +19,12 @@ import {
   getTickers,
   getBlogs,
 } from '@/lib/firebase/server'
+
+export const metadata = {
+  title: 'ANURAJ FX - Compare Prop Firms & Broker Commands',
+  description: 'The primary command center for Indian prop traders. Compare FTMO, Topstep, and FundedNext, copy verified promo codes, verify payouts, and manage practice accounts.',
+  keywords: ['prop firm', 'prop trading', 'forex prop firm', 'futures challenge', 'FTMO review', 'fundednext code', 'india prop trading'],
+}
 
 export default async function Home({ params }: { params?: Promise<{ category?: string }> }) {
   const resolvedParams = params ? await params : null
@@ -67,6 +75,7 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
   // Dynamic Section Reordering ordered by Admin configuration (including marquee)
   const sectionOrder = homeContent.section_order || [
     'hero',
+    'explainer_cards',
     'featured_firms',
     'verified_firms',
     'trust_stats',
@@ -92,8 +101,11 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
                 subtext={homeContent.hero_subtext}
                 ctaExplore={homeContent.hero_cta_explore}
                 ctaBrokers={homeContent.hero_cta_brokers}
+                discordUrl={homeContent.discord_url}
               />
             )
+          case 'explainer_cards':
+            return <ExplainerCards key="explainer_cards" />
           case 'featured_firms':
             return <FeaturedFirms key="featured_firms" firms={featuredFirms} />
           case 'verified_firms':
@@ -106,10 +118,9 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
             )
           case 'trust_stats':
             return <TrustStats key="trust_stats" stats={trustStats} />
-          case 'live_tickers':
-            return <LiveTickers key="live_tickers" tickers={tickers} />
+
           case 'latest_deals':
-            return <FeaturedDeals key="latest_deals" />
+            return <FeaturedDeals key="latest_deals" deals={filteredDeals} />
           case 'blog_preview':
             return <BlogPreview key="blog_preview" posts={blogs} />
           case 'newsletter':
@@ -118,6 +129,8 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
             return null
         }
       })}
+
+      <HomeFAQ />
 
       <Footer />
     </main>

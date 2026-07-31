@@ -9,10 +9,33 @@
   - [x] Update `app/challenges/ChallengesClient.tsx` to use `RatingBadge`
   - [x] Update `app/firms/[slug]/page.tsx` to use `RatingBadge`
   - [x] Update `app/firms/page.tsx` to use `RatingBadge`
+- [x] Implement backend/frontend for user payout submissions & admin approvals:
+  - [x] Create public API POST handler `/api/payouts` that sets `is_verified: false` and `status: 'pending'`.
+  - [x] Update `app/payouts/PayoutsClient.tsx` to handle file uploads, show thumbnail preview, and post form data.
 - [x] Category tabs global rollout (Item 4)
   - [x] Implement persistent Category Tab Bar in `components/nav/nav-bar.tsx`
   - [x] Set up route groups under `app/[category]`
   - [x] Filter Firestore data in Home, Challenges, Deals, Best Sellers, Leaderboard, and Reviews page components
+- [x] Clean up Home page & FAQ section:
+  - [x] Delete "How does Anuraj FX make money?" item from `components/home/faq.tsx`.
+- [x] Upgrade year occurrences to 2026:
+  - [x] Update events pages tournament years in `app/events/page.tsx` and `app/admin/events/page.tsx` from 2025 to 2026.
+  - [x] Remove `live_tickers` rendering section from `app/page.tsx`.
+- [x] Redesign payout notifications toast:
+  - [x] Implement `getCleanLogoUrl` inside `components/ui/notification-toast.tsx`.
+  - [x] Replace dollar sign icon with the selected prop firm's brand logo.
+  - [x] Apply extra-bold fonts (`font-black`/`font-extrabold`) and high-contrast colorings to text strings.
+- [x] Fix challenges filter logic:
+  - [x] Implement useEffect in `ChallengesClient.tsx` to reset `currentPage` to 1 when filters change.
+  - [x] Dynamically construct unique account sizes from `initialChallenges`.
+  - [x] Replace hardcoded size select values with dynamically constructed size options.
+- [x] Add bold text and premium styling to the comparison table:
+  - [x] Upgrade header fonts to bold.
+  - [x] Style numbers and metrics using extra-bold font weights.
+- [x] Implement hover animations:
+  - [x] Update table row `tr` styles to include hover transformations, custom left border glow, scale transitions, and shadow animations.
+  - [x] Style the dynamic select dropdowns and pills with smooth animations.
+- [x] Verify the changes manually/locally.
 - [x] Remove old section / insert Verified Firms logo strip (Items 5–7)
   - [x] Remove redundant local category switchers in homepage and challenges page
   - [x] Create `components/home/logo-marquee.tsx` auto-scrolling strip

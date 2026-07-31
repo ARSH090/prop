@@ -63,6 +63,36 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
   })
   const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [uploading, setUploading] = useState(false)
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.url) {
+          setSubmitForm((p) => ({ ...p, proof_image_url: data.url }))
+        }
+      } else {
+        const errorData = await res.json()
+        alert(errorData.error || 'Upload failed')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error uploading file')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => setCurrentUser(user))
@@ -376,12 +406,41 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-text-muted uppercase">Proof Image URL (screenshot)</label>
-                  <input type="url" value={submitForm.proof_image_url}
-                    onChange={(e) => setSubmitForm((p) => ({ ...p, proof_image_url: e.target.value }))}
-                    placeholder="https://... (link to payout screenshot)"
-                    className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none" />
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-text-muted uppercase">Upload Payout Receipt (File)</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="w-full text-xs text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-accent-cyan/15 file:text-accent-cyan hover:file:bg-accent-cyan/25 file:cursor-pointer"
+                    />
+                    {uploading && <p className="text-[10px] text-accent-cyan animate-pulse">Uploading file...</p>}
+                  </div>
+
+                  {submitForm.proof_image_url && (
+                    <div className="w-full h-32 rounded-xl overflow-hidden border border-border-subtle bg-bg-base relative">
+                      <img src={submitForm.proof_image_url} alt="Upload preview" className="w-full h-full object-contain" />
+                      <button
+                        type="button"
+                        onClick={() => setSubmitForm((p) => ({ ...p, proof_image_url: '' }))}
+                        className="absolute top-2 right-2 p-1 rounded-full bg-black/70 hover:bg-black text-white text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-text-muted uppercase">Or Paste Proof Image URL</label>
+                    <input
+                      type="url"
+                      value={submitForm.proof_image_url}
+                      onChange={(e) => setSubmitForm((p) => ({ ...p, proof_image_url: e.target.value }))}
+                      placeholder="https://... (link to payout screenshot)"
+                      className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between gap-4 pt-2 border-t border-border-subtle">

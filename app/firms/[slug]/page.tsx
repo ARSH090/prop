@@ -10,13 +10,22 @@ import { CommentsSection } from '@/components/ui/comments-section'
 
 export const revalidate = 10 // ISR: revalidate every 10 seconds
 
+import { getFirms, getDeals } from '@/lib/firebase/server'
+
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   try {
     const { slug } = await params
     const snapshot = await db.collection('firms').where('slug', '==', slug).limit(1).get()
 
-    if (snapshot.empty) return { title: 'Firm Not Found' }
-    const firm = snapshot.docs[0].data()
+    let firm: any = null
+    if (snapshot.empty) {
+      const allMock = await getFirms()
+      firm = allMock.find((f: any) => f.slug === slug)
+    } else {
+      firm = snapshot.docs[0].data()
+    }
+
+    if (!firm) return { title: 'Firm Not Found' }
 
     return {
       title: `${firm.name} - Prop Firm & Broker Details | ANURAJ FX`,
@@ -31,52 +40,74 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
   const { slug } = await params
   const snapshot = await db.collection('firms').where('slug', '==', slug).limit(1).get()
 
-  if (snapshot.empty) {
-    notFound()
-  }
+  let firm: any = null
+  let isFirestoreEmpty = false
 
-  const firmDoc = snapshot.docs[0]
-  const firm = { id: firmDoc.id, ...firmDoc.data() } as any
+  if (snapshot.empty) {
+    isFirestoreEmpty = true
+    const allMock = await getFirms()
+    firm = allMock.find((f: any) => f.slug === slug)
+    if (!firm) {
+      notFound()
+    }
+  } else {
+    const firmDoc = snapshot.docs[0]
+    firm = { id: firmDoc.id, ...firmDoc.data() } as any
+  }
 
   // 1. Fetch published reviews
   let reviews: any[] = []
-  try {
-    const reviewsSnap = await db
-      .collection('reviews')
-      .where('firm_id', '==', firm.id)
-      .where('status', '==', 'published')
-      .get()
-    reviews = reviewsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
-  } catch (e) {
-    console.warn('Reviews fetch failed, using empty list')
+  if (!isFirestoreEmpty) {
+    try {
+      const reviewsSnap = await db
+        .collection('reviews')
+        .where('firm_id', '==', firm.id)
+        .where('status', '==', 'published')
+        .get()
+      reviews = reviewsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+    } catch (e) {
+      console.warn('Reviews fetch failed, using empty list')
+    }
   }
 
   // 2. Fetch active deals
   let deals: any[] = []
-  try {
-    const dealsSnap = await db
-      .collection('deals')
-      .where('firm_id', '==', firm.id)
-      .where('status', '==', 'active')
-      .get()
-    deals = dealsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
-  } catch (e) {
-    console.warn('Deals fetch failed')
+  if (isFirestoreEmpty) {
+    const allMockDeals = await getDeals()
+    deals = allMockDeals.filter((d: any) => d.firm_id === firm.id && d.status === 'active')
+  } else {
+    try {
+      const dealsSnap = await db
+        .collection('deals')
+        .where('firm_id', '==', firm.id)
+        .where('status', '==', 'active')
+        .get()
+      deals = dealsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+    } catch (e) {
+      console.warn('Deals fetch failed')
+    }
   }
 
   // 3. Fetch similar firms
   let relatedFirms: any[] = []
-  try {
-    const relatedSnap = await db
-      .collection('firms')
-      .where('type', '==', firm.type)
-      .limit(4)
-      .get()
-    relatedFirms = relatedSnap.docs
-      .map((doc: any) => ({ id: doc.id, ...doc.data() }))
-      .filter((f: any) => f.id !== firm.id)
-  } catch (e) {
-    console.warn('Related firms fetch failed')
+  if (isFirestoreEmpty) {
+    const allMockFirms = await getFirms()
+    relatedFirms = allMockFirms
+      .filter((f: any) => f.type === firm.type && f.id !== firm.id)
+      .slice(0, 3)
+  } else {
+    try {
+      const relatedSnap = await db
+        .collection('firms')
+        .where('type', '==', firm.type)
+        .limit(4)
+        .get()
+      relatedFirms = relatedSnap.docs
+        .map((doc: any) => ({ id: doc.id, ...doc.data() }))
+        .filter((f: any) => f.id !== firm.id)
+    } catch (e) {
+      console.warn('Related firms fetch failed')
+    }
   }
 
   const rules = firm.rules || {}

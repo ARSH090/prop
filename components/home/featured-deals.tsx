@@ -1,81 +1,107 @@
 'use client'
 
+import React, { useState } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXBadge } from '@/components/ui/afx-badge'
 
-const deals = [
-  {
-    id: 1,
-    code: 'AFX-VTX25',
-    firm: 'Vertex Trading',
-    discount: '25% OFF',
-    description: 'Challenge discount',
-    expires: '14 days',
-  },
-  {
-    id: 2,
-    code: 'FTMO-SUMMIT50',
-    firm: 'FTMO',
-    discount: '50% OFF',
-    description: 'Evaluation fee waived',
-    expires: '7 days',
-  },
-  {
-    id: 3,
-    code: 'FUNDING-MATCH',
-    firm: 'Fundednext',
-    discount: '30% OFF',
-    description: 'Pro account discount',
-    expires: '21 days',
-  },
-  {
-    id: 4,
-    code: 'ELITE-TRADE100',
-    firm: 'Elite Trading',
-    discount: 'Free Trial',
-    description: '14-day full access',
-    expires: '30 days',
-  },
-]
+interface Deal {
+  id: string
+  code: string
+  title: string
+  discount_label: string
+  description: string
+  expires_at: string
+  firm_id: string
+  is_featured: boolean
+}
 
-export function FeaturedDeals() {
+interface FeaturedDealsProps {
+  deals?: Deal[]
+}
+
+export function FeaturedDeals({ deals = [] }: FeaturedDealsProps) {
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code)
+    setCopiedCode(code)
+    setTimeout(() => setCopiedCode(null), 2000)
+  }
+
+  const daysRemaining = (expiresAt: string) => {
+    if (!expiresAt) return 30
+    const expiryTime = new Date(expiresAt).getTime()
+    const days = Math.ceil((expiryTime - Date.now()) / (1000 * 60 * 60 * 24))
+    return days > 0 ? days : 0
+  }
+
+  // Slice first 4 featured deals to show on homepage
+  const featured = (deals && deals.length > 0 ? deals : [])
+    .filter(d => d.is_featured !== false)
+    .slice(0, 4)
+
+  if (featured.length === 0) return null
+
   return (
-    <section className="py-20 bg-bg-base">
+    <section className="py-20 bg-bg-base border-t border-border-subtle">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold text-text-primary mb-2">Featured Deals</h2>
-          <p className="text-text-secondary">Exclusive verified discount codes updated daily</p>
+        <div className="mb-12 flex justify-between items-end">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/30 mb-4">
+              <span className="text-xs font-bold text-accent-cyan uppercase tracking-wider">PROMOS</span>
+            </div>
+            <h2 className="text-4xl font-extrabold text-text-primary tracking-tight">Featured Coupons & Deals</h2>
+            <p className="text-text-secondary mt-1">Exclusive verified discount codes updated daily</p>
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {deals.map((deal) => (
-            <AFXCard key={deal.id} className="group cursor-pointer hover:border-accent-cyan/50 transition-all">
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-text-muted text-xs uppercase tracking-wider mb-1">
-                      {deal.firm}
-                    </p>
-                    <p className="font-mono text-lg font-bold text-accent-cyan group-hover:text-white transition-colors">
-                      {deal.code}
-                    </p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {featured.map((deal) => {
+            const daysLeft = daysRemaining(deal.expires_at)
+            const isCopied = copiedCode === deal.code
+
+            return (
+              <AFXCard key={deal.id} className="group hover:border-accent-cyan/50 hover:shadow-lg hover:shadow-accent-cyan/5 transition-all duration-300 flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <p className="text-text-muted text-[10px] uppercase font-bold tracking-widest font-mono mb-1">
+                        {deal.firm_id.replace('-', ' ').toUpperCase()}
+                      </p>
+                      <p className="font-mono text-base font-bold text-accent-cyan group-hover:text-white transition-colors">
+                        {deal.code}
+                      </p>
+                    </div>
+                    <AFXBadge variant="code" className="text-xs font-bold font-mono px-2 py-0.5 rounded flex-shrink-0 bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">
+                      {deal.discount_label}
+                    </AFXBadge>
                   </div>
-                  <AFXBadge variant="code">{deal.discount}</AFXBadge>
+
+                  <h4 className="text-sm font-semibold text-text-primary group-hover:text-accent-cyan transition-colors">{deal.title}</h4>
+                  <p className="text-text-secondary text-xs leading-relaxed line-clamp-2">{deal.description}</p>
                 </div>
 
-                <p className="text-text-secondary text-sm">{deal.description}</p>
-
-                <div className="flex items-center justify-between pt-4 border-t border-border-subtle">
-                  <span className="text-text-muted text-xs">Expires in {deal.expires}</span>
-                  <button className="px-3 py-1.5 rounded-lg bg-accent-cyan/10 text-accent-cyan hover:bg-accent-cyan/20 transition-colors text-xs font-semibold">
-                    Copy Code
+                <div className="flex items-center justify-between pt-4 border-t border-border-subtle mt-5">
+                  <span className="text-text-muted text-[10px] font-medium font-mono">
+                    {daysLeft > 0 ? `Expires in ${daysLeft}d` : 'Expires today'}
+                  </span>
+                  <button
+                    onClick={() => handleCopyCode(deal.code)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-all ${
+                      isCopied
+                        ? 'bg-accent-green/20 text-accent-green'
+                        : 'bg-accent-cyan/10 text-accent-cyan hover:bg-accent-cyan/20'
+                    }`}
+                  >
+                    {isCopied ? 'Copied' : 'Copy'}
                   </button>
                 </div>
-              </div>
-            </AFXCard>
-          ))}
+              </AFXCard>
+            )
+          })}
         </div>
       </div>
     </section>
   )
 }
+export default FeaturedDeals

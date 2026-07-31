@@ -1,4 +1,5 @@
 import { db } from '@/lib/firebase/admin'
+import { getDeals, getFirms } from '@/lib/firebase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -13,28 +14,35 @@ export async function GET(request: NextRequest) {
       db.collection('firms').get(),
     ])
 
-    const firmsMap = new Map()
-    firmsSnap.forEach((doc: any) => {
-      const data = doc.data()
-      firmsMap.set(doc.id, { name: data.name, slug: data.slug })
-    })
-
     let deals: any[] = []
-    dealsSnap.forEach((doc: any) => {
-      const data = doc.data()
-      const firm = firmsMap.get(data.firm_id) || null
-      deals.push({
-        id: doc.id,
-        ...data,
-        firm,
+
+    if (dealsSnap.empty) {
+      // Fall back to mock data
+      const [mockDeals, mockFirms] = await Promise.all([getDeals(), getFirms()])
+      const firmsMap = new Map(mockFirms.map((f: any) => [f.id, { name: f.name, slug: f.slug }]))
+      deals = mockDeals.map((d: any) => ({
+        ...d,
+        firm: firmsMap.get(d.firm_id) || null,
+      }))
+    } else {
+      const firmsMap = new Map()
+      firmsSnap.forEach((doc: any) => {
+        const data = doc.data()
+        firmsMap.set(doc.id, { name: data.name, slug: data.slug })
       })
-    })
+
+      dealsSnap.forEach((doc: any) => {
+        const data = doc.data()
+        const firm = firmsMap.get(data.firm_id) || null
+        deals.push({ id: doc.id, ...data, firm })
+      })
+    }
 
     // Sort by is_featured desc, created_at desc
     deals.sort((a, b) => {
       if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1
-      const timeA = a.created_at?.seconds ? a.created_at.seconds * 1000 : new Date(a.created_at).getTime()
-      const timeB = b.created_at?.seconds ? b.created_at.seconds * 1000 : new Date(b.created_at).getTime()
+      const timeA = a.created_at?.seconds ? a.created_at.seconds * 1000 : new Date(a.created_at || 0).getTime()
+      const timeB = b.created_at?.seconds ? b.created_at.seconds * 1000 : new Date(b.created_at || 0).getTime()
       return timeB - timeA
     })
 
@@ -46,7 +54,8 @@ export async function GET(request: NextRequest) {
     const paginatedDeals = deals.slice(offset, offset + limit)
 
     return NextResponse.json({
-      data: paginatedDeals,
+      deals: paginatedDeals,   // primary key for client-side code
+      data: paginatedDeals,    // legacy key for compatibility
       total,
       limit,
       offset,
@@ -56,3 +65,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch deals' }, { status: 500 })
   }
 }
+

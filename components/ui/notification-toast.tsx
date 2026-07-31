@@ -72,6 +72,48 @@ export function NotificationToast({ livePayouts }: { livePayouts?: PayoutNotific
 
   if (!visible || !current) return null
 
+  const getCleanLogoUrl = (name: string) => {
+    const cleanName = name.toLowerCase().trim();
+    
+    if (cleanName.includes('5%ers') || cleanName.includes('5ers') || cleanName.includes('the-5ers')) {
+      return 'https://storage.googleapis.com/prop-firm-match-production-logos/the-5ers.png'
+    }
+    if (cleanName.includes('e8')) {
+      return 'https://storage.googleapis.com/prop-firm-match-production-logos/e8-funding.png'
+    }
+    if (cleanName.includes('ftmo')) {
+      return 'https://storage.googleapis.com/prop-firm-match-production-logos/ftmo.png'
+    }
+    if (cleanName.includes('myfundedfutures') || cleanName.includes('mffu')) {
+      return 'https://storage.googleapis.com/prop-firm-match-production-logos/myfundedfutures.png'
+    }
+    if (cleanName.includes('alpha capital')) {
+      return 'https://storage.googleapis.com/prop-firm-match-production-logos/alpha-capital-group.png'
+    }
+    if (cleanName.includes('take profit')) {
+      return 'https://storage.googleapis.com/prop-firm-match-production-logos/take-profit-trader.png'
+    }
+    if (cleanName.includes('goat funded')) {
+      return 'https://storage.googleapis.com/prop-firm-match-production-logos/goat-funded-trader.png'
+    }
+    if (cleanName.includes('apex')) {
+      return 'https://storage.googleapis.com/prop-firm-match-production-logos/apex-trader-funding.png'
+    }
+    if (cleanName.includes('topstep') || cleanName.includes('top step')) {
+      return 'https://storage.googleapis.com/prop-firm-match-production-logos/topstep.png'
+    }
+    
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      
+    return `https://storage.googleapis.com/prop-firm-match-production-logos/${slug}.png`
+  }
+
+  const logoUrl = getCleanLogoUrl(current.firmName)
   const gradient = FIRM_COLORS[current.firmName] || 'from-cyan-500 to-blue-600'
 
   return (
@@ -82,25 +124,33 @@ export function NotificationToast({ livePayouts }: { livePayouts?: PayoutNotific
     >
       <div className="relative bg-bg-surface border border-border-subtle rounded-2xl p-4 shadow-2xl shadow-black/40 neon-border-cyan overflow-hidden">
         {/* Gradient accent bar */}
-        <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl bg-gradient-to-b ${gradient}`} />
+        <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl bg-gradient-to-b ${gradient}`} />
 
-        <div className="flex items-start gap-3 pl-2">
-          {/* Icon */}
-          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0`}>
-            <DollarSign className="w-4 h-4 text-white" />
+        <div className="flex items-center gap-3.5 pl-2">
+          {/* Logo container showing the selected firm's logo */}
+          <div className="w-10 h-10 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1.5 shrink-0 shadow-md">
+            <img 
+              src={logoUrl} 
+              alt={current.firmName} 
+              className="w-7 h-7 object-contain" 
+              onError={(e) => {
+                // If it fails, fallback to general logo domain replacement
+                (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${current.firmName.toLowerCase().replace(/\s+/g, '-')}.png`
+              }}
+            />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <TrendingUp className="w-3 h-3 text-accent-green shrink-0" />
-              <span className="text-[10px] font-bold text-accent-green uppercase tracking-wider">Live Payout</span>
+            <div className="flex items-center gap-1.5 mb-1">
+              <TrendingUp className="w-3.5 h-3.5 text-accent-green shrink-0 animate-pulse" />
+              <span className="text-[10px] font-black text-accent-green uppercase tracking-widest">Live Payout</span>
             </div>
-            <p className="text-xs text-text-primary font-semibold leading-tight">
-              <span className="text-accent-cyan">{current.traderName}</span> received{' '}
-              <span className="text-accent-green font-bold">{formatAmount(current.amount)}</span>
+            <p className="text-xs text-text-primary font-black leading-tight">
+              <span className="text-accent-cyan font-black">{current.traderName}</span> received{' '}
+              <span className="text-accent-green font-black text-sm">{formatAmount(current.amount)}</span>
             </p>
-            <p className="text-[10px] text-text-muted font-mono mt-0.5">
+            <p className="text-[10px] text-text-secondary font-mono mt-1 font-extrabold uppercase tracking-wide">
               {current.firmName} · {current.accountSize} account · {current.region}
             </p>
           </div>

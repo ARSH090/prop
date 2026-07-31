@@ -4,6 +4,7 @@ import { AFXButton } from '@/components/ui/afx-button'
 import { AFXBadge } from '@/components/ui/afx-badge'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { PropGlobe } from '@/components/home/prop-globe'
 
 interface HeroProps {
   headlinePart1?: string
@@ -11,6 +12,7 @@ interface HeroProps {
   subtext?: string
   ctaExplore?: string
   ctaBrokers?: string
+  discordUrl?: string
 }
 
 // Neon cursor-aware glow background component
@@ -65,38 +67,13 @@ function NeonBackground() {
 }
 
 export function HeroSection({
-  headlinePart1 = 'ANURAJ FX',
-  headlinePart2 = 'Trade Intelligence',
-  subtext = 'Compare prop firms, grab verified discount codes, and access regulated brokers—all in one command center for Indian traders.',
+  headlinePart1 = 'EMPIRIAL',
+  headlinePart2 = 'Building Empires',
+  subtext = 'Compare prop firms, grab verified discount codes, and access our trading community—all in one command center for Indian traders.',
   ctaExplore = 'Explore Firms',
-  ctaBrokers = 'Get Broker Links',
+  ctaBrokers = 'Join Discord',
+  discordUrl = 'https://discord.gg/empirial',
 }: HeroProps) {
-  const [tickers, setTickers] = useState([
-    { label: 'XAUUSD', value: '$2,418', change: '+0.45%', up: true },
-    { label: 'NQ Futures', value: '18,450', change: '+1.23%', up: true },
-    { label: 'EURUSD', value: '1.0856', change: '-0.12%', up: false },
-  ])
-
-  useEffect(() => {
-    const fetchTickers = async () => {
-      try {
-        const res = await fetch('/api/ticker-prices')
-        const data = await res.json()
-        if (data.success && data.data) {
-          const d = data.data
-          setTickers([
-            { label: 'XAUUSD', value: d.XAUUSD?.value || '$2,418', change: d.XAUUSD?.change || '+0.45%', up: d.XAUUSD?.up !== false },
-            { label: 'NQ Futures', value: d.NQ_Futures?.value || '18,450', change: d.NQ_Futures?.change || '+1.23%', up: d.NQ_Futures?.up !== false },
-            { label: 'EURUSD', value: d.EURUSD?.value || '1.0856', change: d.EURUSD?.change || '-0.12%', up: d.EURUSD?.up !== false },
-          ])
-        }
-      } catch (e) {
-        console.error('Failed to load live tickers', e)
-      }
-    }
-    fetchTickers()
-  }, [])
-
   return (
     <section className="relative min-h-screen bg-bg-base overflow-hidden pt-10 flex items-center">
       {/* Dynamic Neon Background */}
@@ -126,7 +103,7 @@ export function HeroSection({
                   {ctaExplore}
                 </AFXButton>
               </Link>
-              <Link href="/brokers">
+              <a href={discordUrl} target="_blank" rel="noopener noreferrer">
                 <AFXButton
                   variant="secondary"
                   size="lg"
@@ -134,7 +111,7 @@ export function HeroSection({
                 >
                   {ctaBrokers}
                 </AFXButton>
-              </Link>
+              </a>
             </div>
 
             {/* Quick Stats */}
@@ -162,24 +139,8 @@ export function HeroSection({
               {/* Glow orbs */}
               <div className="absolute w-60 h-60 rounded-full bg-gradient-to-br from-accent-cyan/15 to-accent-purple/20 blur-2xl animate-pulse" />
 
-              {/* Center card */}
-              <div className="relative border border-border-subtle/60 bg-bg-card/60 rounded-3xl p-8 backdrop-blur-xl text-center max-w-xs shadow-2xl shadow-accent-cyan/5">
-                <div className="text-accent-cyan font-bold tracking-wider text-sm mb-3 font-mono">
-                  ⚡ INTELLIGENCE DECK
-                </div>
-                <div className="space-y-3 text-left">
-                  {tickers.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-border-subtle/30 last:border-0">
-                      <span className="text-xs text-text-muted font-mono">{item.label}</span>
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-text-primary font-mono block">{item.value}</span>
-                        <span className={`text-[10px] font-mono ${item.up ? 'text-accent-green' : 'text-red-400'}`}>{item.change}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 text-[10px] text-text-muted font-mono opacity-60">Powered by ANURAJ FX</div>
-              </div>
+              {/* 2D Globe Component */}
+              <PropGlobe />
             </div>
           </div>
         </div>

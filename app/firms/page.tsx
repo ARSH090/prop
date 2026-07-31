@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Star, Filter, Search, CheckCircle } from 'lucide-react'
+import { Filter, Search, CheckCircle, Tag, Globe, Heart, Trophy, Flame } from 'lucide-react'
 import { NavBar } from '@/components/nav/nav-bar'
-import { RatingBadge } from '@/components/ui/rating-badge'
 import { Footer } from '@/components/footer'
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  CZ: '🇨🇿', US: '🇺🇸', IL: '🇮🇱', AE: '🇦🇪', GB: '🇬🇧',
+  IN: '🇮🇳', AU: '🇦🇺', CY: '🇨🇾', HU: '🇭🇺', EU: '🇪🇺',
+}
 
 interface Firm {
   id: string
@@ -23,36 +27,119 @@ interface Firm {
   max_allocation: number | null
   description: string
   website_url: string | null
+  years_active?: number
+}
+
+const getCleanLogoUrl = (name: string, url: string | null) => {
+  if (url && url.startsWith('http') && !url.includes('images.unsplash.com') && !url.includes('ftmo.com/wp-content/themes') && !url.includes('the5ers.com/wp-content')) {
+    return url
+  }
+  const cleanName = name.toLowerCase().trim();
+  
+  if (cleanName.includes('5%ers') || cleanName.includes('5ers')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/the-5ers.png'
+  }
+  if (cleanName.includes('e8')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/e8-funding.png'
+  }
+  if (cleanName.includes('ftmo')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/ftmo.png'
+  }
+  if (cleanName.includes('myfundedfutures') || cleanName.includes('mffu')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/myfundedfutures.png'
+  }
+  if (cleanName.includes('alpha capital')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/alpha-capital-group.png'
+  }
+  if (cleanName.includes('take profit')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/take-profit-trader.png'
+  }
+  if (cleanName.includes('goat funded')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/goat-funded-trader.png'
+  }
+  if (cleanName.includes('apex')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/apex-trader-funding.png'
+  }
+  
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    
+  return `https://storage.googleapis.com/prop-firm-match-production-logos/${slug}.png`
 }
 
 export default function FirmsPage() {
   const [firms, setFirms] = useState<Firm[]>([])
+  const [deals, setDeals] = useState<Record<string, { code: string; discount: string }>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
-  const [minRating, setMinRating] = useState(0)
-  const [sortBy, setSortBy] = useState('rating')
+  const [activeFilterTab, setActiveFilterTab] = useState<'all' | 'popular' | 'favorite' | 'new'>('all')
+  const [favoriteFirms, setFavoriteFirms] = useState<string[]>([])
   const [firmType, setFirmType] = useState('prop_firm')
 
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('afx_favorites')
+    if (saved) {
+      try {
+        setFavoriteFirms(JSON.parse(saved))
+      } catch (e) {
+        console.error(e)
+      }
+    }
+  }, [])
+
+  // Fetch firms on state changes
   useEffect(() => {
     fetchFirms()
-  }, [searchQuery, selectedCategories, selectedPlatforms, minRating, sortBy, firmType])
+  }, [searchQuery, activeFilterTab, firmType])
+
+  // Fetch deals on mount
+  useEffect(() => {
+    fetch('/api/deals')
+      .then((r) => r.json())
+      .then((data) => {
+        const map: Record<string, { code: string; discount: string }> = {}
+        ;(data.deals || []).forEach((d: any) => {
+          if (d.firm_id && d.code && d.status === 'active') {
+            map[d.firm_id] = { code: d.code, discount: d.discount_label || 'Discount' }
+          }
+        })
+        setDeals(map)
+      })
+      .catch(() => {})
+  }, [])
 
   const fetchFirms = async () => {
     setIsLoading(true)
     try {
       const params = new URLSearchParams()
       if (searchQuery) params.append('search', searchQuery)
-      if (selectedCategories.length > 0) params.append('categories', selectedCategories.join(','))
-      if (selectedPlatforms.length > 0) params.append('platforms', selectedPlatforms.join(','))
-      if (minRating > 0) params.append('minRating', minRating.toString())
-      params.append('sortBy', sortBy)
       params.append('type', firmType)
+
+      // Apply dynamic sorting inside request parameters
+      if (activeFilterTab === 'popular') {
+        params.append('sortBy', 'rating')
+      } else if (activeFilterTab === 'new') {
+        params.append('sortBy', 'newest')
+      } else {
+        params.append('sortBy', 'featured')
+      }
 
       const response = await fetch(`/api/firms?${params}`)
       const result = await response.json()
-      setFirms(result.firms || [])
+      
+      let fetchedFirms: Firm[] = result.firms || []
+
+      // Client-side favorites filter if that tab is selected
+      if (activeFilterTab === 'favorite') {
+        fetchedFirms = fetchedFirms.filter((f) => favoriteFirms.includes(f.id))
+      }
+
+      setFirms(fetchedFirms)
     } catch (error) {
       console.error('Failed to fetch firms:', error)
     } finally {
@@ -60,216 +147,364 @@ export default function FirmsPage() {
     }
   }
 
-  const toggleCategory = (cat: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-    )
+  const toggleFavorite = (firmId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const updated = favoriteFirms.includes(firmId)
+      ? favoriteFirms.filter((id) => id !== firmId)
+      : [...favoriteFirms, firmId]
+    setFavoriteFirms(updated)
+    localStorage.setItem('afx_favorites', JSON.stringify(updated))
   }
-
-  const togglePlatform = (plat: string) => {
-    setSelectedPlatforms(prev =>
-      prev.includes(plat) ? prev.filter(p => p !== plat) : [...prev, plat]
-    )
-  }
-
-  const categories = ['Forex', 'Futures', 'Crypto']
-  const platforms = ['MT4', 'MT5', 'cTrader', 'NinjaTrader']
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#05070D] text-text-primary">
       <NavBar />
 
-      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-text-primary mb-2">Prop Firms Directory</h1>
-          <p className="text-text-secondary">{firms.length} firms found • Compare features, rules, and exclusive deals</p>
+      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-8">
+        
+        {/* Header section with text */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border-subtle/30 pb-6">
+          <div>
+            <h1 className="text-4xl font-extrabold tracking-tight afx-gradient-heading mb-2">
+              Prop Firms Directory
+            </h1>
+            <p className="text-text-secondary text-sm">
+              Verify payouts, compare years active, platforms, assets, and allocation sizes.
+            </p>
+          </div>
+
+          {/* Search bar inside header block */}
+          <div className="relative w-full md:max-w-xs">
+            <Search className="absolute left-3.5 top-3 w-4 h-4 text-text-muted" />
+            <input
+              type="text"
+              placeholder="Search FTMO, TopStep..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-bg-surface border border-border-subtle rounded-xl text-text-primary text-sm focus:border-accent-cyan outline-none transition-colors"
+            />
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Type Selector */}
-            <div className="afx-card bg-bg-card p-6">
-              <label className="block text-text-primary font-semibold mb-3 flex items-center gap-2">
-                <Filter className="w-4 h-4" />
-                Firm Type
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="type"
-                    checked={firmType === 'prop_firm'}
-                    onChange={() => setFirmType('prop_firm')}
-                    className="w-4 h-4 accent-accent-cyan"
-                  />
-                  <span className="text-text-secondary">Prop Firms</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="type"
-                    checked={firmType === 'broker'}
-                    onChange={() => setFirmType('broker')}
-                    className="w-4 h-4 accent-accent-cyan"
-                  />
-                  <span className="text-text-secondary">Brokers</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Search */}
-            <div className="afx-card bg-bg-card p-6">
-              <label className="block text-text-primary font-semibold mb-3">Search</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-text-muted" />
-                <input
-                  type="text"
-                  placeholder="FTMO, TopStep..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 bg-bg-base border border-border-subtle rounded-lg text-text-primary placeholder:text-text-muted focus:ring-2 focus:ring-accent-cyan outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Sort */}
-            <div className="afx-card bg-bg-card p-6">
-              <label className="block text-text-primary font-semibold mb-3">Sort By</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:ring-2 focus:ring-accent-cyan outline-none text-sm"
+        {/* Filter pills bar matching PropFirmMatch screenshot */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-bg-surface/50 border border-border-subtle/50 p-3 rounded-2xl backdrop-blur-sm">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-1 bg-bg-base/80 p-1 rounded-full border border-border-subtle">
+              <button
+                onClick={() => setActiveFilterTab('all')}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeFilterTab === 'all'
+                    ? 'bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
               >
-                <option value="rating">Top Rated</option>
-                <option value="reviews">Most Reviewed</option>
-                <option value="featured">Featured First</option>
-                <option value="newest">Newest</option>
-              </select>
+                All
+              </button>
+              <button
+                onClick={() => setActiveFilterTab('popular')}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeFilterTab === 'popular'
+                    ? 'bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                <Flame className="w-3.5 h-3.5" />
+                Popular
+              </button>
+              <button
+                onClick={() => setActiveFilterTab('favorite')}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeFilterTab === 'favorite'
+                    ? 'bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
+                Favorite {favoriteFirms.length}/5
+              </button>
+              <button
+                onClick={() => setActiveFilterTab('new')}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeFilterTab === 'new'
+                    ? 'bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                New
+              </button>
             </div>
 
-            {/* Categories */}
-            <div className="afx-card bg-bg-card p-6">
-              <label className="block text-text-primary font-semibold mb-3">Categories</label>
-              <div className="space-y-2">
-                {categories.map((cat) => (
-                  <label key={cat} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(cat.toLowerCase())}
-                      onChange={() => toggleCategory(cat.toLowerCase())}
-                      className="w-4 h-4 rounded bg-bg-base border-border-subtle accent-accent-cyan"
-                    />
-                    <span className="text-text-secondary text-sm">{cat}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Platforms */}
-            <div className="afx-card bg-bg-card p-6">
-              <label className="block text-text-primary font-semibold mb-3">Platforms</label>
-              <div className="space-y-2">
-                {platforms.map((plat) => (
-                  <label key={plat} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedPlatforms.includes(plat)}
-                      onChange={() => togglePlatform(plat)}
-                      className="w-4 h-4 rounded bg-bg-base border-border-subtle accent-accent-cyan"
-                    />
-                    <span className="text-text-secondary text-sm">{plat}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Rating */}
-            <div className="afx-card bg-bg-card p-6">
-              <label className="block text-text-primary font-semibold mb-3">Min Rating</label>
-              <div className="space-y-2">
-                {[0, 3, 4, 4.5].map((rating) => (
-                  <label key={rating} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="rating"
-                      checked={minRating === rating}
-                      onChange={() => setMinRating(rating)}
-                      className="w-4 h-4 accent-accent-cyan"
-                    />
-                    <span className="text-text-secondary text-sm">
-                      {rating === 0 ? 'Any Rating' : `${rating}+ ⭐`}
-                    </span>
-                  </label>
-                ))}
-              </div>
+            {/* Firm Type quick switch radio */}
+            <div className="flex items-center gap-1.5 bg-bg-base/80 px-3 py-1.5 rounded-full border border-border-subtle text-xs">
+              <label className="flex items-center gap-1.5 cursor-pointer font-bold text-text-secondary hover:text-text-primary">
+                <input
+                  type="radio"
+                  name="firm_type"
+                  checked={firmType === 'prop_firm'}
+                  onChange={() => setFirmType('prop_firm')}
+                  className="accent-accent-cyan"
+                />
+                Firms
+              </label>
+              <span className="text-text-muted">|</span>
+              <label className="flex items-center gap-1.5 cursor-pointer font-bold text-text-secondary hover:text-text-primary">
+                <input
+                  type="radio"
+                  name="firm_type"
+                  checked={firmType === 'broker'}
+                  onChange={() => setFirmType('broker')}
+                  className="accent-accent-cyan"
+                />
+                Brokers
+              </label>
             </div>
           </div>
 
-          {/* Firms Grid */}
-          <div className="lg:col-span-3">
-            {isLoading ? (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <p className="text-text-secondary">Loading firms...</p>
-              </div>
-            ) : firms.length > 0 ? (
-              <div className="grid sm:grid-cols-2 gap-6">
-                {firms.map((firm) => (
-                  <Link key={firm.id} href={`/firms/${firm.slug}`}>
-                    <div className="afx-card bg-bg-card p-6 h-full hover:shadow-lg hover:shadow-accent-cyan/20 transition-all cursor-pointer group">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-lg font-bold text-text-primary group-hover:text-accent-cyan transition-colors">
-                              {firm.name}
-                            </h3>
-                            {firm.is_verified && (
-                              <CheckCircle className="w-5 h-5 text-accent-green flex-shrink-0" />
-                            )}
+          <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-start">
+            <button className="px-4 py-1.5 bg-accent-purple/10 border border-accent-purple/30 text-accent-purple hover:bg-accent-purple/20 transition-all rounded-full text-xs font-bold">
+              How We Verify and Rank Firms
+            </button>
+            <div className="flex items-center gap-1.5 text-xs text-text-muted font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Live Data updated 1h ago</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Directory List Container - Using standard HTML table layout for perfect alignment */}
+        <div className="border border-border-subtle bg-bg-surface/20 rounded-3xl p-1 overflow-hidden shadow-2xl relative">
+          
+          <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full border-collapse text-left text-xs text-text-secondary min-w-[1100px]">
+              <thead>
+                <tr className="border-b border-border-subtle/30 bg-bg-surface/40 text-[10px] font-black uppercase tracking-wider text-text-muted select-none">
+                  <th className="px-6 py-4 text-left font-black w-[300px]">Firm</th>
+                  <th className="px-6 py-4 text-center font-black w-[130px]">Rank / Reviews</th>
+                  <th className="px-6 py-4 text-center font-black w-[100px]">Country</th>
+                  <th className="px-6 py-4 text-center font-black w-[140px]">Years in Operation</th>
+                  <th className="px-6 py-4 text-center font-black w-[180px]">Assets</th>
+                  <th className="px-6 py-4 text-center font-black w-[120px]">Platforms</th>
+                  <th className="px-6 py-4 text-center font-black w-[140px]">Max Allocations</th>
+                  <th className="px-6 py-4 text-center font-black w-[140px]">Promo</th>
+                  <th className="px-6 py-4 text-right font-black w-[100px]">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle/30">
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, idx) => (
+                    <tr key={idx} className="animate-pulse">
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded bg-bg-surface shrink-0" />
+                          <div className="w-12 h-12 rounded-xl bg-bg-surface shrink-0" />
+                          <div className="space-y-1">
+                            <div className="w-20 h-4 bg-bg-surface rounded" />
+                            <div className="w-12 h-3 bg-bg-surface rounded" />
                           </div>
                         </div>
-                        {firm.is_featured && (
-                          <span className="afx-badge-live text-xs">Featured</span>
-                        )}
-                      </div>
+                      </td>
+                      <td className="px-6 py-5"><div className="w-12 h-8 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5"><div className="w-10 h-6 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5"><div className="w-10 h-10 rounded-full bg-bg-surface mx-auto" /></td>
+                      <td className="px-6 py-5"><div className="w-24 h-6 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5"><div className="w-16 h-6 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5"><div className="w-20 h-8 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5"><div className="w-20 h-8 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5"><div className="w-16 h-8 bg-bg-surface rounded ml-auto" /></td>
+                    </tr>
+                  ))
+                ) : firms.length > 0 ? (
+                  firms.map((firm, index) => {
+                    const flag = COUNTRY_FLAGS[firm.country || ''] || '🌍'
+                    const dealInfo = deals[firm.id]
+                    const maxK = firm.max_allocation ? `$${(firm.max_allocation / 1000).toFixed(0)}K` : '—'
+                    
+                    // Compute dynamic allocation percentage for progress bar
+                    const allocPct = firm.max_allocation 
+                      ? Math.min(100, Math.max(20, (firm.max_allocation / 2000000) * 100)) 
+                      : 45
 
-                      <p className="text-text-secondary text-sm mb-4 line-clamp-2">{firm.description}</p>
+                    // Rank Badge Logic
+                    const rank = index + 1
+                    const isFav = favoriteFirms.includes(firm.id)
 
-                      <div className="mb-4">
-                        <RatingBadge rating={firm.rating} reviewCount={firm.review_count} fontVariant="sans" />
-                      </div>
+                    // Retrieve clean logo URL using helper function
+                    const logoUrl = getCleanLogoUrl(firm.name, firm.logo_url)
 
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {firm.category?.slice(0, 2).map((cat) => (
-                          <span key={cat} className="afx-badge-code text-xs">
-                            {cat.toUpperCase()}
-                          </span>
-                        ))}
-                      </div>
+                    // Mock dynamic likes count
+                    const likesCount = firm.review_count * 8 + 1240
 
-                      <div className="pt-4 border-t border-border-subtle flex justify-between items-center">
-                        <p className="text-text-secondary text-sm">
-                          <span className="text-text-primary font-semibold">
-                            ${(firm.max_allocation || 50000) / 1000}K
-                          </span>{' '}
-                          max
-                        </p>
-                        <span className="text-accent-cyan text-xs font-semibold group-hover:translate-x-1 transition-transform">
-                          →
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="afx-card bg-bg-card p-12 text-center">
-                <p className="text-text-secondary text-lg">No firms found</p>
-                <p className="text-text-muted text-sm mt-2">Try adjusting your filters</p>
-              </div>
-            )}
+                    return (
+                      <tr
+                        key={firm.id}
+                        className="group hover:bg-bg-surface/20 transition-all duration-300"
+                      >
+                        {/* 1. FIRM COLUMN (Rank + Logo + Name + Likes) */}
+                        <td className="px-6 py-5 align-middle">
+                          <div className="flex items-center gap-4">
+                            {/* Rank Badge */}
+                            <div className="w-6 flex items-center justify-center shrink-0">
+                              {rank === 1 ? (
+                                <Trophy className="w-5 h-5 text-amber-400" />
+                              ) : rank === 2 ? (
+                                <Trophy className="w-5 h-5 text-slate-300" />
+                              ) : rank === 3 ? (
+                                <Trophy className="w-5 h-5 text-amber-600" />
+                              ) : (
+                                <span className="w-5 h-5 rounded-full bg-bg-base border border-border-subtle flex items-center justify-center text-[10px] font-bold text-text-muted">
+                                  {rank}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Logo with drop cyan glow scaling animation */}
+                            <div className="w-12 h-12 rounded-xl border border-border-subtle bg-white flex items-center justify-center overflow-hidden shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+                              <img src={logoUrl} alt={firm.name} className="w-9 h-9 object-contain" onError={(e) => {
+                                // Fallback if image fails to load
+                                (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                              }} />
+                            </div>
+
+                            {/* Name and Heart toggle */}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <h3 className="text-sm font-bold text-text-primary group-hover:text-accent-cyan transition-colors truncate">
+                                  {firm.name}
+                                </h3>
+                                {firm.is_verified && <CheckCircle className="w-3.5 h-3.5 text-accent-green flex-shrink-0" />}
+                              </div>
+                              
+                              {/* Heart Likes Button Toggle */}
+                              <button
+                                onClick={(e) => toggleFavorite(firm.id, e)}
+                                className="flex items-center gap-1 mt-1 text-[10px] text-text-muted hover:text-red-500 transition-colors focus:outline-none"
+                              >
+                                <Heart className={`w-3.5 h-3.5 transition-transform group-hover:scale-105 ${
+                                  isFav ? 'fill-red-500 text-red-500' : 'text-text-muted hover:fill-red-500/20'
+                                }`} />
+                                <span className="font-mono">{likesCount}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 2. RANK / REVIEWS COLUMN */}
+                        <td className="px-6 py-5 text-center align-middle">
+                          <div className="inline-flex flex-col items-center gap-1">
+                            <div className="px-2.5 py-0.5 rounded-lg bg-accent-purple/20 border border-accent-purple/30 text-accent-purple text-xs font-bold">
+                              {firm.rating.toFixed(1)}
+                            </div>
+                            <div className="flex text-amber-400 text-[10px]">★★★★★</div>
+                            <div className="text-[10px] text-text-muted font-bold truncate">
+                              {firm.review_count} reviews
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 3. COUNTRY COLUMN */}
+                        <td className="px-6 py-5 text-center align-middle text-xs font-bold text-text-secondary">
+                          <div className="inline-flex items-center gap-1.5">
+                            <span className="text-base">{flag}</span>
+                            <span>{firm.country || 'US'}</span>
+                          </div>
+                        </td>
+
+                        {/* 4. YEARS IN OPERATION COLUMN */}
+                        <td className="px-6 py-5 text-center align-middle">
+                          <div className="inline-flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full border-2 border-accent-cyan/30 flex items-center justify-center text-xs font-bold text-text-primary bg-bg-base/30 relative">
+                              <span className="absolute inset-0.5 rounded-full border border-dashed border-accent-cyan/50 animate-pulse" />
+                              {firm.years_active || '1'}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 5. ASSETS COLUMN */}
+                        <td className="px-6 py-5 text-center align-middle">
+                          <div className="flex flex-wrap gap-1 justify-center max-w-[180px] mx-auto">
+                            {firm.category?.slice(0, 3).map((cat) => (
+                              <span
+                                key={cat}
+                                className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-bg-base border border-border-subtle text-text-secondary uppercase"
+                              >
+                                {cat}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+
+                        {/* 6. PLATFORMS COLUMN */}
+                        <td className="px-6 py-5 text-center align-middle">
+                          <div className="flex items-center justify-center gap-1">
+                            {firm.platforms?.slice(0, 3).map((plat) => (
+                              <div
+                                key={plat}
+                                className="w-6 h-6 rounded-full bg-bg-base border border-border-subtle flex items-center justify-center text-[8px] font-bold text-text-primary shrink-0"
+                                title={plat}
+                              >
+                                {plat.charAt(0)}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+
+                        {/* 7. MAX ALLOCATIONS COLUMN */}
+                        <td className="px-6 py-5 text-center align-middle">
+                          <div className="inline-flex flex-col items-center">
+                            <span className="text-xs font-bold text-text-primary">{maxK}</span>
+                            
+                            {/* Allocations progress bar */}
+                            <div className="w-20 h-1 bg-bg-base border border-border-subtle rounded-full overflow-hidden mt-1.5">
+                              <div 
+                                className="h-full bg-gradient-to-r from-accent-cyan to-accent-purple rounded-full" 
+                                style={{ width: `${allocPct}%` }} 
+                              />
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 8. PROMO COLUMN */}
+                        <td className="px-6 py-5 text-center align-middle">
+                          {dealInfo ? (
+                            <div className="inline-flex flex-col items-center gap-0.5 bg-accent-yellow/10 border border-accent-yellow/30 px-3 py-1 rounded-xl">
+                              <span className="text-[10px] font-black text-accent-yellow">{dealInfo.discount}</span>
+                              <span className="text-[8px] font-mono text-text-secondary font-bold uppercase tracking-wider">
+                                {dealInfo.code}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-text-muted text-xs">—</span>
+                          )}
+                        </td>
+
+                        {/* 9. ACTIONS COLUMN */}
+                        <td className="px-6 py-5 text-right align-middle">
+                          <Link
+                            href={`/firms/${firm.slug}`}
+                            className="px-4 py-1.5 rounded-full border border-border-subtle text-xs font-bold text-text-primary hover:border-accent-cyan hover:bg-accent-cyan/10 transition-all inline-block text-center"
+                          >
+                            Firm
+                          </Link>
+                        </td>
+                      </tr>
+                    )
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={9} className="p-12 text-center">
+                      <Globe className="w-12 h-12 text-text-muted mx-auto mb-4" />
+                      <p className="text-text-secondary text-lg">No firms found</p>
+                      <p className="text-text-muted text-sm mt-2">Try adjusting your filters or search query</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
+
         </div>
+
       </main>
 
       <Footer />

@@ -1,11 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Search, Filter, Bookmark, Copy, ExternalLink, HelpCircle, Check, ArrowUpDown } from 'lucide-react'
+import Link from 'next/link'
+import { Search, Filter, Bookmark, Copy, ExternalLink, HelpCircle, Check, ArrowUpDown, Flame, Trophy, Heart, ChevronDown } from 'lucide-react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
-import { auth } from '@/lib/firebase/client'
-import { RatingBadge } from '@/components/ui/rating-badge'
 
 interface Challenge {
   id: string
@@ -50,25 +49,86 @@ interface ChallengesClientProps {
   deals: Deal[]
 }
 
+const getCleanLogoUrl = (name: string, url: string | null) => {
+  if (url && url.startsWith('http') && !url.includes('images.unsplash.com') && !url.includes('ftmo.com/wp-content/themes') && !url.includes('the5ers.com/wp-content')) {
+    return url
+  }
+  const cleanName = name.toLowerCase().trim();
+  
+  if (cleanName.includes('5%ers') || cleanName.includes('5ers')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/the-5ers.png'
+  }
+  if (cleanName.includes('e8')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/e8-funding.png'
+  }
+  if (cleanName.includes('ftmo')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/ftmo.png'
+  }
+  if (cleanName.includes('myfundedfutures') || cleanName.includes('mffu')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/myfundedfutures.png'
+  }
+  if (cleanName.includes('alpha capital')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/alpha-capital-group.png'
+  }
+  if (cleanName.includes('take profit')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/take-profit-trader.png'
+  }
+  if (cleanName.includes('goat funded')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/goat-funded-trader.png'
+  }
+  if (cleanName.includes('apex')) {
+    return 'https://storage.googleapis.com/prop-firm-match-production-logos/apex-trader-funding.png'
+  }
+  
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    
+  return `https://storage.googleapis.com/prop-firm-match-production-logos/${slug}.png`
+}
+
+const forexOffersMock = [
+  { name: 'The5ers', rating: '4.7', discount: '10% OFF', code: 'MATCH', logo: null },
+  { name: 'FundingPips', rating: '4.2', discount: '20% OFF', code: 'MATCH', logo: null },
+  { name: 'Trade The Pool', rating: 'Less than 20 reviews', discount: '10% OFF', code: 'MATCH', logo: null },
+  { name: 'Goat Funded Trader', rating: '4.7', discount: '45% OFF', code: 'MATCH45', logo: null },
+  { name: 'E8 Markets', rating: '4.8', discount: '25% OFF', code: 'MATCH', logo: null },
+  { name: 'Hola Prime', rating: '4.2', discount: '20% OFF', code: 'MATCH20', logo: null }
+]
+
+const futuresFirmsMock = [
+  { rank: 1, name: 'Lucid Trading', rating: '4.6', discount: '30% OFF', code: 'MATCH', logo: null },
+  { rank: 2, name: 'My Funded Futures', rating: '4.5', discount: '50% OFF', code: 'MATCH', logo: null },
+  { rank: 3, name: 'Tradeify', rating: '4.7', discount: '40% OFF', code: 'MATCH', logo: null }
+]
+
 export default function ChallengesClient({
   initialChallenges,
   firms,
   deals,
 }: ChallengesClientProps) {
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [favorites, setFavorites] = useState<string[]>([])
+  const [favoriteFirms, setFavoriteFirms] = useState<string[]>([])
+
+  // Dynamically extract unique sizes from the full initial challenges list
+  const uniqueSizes = Array.from(
+    new Set(initialChallenges.map((c) => c.account_size))
+  ).sort((a, b) => a - b)
   
   // Filters & State
   const [search, setSearch] = useState('')
   const [showDrawer, setShowDrawer] = useState(false)
   const [filterFirm, setFilterFirm] = useState('all')
+  const [filterCategory, setFilterCategory] = useState('all')
   const [filterSteps, setFilterSteps] = useState('all')
   const [filterSize, setFilterSize] = useState('all')
   const [filterMaxPrice, setFilterMaxPrice] = useState('')
 
   // Toggles
-  const [applyDiscount, setApplyDiscount] = useState(false)
-  const [sortByPopularity, setSortByPopularity] = useState(false)
+  const [applyDiscount, setApplyDiscount] = useState(true)
+  const [sortByPopularity, setSortByPopularity] = useState(true)
   const [viewBookmarksOnly, setViewBookmarksOnly] = useState(false)
 
   // Sortable headers state
@@ -83,55 +143,31 @@ export default function ChallengesClient({
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
-  // Auth & Bookmarks synchronization
+  // Reset pagination to first page when search/filter criteria change
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setCurrentUser(user)
-        fetchFavorites(user.uid)
-      } else {
-        setCurrentUser(null)
-        setFavorites([])
+    setCurrentPage(1)
+  }, [search, filterFirm, filterCategory, filterSteps, filterSize, filterMaxPrice, viewBookmarksOnly, sortByPopularity, applyDiscount])
+
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('afx_favorites')
+    if (saved) {
+      try {
+        setFavoriteFirms(JSON.parse(saved))
+      } catch (e) {
+        console.error(e)
       }
-    })
-    return unsub
+    }
   }, [])
 
-  const fetchFavorites = async (uid: string) => {
-    try {
-      const res = await fetch(`/api/favorites?user_id=${uid}`)
-      if (res.ok) {
-        const json = await res.json()
-        setFavorites(json.data?.map((f: any) => f.firm_id) || [])
-      }
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const handleToggleBookmark = async (firmId: string) => {
-    if (!currentUser) {
-      alert('Please Sign In to bookmark your favorite firms!')
-      return
-    }
-
-    try {
-      const res = await fetch('/api/favorites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: currentUser.uid, firm_id: firmId }),
-      })
-      if (res.ok) {
-        const result = await res.json()
-        if (result.bookmarked) {
-          setFavorites((prev) => [...prev, firmId])
-        } else {
-          setFavorites((prev) => prev.filter((id) => id !== firmId))
-        }
-      }
-    } catch (err) {
-      console.error(err)
-    }
+  const handleToggleBookmark = (firmId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const updated = favoriteFirms.includes(firmId)
+      ? favoriteFirms.filter((id) => id !== firmId)
+      : [...favoriteFirms, firmId]
+    setFavoriteFirms(updated)
+    localStorage.setItem('afx_favorites', JSON.stringify(updated))
   }
 
   const getFirm = (firmId: string) => {
@@ -144,7 +180,6 @@ export default function ChallengesClient({
   }
 
   const handleBuyClick = async (challenge: Challenge) => {
-    // Log click count via POST api/deals/id/click or similar
     try {
       await fetch(`/api/deals/${challenge.deal_id || 'challenge'}/click`, { method: 'POST' })
     } catch (e) {
@@ -172,7 +207,6 @@ export default function ChallengesClient({
   // Filter & Sort Pipeline
   let challenges = [...initialChallenges]
 
-  // 2. Search Filter (by firm name)
   if (search) {
     challenges = challenges.filter((c) => {
       const f = getFirm(c.firm_id)
@@ -180,32 +214,34 @@ export default function ChallengesClient({
     })
   }
 
-  // 3. Bookmarks Only
   if (viewBookmarksOnly) {
-    challenges = challenges.filter((c) => favorites.includes(c.firm_id))
+    challenges = challenges.filter((c) => favoriteFirms.includes(c.firm_id))
   }
 
-  // 4. Drawer Filter (Firm)
   if (filterFirm !== 'all') {
     challenges = challenges.filter((c) => c.firm_id === filterFirm)
   }
 
-  // 5. Drawer Filter (Steps)
+  if (filterCategory !== 'all') {
+    challenges = challenges.filter((c) => {
+      const f = getFirm(c.firm_id)
+      return f?.category?.map((cat: string) => cat.toLowerCase()).includes(filterCategory.toLowerCase())
+    })
+  }
+
   if (filterSteps !== 'all') {
     challenges = challenges.filter((c) => c.steps === Number(filterSteps))
   }
 
-  // 6. Drawer Filter (Account Size)
   if (filterSize !== 'all') {
     challenges = challenges.filter((c) => c.account_size === Number(filterSize))
   }
 
-  // 7. Drawer Filter (Max Price)
   if (filterMaxPrice) {
     challenges = challenges.filter((c) => c.price <= Number(filterMaxPrice))
   }
 
-  // 8. Sorting
+  // Sorting
   if (sortField) {
     challenges.sort((a: any, b: any) => {
       const valA = a[sortField]
@@ -217,7 +253,6 @@ export default function ChallengesClient({
   } else if (sortByPopularity) {
     challenges.sort((a, b) => b.popularity_score - a.popularity_score)
   } else {
-    // Default sorting by popularity_score desc
     challenges.sort((a, b) => b.popularity_score - a.popularity_score)
   }
 
@@ -238,212 +273,361 @@ export default function ChallengesClient({
     }
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col space-y-4">
-        {/* Subcategory selectors matching screenshot */}
-        <div className="flex items-center gap-6 px-2 text-xs font-semibold text-text-secondary">
-          <button 
-            onClick={() => {
-              setSortByPopularity(true)
-              setViewBookmarksOnly(false)
-            }}
-            className={`hover:text-accent-cyan transition-colors ${sortByPopularity ? 'text-accent-cyan underline underline-offset-4' : ''}`}
-          >
-            Best Sellers
-          </button>
-          <button 
-            onClick={() => {
-              setSortByPopularity(false)
-              setViewBookmarksOnly(false)
-            }}
-            className={`hover:text-accent-cyan transition-colors ${!sortByPopularity && !viewBookmarksOnly ? 'text-accent-cyan underline underline-offset-4' : ''}`}
-          >
-            Reviews
-          </button>
+  // Helper to draw Profit Split bars
+  const ProfitSplitBar = ({ pct }: { pct: number }) => {
+    const filledBars = Math.round(pct / 10)
+    return (
+      <div className="flex flex-col items-center gap-1.5 shrink-0">
+        <span className="font-mono font-bold text-text-primary text-xs">{pct}%</span>
+        <div className="flex gap-[2px] items-center h-2.5 justify-center">
+          {Array.from({ length: 10 }).map((_, idx) => {
+            const isFilled = idx < filledBars
+            return (
+              <div
+                key={idx}
+                className={`w-[3px] h-full rounded-[1px] transition-colors duration-300 ${
+                  isFilled ? 'bg-gradient-to-t from-accent-cyan to-accent-purple' : 'bg-border-subtle/30'
+                }`}
+              />
+            )
+          })}
         </div>
       </div>
+    )
+  }
 
-      {/* Toolbar Options */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-bg-surface/50 border border-border-subtle p-4 rounded-2xl backdrop-blur-md">
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Filter Trigger */}
-          <AFXButton
-            onClick={() => setShowDrawer(!showDrawer)}
-            variant="secondary"
-            className="flex items-center gap-2 text-xs font-bold font-mono py-2 rounded-xl"
-          >
-            <Filter className="w-4 h-4 text-accent-cyan" />
-            Filters
-          </AFXButton>
+  return (
+    <div className="space-y-8">
+      
+      {/* 1. Promotional dual boxes grid matches screenshot */}
+      <div className="grid lg:grid-cols-12 gap-6">
+        
+        {/* Left Side: Exclusive July Offers */}
+        <div className="lg:col-span-8 bg-bg-surface/30 border border-border-subtle/70 rounded-3xl p-5 backdrop-blur-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-44 h-44 bg-accent-purple/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-black text-text-primary flex items-center gap-2 uppercase tracking-wide">
+              Exclusive July Forex Offers 🩸
+            </h2>
+            <div className="flex gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-cyan" />
+              <span className="w-1.5 h-1.5 rounded-full bg-border-subtle" />
+              <span className="w-1.5 h-1.5 rounded-full bg-border-subtle" />
+            </div>
+          </div>
 
-          {/* Apply Discount Toggle */}
-          <label className="flex items-center gap-2 cursor-pointer bg-bg-base/40 border border-border-subtle/50 px-3 py-2 rounded-xl text-xs font-mono font-bold select-none text-text-secondary hover:text-text-primary transition-all">
-            <input
-              type="checkbox"
-              checked={applyDiscount}
-              onChange={() => setApplyDiscount(!applyDiscount)}
-              className="w-4 h-4 accent-accent-cyan"
-            />
-            Apply Discount
-          </label>
-
-          {/* Popularity Toggle */}
-          <label className="flex items-center gap-2 cursor-pointer bg-bg-base/40 border border-border-subtle/50 px-3 py-2 rounded-xl text-xs font-mono font-bold select-none text-text-secondary hover:text-text-primary transition-all">
-            <input
-              type="checkbox"
-              checked={sortByPopularity}
-              onChange={() => setSortByPopularity(!sortByPopularity)}
-              className="w-4 h-4 accent-accent-cyan"
-            />
-            Sort By Popularity
-          </label>
-
-          {/* Bookmarks Toggle Segmented Control */}
-          <div className="bg-bg-base/60 border border-border-subtle/80 p-0.5 rounded-xl flex">
-            <button
-              onClick={() => {
-                setViewBookmarksOnly(false)
-                setCurrentPage(1)
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                !viewBookmarksOnly
-                  ? 'bg-bg-surface text-accent-cyan border border-border-subtle/60'
-                  : 'text-text-muted hover:text-text-primary'
-              }`}
-            >
-              All Programs
-            </button>
-            <button
-              onClick={() => {
-                setViewBookmarksOnly(true)
-                setCurrentPage(1)
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                viewBookmarksOnly
-                  ? 'bg-bg-surface text-accent-cyan border border-border-subtle/60'
-                  : 'text-text-muted hover:text-text-primary'
-              }`}
-            >
-              Bookmarks
-            </button>
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {forexOffersMock.map((item) => {
+              const logoUrl = getCleanLogoUrl(item.name, item.logo)
+              return (
+                <div
+                  key={item.name}
+                  className="group p-3 bg-bg-base border border-border-subtle hover:border-accent-cyan/40 transition-all rounded-2xl flex items-center gap-3 relative"
+                >
+                  <div className="w-9 h-9 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1 shrink-0 group-hover:scale-105 duration-200">
+                    <img src={logoUrl} alt={item.name} className="w-7 h-7 object-contain" onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${item.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                    }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
+                    <p className="text-[9px] text-text-muted mt-0.5 font-bold truncate">★ {item.rating}</p>
+                  </div>
+                  
+                  {/* Discount Code Badging */}
+                  <div className="text-right shrink-0">
+                    <span className="block text-[10px] font-black text-[#EC4899]">{item.discount}</span>
+                    <span className="inline-block text-[8px] font-mono text-text-secondary bg-border-subtle/50 px-1 py-0.5 rounded font-black tracking-wider uppercase">
+                      {item.code}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        {/* Client-side Search */}
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-text-muted" />
-          <input
-            type="text"
-            placeholder="Search prop firms..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setCurrentPage(1)
-            }}
-            className="w-full pl-10 pr-4 py-2 text-xs bg-bg-base border border-border-subtle rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-cyan"
-          />
+        {/* Right Side: Popular Futures Firms */}
+        <div className="lg:col-span-4 bg-bg-surface/30 border border-border-subtle/70 rounded-3xl p-5 backdrop-blur-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-accent-cyan/5 rounded-full blur-3xl pointer-events-none" />
+          <h2 className="text-sm font-black text-text-primary flex items-center gap-2 mb-4 uppercase tracking-wide">
+            Most Popular Futures Prop Firms 🏆
+          </h2>
+
+          <div className="space-y-2">
+            {futuresFirmsMock.map((item) => {
+              const logoUrl = getCleanLogoUrl(item.name, item.logo)
+              return (
+                <div
+                  key={item.name}
+                  className="group p-2.5 bg-bg-base border border-border-subtle hover:border-accent-purple/40 transition-all rounded-2xl flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {item.rank === 1 ? (
+                      <Trophy className="w-4 h-4 text-amber-400 shrink-0" />
+                    ) : item.rank === 2 ? (
+                      <Trophy className="w-4 h-4 text-slate-300 shrink-0" />
+                    ) : (
+                      <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
+                    )}
+                    
+                    <div className="w-7 h-7 rounded-lg bg-white border border-border-subtle flex items-center justify-center p-1 shrink-0 group-hover:scale-105 duration-200">
+                      <img src={logoUrl} alt={item.name} className="w-5 h-5 object-contain" onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${item.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                      }} />
+                    </div>
+
+                    <div className="min-w-0">
+                      <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
+                      <p className="text-[8px] text-text-muted mt-0.5 font-bold">★ {item.rating}</p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="block text-[10px] font-black text-accent-cyan">{item.discount}</span>
+                    <span className="inline-block text-[8px] font-mono text-text-secondary bg-border-subtle/50 px-1 py-0.5 rounded font-black tracking-wider uppercase">
+                      {item.code}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+      </div>
+
+      {/* 2. Selection Sub-menu tabs bar matches PFM screenshot navigation */}
+      <div className="flex flex-wrap items-center justify-center gap-2 pt-2 border-b border-border-subtle/30 pb-4">
+        {[
+          { label: 'Firms', href: '/firms', active: false },
+          { label: 'Challenges', href: '/challenges', active: true },
+          { label: 'Offers', href: '/deals', active: false },
+          { label: 'Reviews', href: '/reviews', active: false },
+          { label: 'Futures Firms', href: '/futures', active: false, badge: 'Trending' }
+        ].map((tab) => (
+          <Link
+            key={tab.label}
+            href={tab.href}
+            className={`px-5 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 border border-border-subtle/60 ${
+              tab.active
+                ? 'bg-text-primary text-bg-base border-text-primary shadow-lg shadow-white/5'
+                : 'text-text-secondary hover:text-text-primary bg-bg-surface/50'
+            }`}
+          >
+            {tab.label}
+            {tab.badge && (
+              <span className="bg-gradient-to-r from-accent-cyan to-accent-purple text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase leading-none">
+                {tab.badge}
+              </span>
+            )}
+          </Link>
+        ))}
+      </div>
+
+      {/* 3. Refactored Toolbar Filters row - Matches screenshot filters exactly */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-bg-surface/50 border border-border-subtle/50 p-4 rounded-3xl backdrop-blur-sm shadow-xl">
+        <div className="flex flex-wrap items-center gap-3.5">
+          {/* Filters Drawer Trigger */}
+          <button
+            onClick={() => setShowDrawer(!showDrawer)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border-subtle bg-bg-base text-xs font-black text-text-secondary hover:text-accent-cyan hover:border-accent-cyan/50 hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0 shadow-sm"
+          >
+            <Filter className="w-3.5 h-3.5 text-accent-cyan" />
+            Filter
+          </button>
+
+          {/* Quick Dropdown: Assets */}
+          <div className="relative shrink-0 group">
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="appearance-none bg-bg-base border border-border-subtle rounded-full pl-4 pr-9 py-2.5 text-xs font-black text-text-secondary cursor-pointer hover:border-accent-cyan/80 group-hover:scale-[1.03] transition-all outline-none shadow-sm"
+            >
+              <option value="all">Assets: All</option>
+              <option value="forex">Assets: FX</option>
+              <option value="futures">Assets: Futures</option>
+              <option value="crypto">Assets: Crypto</option>
+            </select>
+            <ChevronDown className="absolute right-3.5 top-3.5 w-3 h-3 text-text-muted pointer-events-none group-hover:text-accent-cyan transition-colors" />
+          </div>
+
+          {/* Quick Dropdown: Size */}
+          <div className="relative shrink-0 group">
+            <select
+              value={filterSize}
+              onChange={(e) => setFilterSize(e.target.value)}
+              className="appearance-none bg-bg-base border border-border-subtle rounded-full pl-4 pr-9 py-2.5 text-xs font-black text-text-secondary cursor-pointer hover:border-accent-cyan/80 group-hover:scale-[1.03] transition-all outline-none shadow-sm"
+            >
+              <option value="all">Size: All</option>
+              {uniqueSizes.map((size) => (
+                <option key={size} value={size}>
+                  Size: ${size >= 1000000 ? `${(size / 1000000).toFixed(1).replace('.0', '')}M` : `${(size / 1000).toFixed(0)}K`}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3.5 top-3.5 w-3 h-3 text-text-muted pointer-events-none group-hover:text-accent-cyan transition-colors" />
+          </div>
+
+          {/* Quick Dropdown: Steps */}
+          <div className="relative shrink-0 group">
+            <select
+              value={filterSteps}
+              onChange={(e) => setFilterSteps(e.target.value)}
+              className="appearance-none bg-bg-base border border-border-subtle rounded-full pl-4 pr-9 py-2.5 text-xs font-black text-text-secondary cursor-pointer hover:border-accent-cyan/80 group-hover:scale-[1.03] transition-all outline-none shadow-sm"
+            >
+              <option value="all">Steps: All</option>
+              <option value="0">Steps: Instant</option>
+              <option value="1">Steps: 1 Step</option>
+              <option value="2">Steps: 2 Steps</option>
+            </select>
+            <ChevronDown className="absolute right-3.5 top-3.5 w-3 h-3 text-text-muted pointer-events-none group-hover:text-accent-cyan transition-colors" />
+          </div>
+
+          {/* Apply Discount Custom Toggle Switch */}
+          <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 group">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={applyDiscount}
+                onChange={() => setApplyDiscount(!applyDiscount)}
+                className="sr-only"
+              />
+              <div className={`w-9 h-5 rounded-full transition-all duration-300 group-hover:shadow-[0_0_8px_rgba(236,72,153,0.4)] ${applyDiscount ? 'bg-[#EC4899]' : 'bg-bg-base border border-border-subtle'}`} />
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-300 ${applyDiscount ? 'translate-x-4' : 'translate-x-0'}`} />
+            </div>
+            <span className="text-xs font-black text-text-secondary group-hover:text-text-primary transition-colors">Apply Discount</span>
+          </label>
+
+          {/* Popularity Custom Toggle Switch */}
+          <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 group">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={sortByPopularity}
+                onChange={() => setSortByPopularity(!sortByPopularity)}
+                className="sr-only"
+              />
+              <div className={`w-9 h-5 rounded-full transition-all duration-300 group-hover:shadow-[0_0_8px_rgba(236,72,153,0.4)] ${sortByPopularity ? 'bg-[#EC4899]' : 'bg-bg-base border border-border-subtle'}`} />
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-300 ${sortByPopularity ? 'translate-x-4' : 'translate-x-0'}`} />
+            </div>
+            <span className="text-xs font-black text-text-secondary group-hover:text-text-primary transition-colors">Popularity</span>
+          </label>
+
+          {/* Bookmarks Toggle button pills */}
+          <button
+            onClick={() => { setViewBookmarksOnly(false); setCurrentPage(1); }}
+            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all border cursor-pointer shrink-0 hover:scale-105 active:scale-95 duration-200 ${
+              !viewBookmarksOnly
+                ? 'bg-bg-base text-accent-cyan border-accent-cyan/40 shadow-md shadow-accent-cyan/5'
+                : 'text-text-secondary border-border-subtle bg-transparent hover:text-text-primary'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => { setViewBookmarksOnly(true); setCurrentPage(1); }}
+            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all border flex items-center gap-1.5 cursor-pointer shrink-0 hover:scale-105 active:scale-95 duration-200 ${
+              viewBookmarksOnly
+                ? 'bg-bg-base text-accent-cyan border-accent-cyan/40 shadow-md shadow-accent-cyan/5'
+                : 'text-text-secondary border-border-subtle bg-transparent hover:text-text-primary'
+            }`}
+          >
+            <Bookmark className="w-3.5 h-3.5 text-accent-cyan fill-accent-cyan" />
+            Bookmarks
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 self-stretch xl:self-auto justify-between xl:justify-end">
+          {/* Customize columns */}
+          <button className="px-5 py-2.5 rounded-full border border-border-subtle bg-bg-base text-xs font-black text-text-secondary hover:text-text-primary hover:scale-105 active:scale-95 transition-all flex items-center gap-1 shrink-0 shadow-sm cursor-pointer">
+            <span>🎛️</span> Customize
+          </button>
+
+          {/* Search prop challenges input */}
+          <div className="relative flex-1 xl:flex-initial xl:w-44 group">
+            <Search className="absolute left-3.5 top-3 w-3.5 h-3.5 text-text-muted group-hover:text-accent-cyan transition-colors" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+              className="w-full pl-10 pr-4 py-2.5 bg-bg-base border border-border-subtle rounded-full text-xs font-extrabold text-text-primary focus:border-accent-cyan focus:ring-2 focus:ring-accent-cyan/20 outline-none transition-all shadow-sm"
+            />
+          </div>
         </div>
       </div>
 
       {/* Filter Drawer */}
       {showDrawer && (
-        <AFXCard className="bg-bg-surface border border-border-subtle p-6 grid md:grid-cols-4 gap-4 animate-fade-in">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-text-muted uppercase">Prop Firm</label>
+        <div className="bg-bg-surface/30 border border-border-subtle p-5 rounded-2xl grid md:grid-cols-4 gap-4 animate-fade-in text-xs">
+          <div className="space-y-1.5">
+            <label className="font-bold text-text-muted uppercase tracking-wider text-[10px]">Prop Firm</label>
             <select
               value={filterFirm}
               onChange={(e) => setFilterFirm(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary"
+              className="w-full px-3 py-2 bg-bg-base border border-border-subtle rounded-xl text-text-primary outline-none"
             >
               <option value="all">All Firms</option>
               {firms.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.name}
-                </option>
+                <option key={f.id} value={f.id}>{f.name}</option>
               ))}
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-text-muted uppercase">Steps Count</label>
-            <select
-              value={filterSteps}
-              onChange={(e) => setFilterSteps(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary"
-            >
-              <option value="all">Any Steps</option>
-              <option value="0">Instant Funding (0 Steps)</option>
-              <option value="1">1-Step Challenge</option>
-              <option value="2">2-Step Challenge</option>
-              <option value="3">3-Step Challenge</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-text-muted uppercase">Account Size ($)</label>
-            <select
-              value={filterSize}
-              onChange={(e) => setFilterSize(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary"
-            >
-              <option value="all">Any Size</option>
-              <option value="10000">10K</option>
-              <option value="25000">25K</option>
-              <option value="50000">50K</option>
-              <option value="100000">100K</option>
-              <option value="200000">200K</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-text-muted uppercase">Max Challenge Price ($)</label>
+          <div className="space-y-1.5">
+            <label className="font-bold text-text-muted uppercase tracking-wider text-[10px]">Max Price ($)</label>
             <input
               type="number"
               placeholder="e.g. 500"
               value={filterMaxPrice}
               onChange={(e) => setFilterMaxPrice(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary"
+              className="w-full px-3 py-2 bg-bg-base border border-border-subtle rounded-xl text-text-primary outline-none"
             />
           </div>
-        </AFXCard>
+        </div>
       )}
 
-      {/* Main Comparison Grid / Table */}
+      {/* Challenges Count & Verify Info */}
+      <div className="flex items-center justify-between border-b border-border-subtle/30 pb-3">
+        <h3 className="text-sm font-black text-text-primary">
+          Challenges <span className="text-accent-cyan font-mono">{challenges.length}</span>
+        </h3>
+        <button className="text-xs font-bold text-accent-purple hover:underline bg-transparent">
+          How We Verify and Rank Firms
+        </button>
+      </div>
+
+      {/* 4. 13-Column Comparison Table Container - Using standard HTML table layout for pixel-perfect columns */}
       {paginatedChallenges.length > 0 ? (
-        <AFXCard className="overflow-hidden border border-border-subtle bg-bg-surface p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px] border-collapse">
+        <div className="border border-border-subtle bg-bg-surface/20 rounded-3xl p-1 overflow-hidden shadow-2xl relative">
+          
+          <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full border-collapse text-left text-sm text-text-secondary min-w-[950px]">
               <thead>
-                <tr className="border-b border-border-subtle bg-bg-base/30 text-text-secondary select-none font-mono">
-                  <th className="px-4 py-4 text-left font-bold w-48">Firm</th>
-                  <th className="px-4 py-4 text-center font-bold">
-                    <button onClick={() => handleHeaderSort('account_size')} className="flex items-center gap-1 mx-auto hover:text-text-primary">
-                      Size <ArrowUpDown className="w-3 h-3" />
-                    </button>
-                  </th>
-                  <th className="px-4 py-4 text-center font-bold">Steps</th>
-                  <th className="px-4 py-4 text-center font-bold">Profit Target</th>
-                  <th className="px-4 py-4 text-center font-bold">Daily Loss</th>
-                  <th className="px-4 py-4 text-center font-bold">Max Loss</th>
-                  <th className="px-4 py-4 text-center font-bold">Ratio</th>
-                  <th className="px-4 py-4 text-center font-bold">Split</th>
-                  <th className="px-4 py-4 text-center font-bold">Payout</th>
-                  <th className="px-4 py-4 text-center font-bold">PTS</th>
-                  <th className="px-4 py-4 text-center font-bold">
-                    <button onClick={() => handleHeaderSort('price')} className="flex items-center gap-1 mx-auto hover:text-text-primary">
-                      Price <ArrowUpDown className="w-3 h-3" />
-                    </button>
-                  </th>
-                  <th className="px-4 py-4 text-center font-bold">Action</th>
+                <tr className="border-b border-border-subtle/30 bg-bg-surface/40 text-[10px] font-black uppercase tracking-wider text-text-muted select-none">
+                  <th className="px-3 py-3 text-left font-black w-[240px]">Firm / Rank</th>
+                  <th className="px-3 py-3 text-center font-black w-[100px]">Account Size</th>
+                  <th className="px-3 py-3 text-center font-black w-[80px]">Steps</th>
+                  <th className="px-3 py-3 text-center font-black w-[110px]">Profit Target</th>
+                  <th className="px-3 py-3 text-center font-black w-[85px]">Daily Loss</th>
+                  <th className="px-3 py-3 text-center font-black w-[85px]">Max Loss</th>
+                  <th className="px-3 py-3 text-center font-black w-[100px] hidden lg:table-cell">Max Loss Type</th>
+                  <th className="px-3 py-3 text-center font-black w-[75px] hidden xl:table-cell">PT:DD</th>
+                  <th className="px-3 py-3 text-center font-black w-[100px]">Profit Split</th>
+                  <th className="px-3 py-3 text-center font-black w-[100px] hidden lg:table-cell">Payout Freq.</th>
+                  <th className="px-3 py-3 text-center font-black w-[90px] hidden xl:table-cell">Loyalty Pts</th>
+                  <th className="px-3 py-3 text-center font-black w-[100px]">Price</th>
+                  <th className="px-3 py-3 text-right font-black w-[95px]">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border-subtle/30">
                 {paginatedChallenges.map((ch) => {
                   const firm = getFirm(ch.firm_id)
-                  const hasBookmark = favorites.includes(ch.firm_id)
+                  const hasBookmark = favoriteFirms.includes(ch.firm_id)
 
-                  // Price calculation based on toggle
+                  // Price calculations
                   const deal = getDealCode(ch.deal_id)
                   let displayPrice = ch.price
                   let originalPrice = ch.original_price || ch.price
@@ -457,107 +641,138 @@ export default function ChallengesClient({
                     }
                   }
 
+                  // Retrieve clean logo URL using helper function
+                  const logoUrl = getCleanLogoUrl(firm?.name || 'challenge', firm?.logo_url || null)
+
                   return (
                     <tr
                       key={ch.id}
-                      className="border-b border-border-subtle hover:bg-bg-base/20 transition-all font-medium text-text-secondary"
+                      className="group hover:bg-bg-surface/30 hover:scale-[1.01] hover:shadow-[0_4px_25px_rgba(34,211,238,0.15)] transition-all duration-300 border-b border-border-subtle/30"
                     >
-                      {/* Firm Column */}
-                      <td className="px-4 py-4 font-bold text-text-primary flex items-center gap-2">
-                        <button
-                          onClick={() => handleToggleBookmark(ch.firm_id)}
-                          className={`p-1 rounded hover:bg-bg-base transition-colors ${
-                            hasBookmark ? 'text-accent-cyan' : 'text-text-muted'
-                          }`}
-                          title="Bookmark firm"
-                        >
-                          <Bookmark className="w-4 h-4 fill-current" />
-                        </button>
-                        {firm?.logo_url ? (
-                          <img
-                            src={firm.logo_url}
-                            alt={firm.name}
-                            className="w-7 h-7 object-contain rounded bg-bg-base p-0.5 border border-border-subtle"
-                          />
-                        ) : (
-                          <div className="w-7 h-7 bg-bg-base text-[10px] font-bold rounded flex items-center justify-center text-accent-cyan border border-border-subtle uppercase">
-                            {firm?.name[0] || 'P'}
+                      {/* 1. Firm / Rank column */}
+                      <td className="px-3 py-3 align-middle relative">
+                        {/* Hover left accent glow bar */}
+                        <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-accent-cyan to-accent-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="flex items-center gap-3 pl-2">
+                          {/* Bookmark Icon */}
+                          <button
+                            onClick={(e) => handleToggleBookmark(ch.firm_id, e)}
+                            className={`p-1 rounded hover:bg-bg-base transition-colors shrink-0 ${
+                              hasBookmark ? 'text-accent-cyan' : 'text-text-muted hover:text-text-primary'
+                            }`}
+                          >
+                            <Bookmark className={`w-4.5 h-4.5 ${hasBookmark ? 'fill-current' : ''}`} />
+                          </button>
+
+                          {/* Logo with zoom + drop cyan glow hover animation */}
+                          <div className="w-10 h-10 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1.5 shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+                            <img src={logoUrl} alt={firm?.name || 'Challenge'} className="w-8 h-8 object-contain" onError={(e) => {
+                              if (firm) {
+                                (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                              }
+                            }} />
                           </div>
-                        )}
-                        <div className="flex flex-col gap-1 items-start">
-                          <span className="text-[13px] font-bold text-text-primary">{firm?.name || 'Program'}</span>
-                          <RatingBadge rating={firm?.rating || 4.5} reviewCount={firm?.review_count || 100} fontVariant="sans" />
+
+                          <div className="min-w-0">
+                            <span className="block text-sm font-black text-text-primary truncate">
+                              {firm?.name || 'Challenge'}
+                            </span>
+                            
+                            {/* Rating block under title */}
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[11px] bg-accent-purple/20 text-accent-purple px-1 rounded font-bold">
+                                {firm?.rating.toFixed(1) || '4.5'}
+                              </span>
+                              <span className="text-amber-400 text-[8px] tracking-tighter">★★★★★</span>
+                              <span className="text-[9px] text-text-muted font-bold truncate">
+                                {firm?.review_count || '120'}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </td>
 
-                      {/* Size */}
-                      <td className="px-4 py-4 text-center font-mono font-bold text-text-primary">
+                      {/* 2. Account Size column */}
+                      <td className="px-3 py-3 text-center align-middle text-base font-black text-accent-cyan font-mono">
                         ${(ch.account_size / 1000).toFixed(0)}K
                       </td>
 
-                      {/* Steps */}
-                      <td className="px-4 py-4 text-center text-xs font-bold font-mono">
-                        {ch.steps === 0 ? 'Instant' : `${ch.steps}-Step`}
+                      {/* 3. Steps count column */}
+                      <td className="px-3 py-3 text-center align-middle text-sm font-extrabold text-text-secondary">
+                        {ch.steps === 0 ? 'Instant' : `${ch.steps} Steps`}
                       </td>
 
-                      {/* Profit Target */}
-                      <td className="px-4 py-4 text-center font-mono">
-                        {ch.profit_target_p1}%{ch.steps > 1 && ` | ${ch.profit_target_p2}%`}
+                      {/* 4. Profit Target column */}
+                      <td className="px-3 py-3 text-center align-middle text-base font-black text-emerald-400 font-mono">
+                        {ch.profit_target_p1}% {ch.steps > 1 ? `| ${ch.profit_target_p2}%` : ''}
                       </td>
 
-                      {/* Daily Loss */}
-                      <td className="px-4 py-4 text-center font-mono text-red-400">
+                      {/* 5. Daily Loss column */}
+                      <td className="px-3 py-3 text-center align-middle text-base font-black text-rose-500/90 font-mono">
                         {ch.daily_loss_pct}%
                       </td>
 
-                      {/* Max Loss */}
-                      <td className="px-4 py-4 text-center font-mono text-red-400">
+                      {/* 6. Max Loss column */}
+                      <td className="px-3 py-3 text-center align-middle text-base font-black text-rose-500/90 font-mono">
                         {ch.max_loss_pct}%
                       </td>
 
-                      {/* Ratio */}
-                      <td className="px-4 py-4 text-center font-mono text-xs">
+                      {/* 7. Max Loss Type column */}
+                      <td className="px-3 py-3 text-center align-middle text-sm font-extrabold text-text-secondary truncate hidden lg:table-cell">
+                        Static
+                      </td>
+
+                      {/* 8. PT:DD column */}
+                      <td className="px-3 py-3 text-center align-middle text-sm font-extrabold text-text-secondary font-mono hidden xl:table-cell">
                         {ch.pt_dd_ratio || '1:1'}
                       </td>
 
-                      {/* Split */}
-                      <td className="px-4 py-4 text-center font-mono font-bold text-text-primary">
-                        {ch.profit_split_pct}%
+                      {/* 9. Profit Split column with bars */}
+                      <td className="px-3 py-3 text-center align-middle">
+                        <div className="inline-flex justify-center">
+                          <ProfitSplitBar pct={ch.profit_split_pct} />
+                        </div>
                       </td>
 
-                      {/* Payout */}
-                      <td className="px-4 py-4 text-center text-xs whitespace-nowrap">
+                      {/* 10. Payout Freq column */}
+                      <td className="px-3 py-3 text-center align-middle text-xs font-extrabold text-text-secondary truncate hidden lg:table-cell" title={ch.payout_freq}>
                         {ch.payout_freq}
                       </td>
 
-                      {/* Points */}
-                      <td className="px-4 py-4 text-center font-mono text-accent-purple text-xs font-bold">
-                        +{ch.loyalty_points}
+                      {/* 11. Loyalty Points column */}
+                      <td className="px-3 py-3 text-center align-middle text-base font-black text-accent-purple hidden xl:table-cell">
+                        <div className="inline-flex items-center gap-1">
+                          <span>💎</span>
+                          <span className="font-mono">{ch.loyalty_points || '180'}</span>
+                        </div>
                       </td>
 
-                      {/* Price */}
-                      <td className="px-4 py-4 text-center font-mono">
+                      {/* 12. Price column */}
+                      <td className="px-3 py-3 text-center align-middle font-mono">
                         {isDiscounted ? (
-                          <div className="flex flex-col">
-                            <span className="line-through text-text-muted text-xs">
-                              ${originalPrice}
+                          <div className="inline-flex flex-col items-center">
+                            <span className="line-through text-text-muted text-[11px] font-bold">
+                              ${originalPrice.toFixed(2)}
                             </span>
-                            <span className="text-accent-cyan font-bold">${displayPrice.toFixed(0)}</span>
+                            <span className="text-accent-cyan text-base font-black">
+                              ${displayPrice.toFixed(2)}
+                            </span>
                           </div>
                         ) : (
-                          <span className="font-bold text-text-primary">${ch.price}</span>
+                          <span className="text-base font-black text-text-primary">
+                            ${ch.price.toFixed(2)}
+                          </span>
                         )}
                       </td>
 
-                      {/* Action */}
-                      <td className="px-4 py-4 text-center">
-                        <AFXButton
+                      {/* 13. Buy Action column */}
+                      <td className="px-3 py-3 text-right align-middle">
+                        <button
                           onClick={() => handleBuyClick(ch)}
-                          variant="primary"
-                          className="bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base font-bold text-xs py-1.5 px-3.5 rounded-lg whitespace-nowrap"
+                          className="px-6 py-2 rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple text-sm font-black text-white hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md shadow-accent-cyan/10 hover:shadow-lg hover:shadow-accent-cyan/20 cursor-pointer"
                         >
-                          Buy Challenge
-                        </AFXButton>
+                          Buy
+                        </button>
                       </td>
                     </tr>
                   )
@@ -565,7 +780,7 @@ export default function ChallengesClient({
               </tbody>
             </table>
           </div>
-        </AFXCard>
+        </div>
       ) : (
         <div className="border border-border-subtle bg-bg-surface/50 p-12 text-center rounded-3xl">
           <p className="text-text-secondary text-sm font-semibold">No challenges match your filters.</p>
@@ -574,7 +789,7 @@ export default function ChallengesClient({
 
       {/* Pagination controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between bg-bg-surface/30 border border-border-subtle p-4 rounded-xl text-xs font-mono">
+        <div className="flex items-center justify-between bg-bg-surface/30 border border-border-subtle p-4 rounded-2xl text-xs font-mono">
           <span className="text-text-muted">
             Showing {(currentPage - 1) * itemsPerPage + 1} -{' '}
             {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} items
@@ -583,14 +798,14 @@ export default function ChallengesClient({
             <button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-bg-base text-text-primary disabled:opacity-50 transition-colors border border-border-subtle"
+              className="px-4 py-1.5 rounded-full bg-bg-surface hover:bg-bg-base text-text-primary disabled:opacity-50 transition-colors border border-border-subtle font-bold"
             >
               Prev
             </button>
             <button
               onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-bg-base text-text-primary disabled:opacity-50 transition-colors border border-border-subtle"
+              className="px-4 py-1.5 rounded-full bg-bg-surface hover:bg-bg-base text-text-primary disabled:opacity-50 transition-colors border border-border-subtle font-bold"
             >
               Next
             </button>
@@ -598,19 +813,10 @@ export default function ChallengesClient({
         </div>
       )}
 
-      {/* Info link banner */}
-      <div className="text-center text-xs text-text-muted">
-        Want to see how we verify lists? Read our{' '}
-        <a href="/transparency" className="text-accent-cyan underline hover:text-accent-cyan/80">
-          transparency document
-        </a>
-        .
-      </div>
-
       {/* Buy Discount Modal */}
       {selectedDeal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <AFXCard className="bg-bg-surface border border-border-subtle max-w-sm w-full p-6 space-y-6 relative">
+          <AFXCard className="bg-bg-surface border border-border-subtle max-w-sm w-full p-6 space-y-6 relative rounded-3xl">
             <button
               onClick={() => setSelectedDeal(null)}
               className="absolute right-4 top-4 text-text-muted hover:text-text-primary text-sm font-bold font-mono"
@@ -658,6 +864,7 @@ export default function ChallengesClient({
           </AFXCard>
         </div>
       )}
+
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { db } from '@/lib/firebase/admin'
+import { getFirms as getMockFirms } from '@/lib/firebase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -15,12 +16,19 @@ export async function GET(request: NextRequest) {
     const snapshot = await db.collection('firms').where('type', '==', type).get()
 
     let firms: any[] = []
-    snapshot.forEach((doc: any) => {
-      const data = doc.data()
-      if (data.status === 'active') {
-        firms.push({ id: doc.id, ...data })
-      }
-    })
+
+    if (snapshot.empty) {
+      // Fall back to mock data when Firestore is empty
+      const allMock = await getMockFirms()
+      firms = allMock.filter((f: any) => f.type === type && f.status === 'active')
+    } else {
+      snapshot.forEach((doc: any) => {
+        const data = doc.data()
+        if (data.status === 'active') {
+          firms.push({ id: doc.id, ...data })
+        }
+      })
+    }
 
     // Search query filtering
     if (search) {
@@ -64,8 +72,8 @@ export async function GET(request: NextRequest) {
         break
       case 'newest':
         firms.sort((a, b) => {
-          const timeA = a.created_at?.seconds ? a.created_at.seconds * 1000 : new Date(a.created_at).getTime()
-          const timeB = b.created_at?.seconds ? b.created_at.seconds * 1000 : new Date(b.created_at).getTime()
+          const timeA = a.created_at?.seconds ? a.created_at.seconds * 1000 : new Date(a.created_at || 0).getTime()
+          const timeB = b.created_at?.seconds ? b.created_at.seconds * 1000 : new Date(b.created_at || 0).getTime()
           return timeB - timeA
         })
         break

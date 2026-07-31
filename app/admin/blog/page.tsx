@@ -118,7 +118,7 @@ function BlogEditor({ post, onSave, onCancel, isSaving }: BlogEditorProps) {
                   value={form.title}
                   onChange={handleTitleChange}
                   required
-                  placeholder="e.g. Best Prop Firms for Indian Traders in 2025"
+                  placeholder="e.g. Best Prop Firms for Indian Traders in 2026"
                   className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
                 />
               </div>
@@ -134,7 +134,7 @@ function BlogEditor({ post, onSave, onCancel, isSaving }: BlogEditorProps) {
                     value={form.slug}
                     onChange={handleChange}
                     required
-                    placeholder="best-prop-firms-2025"
+                    placeholder="best-prop-firms-2026"
                     className="w-full pl-12 pr-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
                   />
                 </div>
@@ -310,10 +310,10 @@ export default function AdminBlogPage() {
         setPosts([
           {
             id: 'blog-1',
-            slug: 'best-prop-firms-2024',
-            title: 'Best Prop Firms in 2024: Complete Guide',
-            excerpt: 'Discover the top prop firms for forex and futures trading in 2024.',
-            content_md: '# Best Prop Firms in 2024\n\nProp trading has exploded in popularity...',
+            slug: 'best-prop-firms-2026',
+            title: 'Best Prop Firms in 2026: Complete Guide',
+            excerpt: 'Discover the top prop firms for forex and futures trading in 2026.',
+            content_md: '# Best Prop Firms in 2026\n\nProp trading has exploded in popularity...',
             cover_image_url: '',
             author_id: 'admin',
             published: true,

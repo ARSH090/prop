@@ -13,11 +13,16 @@ export async function POST(request: NextRequest) {
     const batch = db.batch()
 
     for (const item of items) {
-      const docRef = db.collection('site_content').doc(item.id)
-      batch.update(docRef, {
+      const docId = item.id.startsWith('temp-') ? `${item.page}_${item.section_key}` : item.id
+      const docRef = db.collection('site_content').doc(docId)
+      batch.set(docRef, {
+        page: item.page,
+        section_key: item.section_key,
+        content_type: item.content_type,
         value: item.value,
+        is_active: true,
         updated_at: FieldValue.serverTimestamp(),
-      })
+      }, { merge: true })
     }
 
     await batch.commit()

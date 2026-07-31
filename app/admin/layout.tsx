@@ -1,8 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { auth, db } from '@/lib/firebase/client'
+import { doc, getDoc } from 'firebase/firestore'
 import {
   LayoutDashboard,
   FileText,
@@ -44,6 +46,54 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        try {
+          const profileDoc = await getDoc(doc(db, 'profiles', user.uid))
+          const isUserAdmin = (profileDoc.exists() && profileDoc.data()?.role === 'admin') || user.email === 'admin@anurajfx.com' || user.email === 'admin@empirial.com'
+          
+          if (isUserAdmin) {
+            setIsAdmin(true)
+          } else {
+            setIsAdmin(false)
+            router.push('/')
+          }
+        } catch (error) {
+          console.error('Error loading admin profile:', error)
+          // Fallback to allow access in local dev or incomplete schemas if the email matches
+          if (user.email === 'admin@anurajfx.com' || user.email === 'admin@empirial.com') {
+            setIsAdmin(true)
+          } else {
+            setIsAdmin(false)
+            router.push('/')
+          }
+        } finally {
+          setCheckingAuth(false)
+        }
+      } else {
+        setIsAdmin(false)
+        setCheckingAuth(false)
+        router.push('/auth/login?redirect=' + encodeURIComponent(pathname))
+      }
+    })
+    return unsub
+  }, [router, pathname])
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-bg-base flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-accent-cyan border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!isAdmin) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary flex">
@@ -65,14 +115,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <div className="flex flex-col h-full">
           {/* Logo Section */}
-          <div className="h-16 flex items-center gap-2 px-6 border-b border-border-subtle">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center font-bold text-white text-xs">
-              A
-            </div>
-            <span className="text-lg font-bold text-text-primary">
-              ANURAJ <span className="text-accent-cyan">FX</span>
+          <div className="h-16 flex items-center gap-3 px-6 border-b border-border-subtle">
+            <img src="/logo.png" alt="EMPIRIAL Logo" className="h-8 w-auto rounded-lg object-contain" />
+            <span className="text-lg font-black tracking-tight text-text-primary">
+              EMPIRIAL
             </span>
-            <span className="text-[10px] bg-accent-cyan/10 text-accent-cyan px-2 py-0.5 rounded-full font-mono font-bold uppercase">
+            <span className="text-[9px] bg-accent-cyan/10 text-accent-cyan px-2 py-0.5 rounded-full font-mono font-bold uppercase shrink-0">
               Admin
             </span>
           </div>
@@ -106,12 +154,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* User Profile / Logout Footer */}
           <div className="p-4 border-t border-border-subtle flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-accent-cyan/10 flex items-center justify-center font-bold text-accent-cyan">
-                A
-              </div>
+              <img src="/logo.png" alt="Empirial Admin" className="w-9 h-9 rounded-lg object-contain" />
               <div className="overflow-hidden">
-                <p className="text-sm font-semibold truncate text-text-primary">Anuraj Admin</p>
-                <p className="text-[10px] text-text-muted truncate">admin@anurajfx.com</p>
+                <p className="text-sm font-bold truncate text-text-primary">Empirial Admin</p>
+                <p className="text-[10px] text-text-muted truncate">admin@empirial.com</p>
               </div>
             </div>
             <button

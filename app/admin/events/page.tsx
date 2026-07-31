@@ -24,11 +24,11 @@ interface EventItem {
 const INITIAL_EVENTS: EventItem[] = [
   {
     id: 'evt-1',
-    title: 'ANURAJ FX Trading Tournament Q3 2025',
+    title: 'ANURAJ FX Trading Tournament Q3 2026',
     type: 'tournament',
     image_url: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80',
     description: 'Compete in a 2-week live trading tournament with a $10,000 prize pool.',
-    date: 'August 15–29, 2025',
+    date: 'August 15–29, 2026',
     time: '9:00 AM – Market Close (IST)',
     format: 'Online (Demo Trading)',
     seats: 500,
@@ -43,7 +43,7 @@ const INITIAL_EVENTS: EventItem[] = [
     type: 'bootcamp',
     image_url: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
     description: 'Intensive 3-day online bootcamp covering prop firm rules, risk management.',
-    date: 'July 28–30, 2025',
+    date: 'July 28–30, 2026',
     time: '7:00 PM – 10:00 PM (IST)',
     format: 'Online (Zoom)',
     seats: 100,
@@ -132,7 +132,7 @@ export default function AdminEventsPage() {
         <div className="space-y-1">
           <label className="text-[10px] font-bold text-text-muted uppercase">Date</label>
           <input type="text" value={form.date || ''} onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
-            placeholder="e.g. August 15–29, 2025"
+            placeholder="e.g. August 15–29, 2026"
             className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary focus:border-accent-cyan focus:outline-none" />
         </div>
         <div className="space-y-1">

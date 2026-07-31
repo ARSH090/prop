@@ -16,11 +16,11 @@ export async function GET() {
     return NextResponse.json({
       data: [
         {
-          id: 'blog-prop-2024',
-          slug: 'best-prop-firms-2024',
-          title: 'Best Prop Firms in 2024: Complete Guide',
-          excerpt: 'Discover the top prop firms for forex and futures trading in 2024.',
-          content_md: '# Best Prop Firms in 2024\n\nProp trading has exploded in popularity...',
+          id: 'blog-prop-2026',
+          slug: 'best-prop-firms-2026',
+          title: 'Best Prop Firms in 2026: Complete Guide',
+          excerpt: 'Discover the top prop firms for forex and futures trading in 2026.',
+          content_md: '# Best Prop Firms in 2026\n\nProp trading has exploded in popularity...',
           cover_image_url: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=800&auto=format&fit=crop',
           author_id: 'admin',
           published: true,
