@@ -35,6 +35,7 @@ interface Firm {
   rating: number
   review_count: number
   affiliate_url: string
+  category?: string[]
 }
 
 interface Deal {
