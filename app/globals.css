@@ -218,18 +218,16 @@
   100% { transform: translateX(-50%); }
 }
 
-.animate-marquee {
+@utility animate-marquee {
   display: flex;
   width: max-content;
   animation: marquee 25s linear infinite;
-}
+  
+  &:hover {
+    animation-play-state: paused;
+  }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
+  @media (prefers-reduced-motion: reduce) {
     animation: none;
     flex-wrap: wrap;
     justify-content: center;

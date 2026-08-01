@@ -21,6 +21,13 @@
 - [x] Upgrade year occurrences to 2026:
   - [x] Update events pages tournament years in `app/events/page.tsx` and `app/admin/events/page.tsx` from 2025 to 2026.
   - [x] Remove `live_tickers` rendering section from `app/page.tsx`.
+- [x] AFX Resizing, Tier System & Logo Marquee Fixes:
+  - [x] Rewrite marquee animation directives in `globals.css` using Tailwind v4 `@utility`.
+  - [x] Implement `getCleanLogoUrl` inside `logo-marquee.tsx` and loop logos seamlessly.
+  - [x] Make `verifiedMarqueeFirms` global across categories inside `app/page.tsx`.
+  - [x] Remove bookmark button from challenges listing rows in `ChallengesClient.tsx`.
+  - [x] Add golden star tier badge to logos matching `GOLD_TIER_FIRMS` in `ChallengesClient.tsx`.
+  - [x] Enlarge all challenges table text weights, sizes, and CTAs in `ChallengesClient.tsx`.
 - [x] Redesign payout notifications toast:
   - [x] Implement `getCleanLogoUrl` inside `components/ui/notification-toast.tsx`.
   - [x] Replace dollar sign icon with the selected prop firm's brand logo.

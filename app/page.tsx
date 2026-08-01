@@ -66,8 +66,8 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
     })
     .slice(0, 6)
 
-  // Sourced from verified firms in the active category, ordered by rating desc
-  const verifiedMarqueeFirms = filteredFirms
+  // Sourced from all verified firms globally, ordered by rating desc
+  const verifiedMarqueeFirms = allFirms
     .filter((f) => f.is_verified)
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
 

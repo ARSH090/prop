@@ -91,6 +91,23 @@ const getCleanLogoUrl = (name: string, url: string | null) => {
   return `https://storage.googleapis.com/prop-firm-match-production-logos/${slug}.png`
 }
 
+const GOLD_TIER_FIRMS = [
+  'ftmo',
+  'funding pips',
+  'fundingpips',
+  'the 5%ers',
+  '5ers',
+  'fundednext',
+  'topstep',
+  'apex trader funding',
+  'apex funding',
+  'apex',
+  'moneta funded',
+  'for traders',
+  'aquafunded',
+  'aqua funded'
+]
+
 const forexOffersMock = [
   { name: 'The5ers', rating: '4.7', discount: '10% OFF', code: 'MATCH', logo: null },
   { name: 'FundingPips', rating: '4.2', discount: '20% OFF', code: 'MATCH', logo: null },
@@ -607,7 +624,7 @@ export default function ChallengesClient({
           <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full border-collapse text-left text-sm text-text-secondary min-w-[950px]">
               <thead>
-                <tr className="border-b border-border-subtle/30 bg-bg-surface/40 text-[10px] font-black uppercase tracking-wider text-text-muted select-none">
+                <tr className="border-b border-border-subtle/30 bg-bg-surface/40 text-xs font-black uppercase tracking-wider text-text-muted select-none">
                   <th className="px-3 py-3 text-left font-black w-[240px]">Firm / Rank</th>
                   <th className="px-3 py-3 text-center font-black w-[100px]">Account Size</th>
                   <th className="px-3 py-3 text-center font-black w-[80px]">Steps</th>
@@ -626,7 +643,7 @@ export default function ChallengesClient({
               <tbody className="divide-y divide-border-subtle/30">
                 {paginatedChallenges.map((ch) => {
                   const firm = getFirm(ch.firm_id)
-                  const hasBookmark = favoriteFirms.includes(ch.firm_id)
+                  const isGoldTier = firm && GOLD_TIER_FIRMS.includes(firm.name.toLowerCase().trim())
 
                   // Price calculations
                   const deal = getDealCode(ch.deal_id)
@@ -655,27 +672,24 @@ export default function ChallengesClient({
                         {/* Hover left accent glow bar */}
                         <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-accent-cyan to-accent-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <div className="flex items-center gap-3 pl-2">
-                          {/* Bookmark Icon */}
-                          <button
-                            onClick={(e) => handleToggleBookmark(ch.firm_id, e)}
-                            className={`p-1 rounded hover:bg-bg-base transition-colors shrink-0 ${
-                              hasBookmark ? 'text-accent-cyan' : 'text-text-muted hover:text-text-primary'
-                            }`}
-                          >
-                            <Bookmark className={`w-4.5 h-4.5 ${hasBookmark ? 'fill-current' : ''}`} />
-                          </button>
-
-                          {/* Logo with zoom + drop cyan glow hover animation */}
-                          <div className="w-10 h-10 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1.5 shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]">
-                            <img src={logoUrl} alt={firm?.name || 'Challenge'} className="w-8 h-8 object-contain" onError={(e) => {
-                              if (firm) {
-                                (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
-                              }
-                            }} />
+                          {/* Logo with gold tier badge overlap */}
+                          <div className="relative shrink-0 transition-all duration-300 group-hover:scale-110">
+                            <div className="w-10 h-10 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1.5 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-all">
+                              <img src={logoUrl} alt={firm?.name || 'Challenge'} className="w-8 h-8 object-contain" onError={(e) => {
+                                if (firm) {
+                                  (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                                }
+                              }} />
+                            </div>
+                            {isGoldTier && (
+                              <div className="absolute -bottom-1.5 -right-1.5 w-4.5 h-4.5 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full border border-bg-surface flex items-center justify-center shadow-md shadow-black/40" title="Gold Tier Verified">
+                                <span className="text-[10px] text-bg-surface font-black leading-none">★</span>
+                              </div>
+                            )}
                           </div>
 
                           <div className="min-w-0">
-                            <span className="block text-sm font-black text-text-primary truncate">
+                            <span className="block text-[15px] font-black text-text-primary truncate">
                               {firm?.name || 'Challenge'}
                             </span>
                             
@@ -685,7 +699,7 @@ export default function ChallengesClient({
                                 {firm?.rating.toFixed(1) || '4.5'}
                               </span>
                               <span className="text-amber-400 text-[8px] tracking-tighter">★★★★★</span>
-                              <span className="text-[9px] text-text-muted font-bold truncate">
+                              <span className="text-[10px] text-text-muted font-bold truncate">
                                 {firm?.review_count || '120'}
                               </span>
                             </div>
@@ -694,37 +708,37 @@ export default function ChallengesClient({
                       </td>
 
                       {/* 2. Account Size column */}
-                      <td className="px-3 py-3 text-center align-middle text-base font-black text-accent-cyan font-mono">
+                      <td className="px-3 py-3 text-center align-middle text-[17px] font-black text-accent-cyan font-mono">
                         ${(ch.account_size / 1000).toFixed(0)}K
                       </td>
 
                       {/* 3. Steps count column */}
-                      <td className="px-3 py-3 text-center align-middle text-sm font-extrabold text-text-secondary">
+                      <td className="px-3 py-3 text-center align-middle text-[15px] font-bold text-text-secondary">
                         {ch.steps === 0 ? 'Instant' : `${ch.steps} Steps`}
                       </td>
 
                       {/* 4. Profit Target column */}
-                      <td className="px-3 py-3 text-center align-middle text-base font-black text-emerald-400 font-mono">
+                      <td className="px-3 py-3 text-center align-middle text-[17px] font-black text-emerald-400 font-mono">
                         {ch.profit_target_p1}% {ch.steps > 1 ? `| ${ch.profit_target_p2}%` : ''}
                       </td>
 
                       {/* 5. Daily Loss column */}
-                      <td className="px-3 py-3 text-center align-middle text-base font-black text-rose-500/90 font-mono">
+                      <td className="px-3 py-3 text-center align-middle text-[17px] font-black text-rose-500/90 font-mono">
                         {ch.daily_loss_pct}%
                       </td>
 
                       {/* 6. Max Loss column */}
-                      <td className="px-3 py-3 text-center align-middle text-base font-black text-rose-500/90 font-mono">
+                      <td className="px-3 py-3 text-center align-middle text-[17px] font-black text-rose-500/90 font-mono">
                         {ch.max_loss_pct}%
                       </td>
 
                       {/* 7. Max Loss Type column */}
-                      <td className="px-3 py-3 text-center align-middle text-sm font-extrabold text-text-secondary truncate hidden lg:table-cell">
+                      <td className="px-3 py-3 text-center align-middle text-[15px] font-bold text-text-secondary truncate hidden lg:table-cell">
                         Static
                       </td>
 
                       {/* 8. PT:DD column */}
-                      <td className="px-3 py-3 text-center align-middle text-sm font-extrabold text-text-secondary font-mono hidden xl:table-cell">
+                      <td className="px-3 py-3 text-center align-middle text-[15px] font-bold text-text-secondary font-mono hidden xl:table-cell">
                         {ch.pt_dd_ratio || '1:1'}
                       </td>
 
@@ -736,12 +750,12 @@ export default function ChallengesClient({
                       </td>
 
                       {/* 10. Payout Freq column */}
-                      <td className="px-3 py-3 text-center align-middle text-xs font-extrabold text-text-secondary truncate hidden lg:table-cell" title={ch.payout_freq}>
+                      <td className="px-3 py-3 text-center align-middle text-sm font-bold text-text-secondary truncate hidden lg:table-cell" title={ch.payout_freq}>
                         {ch.payout_freq}
                       </td>
 
                       {/* 11. Loyalty Points column */}
-                      <td className="px-3 py-3 text-center align-middle text-base font-black text-accent-purple hidden xl:table-cell">
+                      <td className="px-3 py-3 text-center align-middle text-[17px] font-black text-accent-purple hidden xl:table-cell">
                         <div className="inline-flex items-center gap-1">
                           <span>💎</span>
                           <span className="font-mono">{ch.loyalty_points || '180'}</span>
@@ -752,15 +766,15 @@ export default function ChallengesClient({
                       <td className="px-3 py-3 text-center align-middle font-mono">
                         {isDiscounted ? (
                           <div className="inline-flex flex-col items-center">
-                            <span className="line-through text-text-muted text-[11px] font-bold">
+                            <span className="line-through text-text-muted text-[12px] font-bold">
                               ${originalPrice.toFixed(2)}
                             </span>
-                            <span className="text-accent-cyan text-base font-black">
+                            <span className="text-accent-cyan text-[17px] font-black">
                               ${displayPrice.toFixed(2)}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-base font-black text-text-primary">
+                          <span className="text-[17px] font-black text-text-primary">
                             ${ch.price.toFixed(2)}
                           </span>
                         )}
@@ -770,7 +784,7 @@ export default function ChallengesClient({
                       <td className="px-3 py-3 text-right align-middle">
                         <button
                           onClick={() => handleBuyClick(ch)}
-                          className="px-6 py-2 rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple text-sm font-black text-white hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md shadow-accent-cyan/10 hover:shadow-lg hover:shadow-accent-cyan/20 cursor-pointer"
+                          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple text-[15px] font-black text-white hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md shadow-accent-cyan/10 hover:shadow-lg hover:shadow-accent-cyan/20 cursor-pointer whitespace-nowrap"
                         >
                           Buy
                         </button>
