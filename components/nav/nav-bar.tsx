@@ -48,14 +48,13 @@ const toolsLinks = [
 
 const subNavLinks = [
   { label: 'Home', href: '/' },
-  { label: 'Offers', href: '/deals' },
+  { label: 'Deals', href: '/deals' },
   { label: 'Challenges', href: '/challenges' },
   { label: 'Best Sellers', href: '/best-sellers' },
+  { label: 'Events', href: '/events' },
+  { label: 'Community', href: '/community' },
   { label: 'Reviews', href: '/reviews' },
   { label: 'Favorite Firms', href: '/favorites' },
-  { label: 'Prop Firm Rules', href: '/rules' },
-  { label: 'Spreads', href: '/spreads' },
-  { label: 'Payouts', href: '/payouts' },
 ]
 
 const mobileMenuCategories = [
@@ -364,9 +363,9 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                 <Link
                   key={link.href}
                   href={resolvedHref}
-                  className={`relative pb-2 text-[11px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap ${
+                  className={`relative pb-2 text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-accent-cyan after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 ${
                     isActive 
-                      ? 'text-text-primary border-b-2 border-[#EC4899]' 
+                      ? 'text-accent-cyan after:scale-x-100 font-extrabold' 
                       : 'text-text-secondary hover:text-text-primary'
                   }`}
                 >

@@ -75,7 +75,7 @@ export function HeroSection({
   discordUrl = 'https://discord.gg/empirial',
 }: HeroProps) {
   return (
-    <section className="relative min-h-screen bg-bg-base overflow-hidden pt-10 flex items-center">
+    <section className="relative min-h-[auto] md:min-h-screen bg-bg-base overflow-hidden pt-28 pb-12 md:py-0 flex items-center">
       {/* Dynamic Neon Background */}
       <NeonBackground />
 
@@ -130,7 +130,7 @@ export function HeroSection({
           </div>
 
           {/* Right Column - Neon Orb Visual */}
-          <div className="h-[400px] md:h-[500px] flex items-center justify-center relative">
+          <div className="h-[300px] xs:h-[340px] sm:h-[400px] md:h-[500px] flex items-center justify-center relative">
             <div className="relative w-full h-full flex items-center justify-center">
               {/* Outer neon ring */}
               <div className="absolute w-72 h-72 rounded-full border border-accent-cyan/20 animate-spin" style={{ animationDuration: '20s' }} />

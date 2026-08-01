@@ -11,6 +11,7 @@ import { HomeFAQ } from '@/components/home/faq'
 import { Footer } from '@/components/footer'
 import { LogoMarquee } from '@/components/home/logo-marquee'
 import { CursorGlow } from '@/components/home/cursor-glow'
+import { EventPopup } from '@/components/home/event-popup'
 
 import {
   getSiteContent,
@@ -89,6 +90,7 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
     <main className="min-h-screen bg-bg-base relative">
       <NavBar />
       <CursorGlow />
+      <EventPopup />
 
       {sectionOrder.map((section: string) => {
         switch (section) {

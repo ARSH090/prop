@@ -498,7 +498,7 @@ export function PropGlobe() {
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-[400px] md:h-[450px] max-w-lg mx-auto overflow-visible select-none cursor-grab active:cursor-grabbing flex items-center justify-center"
+      className="relative w-full h-[280px] xs:h-[320px] sm:h-[380px] md:h-[450px] max-w-lg mx-auto overflow-visible select-none cursor-grab active:cursor-grabbing flex items-center justify-center"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUpOrLeave}
