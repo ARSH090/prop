@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
-import { UserPlus, ShieldAlert, Crown, Shield, Headphones, Eye, Trash2, Check } from 'lucide-react'
+import { UserPlus, ShieldAlert, Crown, Shield, Headphones, Eye, Trash2, Check, Megaphone, Save } from 'lucide-react'
+import { db } from '@/lib/firebase/client'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 interface AdminUser {
   email: string
@@ -51,6 +53,17 @@ const ROLES = [
 ] as const
 
 export default function AdminSettingsPage() {
+  const [popupTitle, setPopupTitle] = useState('')
+  const [popupDesc, setPopupDesc] = useState('')
+  const [popupDateRange, setPopupDateRange] = useState('')
+  const [popupPrizePool, setPopupPrizePool] = useState('')
+  const [popupBannerUrl, setPopupBannerUrl] = useState('')
+  const [popupActionUrl, setPopupActionUrl] = useState('')
+  const [popupActionLabel, setPopupActionLabel] = useState('')
+  const [popupIsActive, setPopupIsActive] = useState(false)
+  const [savePopupLoading, setSavePopupLoading] = useState(false)
+  const [savePopupSuccess, setSavePopupSuccess] = useState('')
+
   const [admins, setAdmins] = useState<AdminUser[]>([
     { name: 'Anuraj Admin', email: 'admin@anurajfx.com', role: 'admin' },
     { name: 'Support Team', email: 'support@anurajfx.com', role: 'support' },
@@ -60,6 +73,54 @@ export default function AdminSettingsPage() {
   const [inviteRole, setInviteRole] = useState<AdminUser['role']>('manager')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState('')
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const snap = await getDoc(doc(db, 'site_settings', 'event_popup'))
+        if (snap.exists()) {
+          const data = snap.data()
+          setPopupTitle(data.title || '')
+          setPopupDesc(data.description || '')
+          setPopupDateRange(data.date_range || '')
+          setPopupPrizePool(data.prize_pool || '')
+          setPopupBannerUrl(data.banner_url || '')
+          setPopupActionUrl(data.action_url || '')
+          setPopupActionLabel(data.action_label || '')
+          setPopupIsActive(!!data.is_active)
+        }
+      } catch (err) {
+        console.error('Error fetching event popup settings:', err)
+      }
+    }
+    loadSettings()
+  }, [])
+
+  const handleSavePopup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSavePopupLoading(true)
+    setSavePopupSuccess('')
+
+    try {
+      await setDoc(doc(db, 'site_settings', 'event_popup'), {
+        title: popupTitle,
+        description: popupDesc,
+        date_range: popupDateRange,
+        prize_pool: popupPrizePool,
+        banner_url: popupBannerUrl,
+        action_url: popupActionUrl,
+        action_label: popupActionLabel,
+        is_active: popupIsActive,
+        updated_at: new Date().toISOString()
+      })
+      setSavePopupSuccess('Event popup settings saved successfully!')
+      setTimeout(() => setSavePopupSuccess(''), 4000)
+    } catch (err: any) {
+      alert('Error saving popup settings: ' + err.message)
+    } finally {
+      setSavePopupLoading(false)
+    }
+  }
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault()
@@ -279,6 +340,133 @@ export default function AdminSettingsPage() {
           </AFXCard>
         </div>
       </div>
+
+      {/* Active Event Popup settings card */}
+      <AFXCard className="bg-bg-surface border border-border-subtle p-6 space-y-6 mt-6">
+            <div className="flex items-center justify-between border-b border-border-subtle/50 pb-3">
+              <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-accent-cyan" />
+                Active Site Event Popup Notification
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-text-secondary font-semibold">Active State:</span>
+                <button
+                  type="button"
+                  onClick={() => setPopupIsActive(!popupIsActive)}
+                  className={`w-10 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                    popupIsActive ? 'bg-accent-cyan' : 'bg-bg-base border border-border-subtle'
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                      popupIsActive ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {savePopupSuccess && (
+              <div className="p-3 bg-accent-green/10 border border-accent-green/30 rounded-xl text-xs text-accent-green font-mono">
+                ✓ {savePopupSuccess}
+              </div>
+            )}
+
+            <form onSubmit={handleSavePopup} className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-text-muted uppercase">Popup Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={popupTitle}
+                    onChange={(e) => setPopupTitle(e.target.value)}
+                    placeholder="e.g. ANURAJ FX Trading Tournament Q3 2026"
+                    className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-semibold"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-text-muted uppercase">Banner Image URL</label>
+                  <input
+                    type="text"
+                    value={popupBannerUrl}
+                    onChange={(e) => setPopupBannerUrl(e.target.value)}
+                    placeholder="https://example.com/banner.jpg"
+                    className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-text-muted uppercase">Popup Description</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={popupDesc}
+                  onChange={(e) => setPopupDesc(e.target.value)}
+                  placeholder="Tell traders about the tournament rules, prize pool, or event conditions..."
+                  className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs leading-relaxed font-medium"
+                />
+              </div>
+
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-[10px] font-bold text-text-muted uppercase">Date / Time Range</label>
+                  <input
+                    type="text"
+                    value={popupDateRange}
+                    onChange={(e) => setPopupDateRange(e.target.value)}
+                    placeholder="e.g. August 15–29, 2026"
+                    className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-semibold"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-text-muted uppercase">Prize Pool / Label</label>
+                  <input
+                    type="text"
+                    value={popupPrizePool}
+                    onChange={(e) => setPopupPrizePool(e.target.value)}
+                    placeholder="e.g. $10,000 Prize Pool"
+                    className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-semibold"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-text-muted uppercase">Action URL (Link)</label>
+                  <input
+                    type="text"
+                    value={popupActionUrl}
+                    onChange={(e) => setPopupActionUrl(e.target.value)}
+                    placeholder="e.g. /events"
+                    className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-text-muted uppercase">Action Button Label</label>
+                  <input
+                    type="text"
+                    value={popupActionLabel}
+                    onChange={(e) => setPopupActionLabel(e.target.value)}
+                    placeholder="e.g. Register Now"
+                    className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-semibold"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <AFXButton
+                    type="submit"
+                    disabled={savePopupLoading}
+                    variant="primary"
+                    className="w-full bg-gradient-to-r from-accent-cyan to-accent-purple font-bold py-2.5 rounded-xl text-bg-base text-xs flex items-center justify-center gap-1.5"
+                  >
+                    <Save className="w-4 h-4" />
+                    {savePopupLoading ? 'Saving...' : 'Save Event Popup'}
+                  </AFXButton>
+                </div>
+              </div>
+            </form>
+          </AFXCard>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { Footer } from '@/components/footer'
 import { getChallenges, getFirms } from '@/lib/firebase/server'
 import { AFXCard } from '@/components/ui/afx-card'
 import { Award, TrendingUp } from 'lucide-react'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
 export const metadata = {
   title: 'Best Seller Prop Challenges - ANURAJ FX',
@@ -66,13 +67,11 @@ export default async function BestSellersPage({ params }: { params?: Promise<{ c
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      {c.firm?.logo_url && (
-                        <img
-                          src={c.firm.logo_url}
-                          alt={c.firm.name}
-                          className="w-5 h-5 object-contain"
-                        />
-                      )}
+                      <img
+                        src={getCleanLogoUrl(c.firm.name, c.firm.logo_url)}
+                        alt={c.firm.name}
+                        className="w-5 h-5 object-contain"
+                      />
                       <span className="font-bold text-text-primary">{c.firm?.name}</span>
                       <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-text-muted px-2 py-0.5 rounded bg-bg-base border border-border-subtle/50">
                         {c.steps === 0 ? 'Instant' : `${c.steps}-Step`}

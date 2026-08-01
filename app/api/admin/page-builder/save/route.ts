@@ -32,6 +32,17 @@ export async function POST(request: NextRequest) {
     revalidatePath('/firms')
     revalidatePath('/brokers')
     revalidatePath('/deals')
+    revalidatePath('/about')
+    revalidatePath('/transparency')
+    revalidatePath('/how-it-works')
+    revalidatePath('/loyalty')
+    revalidatePath('/affiliate-program')
+    revalidatePath('/privacy-policy')
+    revalidatePath('/terms-and-conditions')
+    revalidatePath('/payouts')
+    revalidatePath('/spreads')
+    revalidatePath('/events')
+    revalidatePath('/leaderboard')
 
     return NextResponse.json({ success: true })
   } catch (error) {

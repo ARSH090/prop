@@ -23,6 +23,13 @@
   - [x] Remove `live_tickers` rendering section from `app/page.tsx`.
 - [x] AFX Resizing, Tier System & Logo Marquee Fixes:
   - [x] Rewrite marquee animation directives in `globals.css` using Tailwind v4 `@utility`.
+  - [x] Marquee Speed, Custom Selections & Custom Logo Uploads:
+  - [x] Slow down marquee duration to `60s` in `globals.css`.
+  - [x] Add `show_in_marquee` toggle to firms creation and edit forms.
+  - [x] Filter homepage logo marquee using `show_in_marquee` in `app/page.tsx`.
+  - [x] Add logo image thumbnail previews to admin firms and challenges tables.
+  - [x] Add custom logo upload fields to challenges new and edit forms.
+  - [x] Support custom challenge `logo_url` in the challenges API POST/PUT handlers.
   - [x] Implement `getCleanLogoUrl` inside `logo-marquee.tsx` and loop logos seamlessly.
   - [x] Make `verifiedMarqueeFirms` global across categories inside `app/page.tsx`.
   - [x] Remove bookmark button from challenges listing rows in `ChallengesClient.tsx`.
@@ -62,3 +69,10 @@
   - [x] Build `/awards` page
   - [x] Build `/admin/awards` page
 - [x] Full acceptance verification and Next.js build verification
+- [x] Relational challenges parent-child join configuration:
+  - [x] Implement autocomplete searchable selection dropdown on new challenge page.
+  - [x] Implement autocomplete searchable selection dropdown on edit challenge page.
+  - [x] Add selected parent firm visual logo + name preview on both pages.
+  - [x] Add numeric boundary checks and save validators to challenge forms.
+  - [x] Run build verification.
+- [x] Make central rotating neon globe + 6 float-animated glass bubbles (GFT, FTMO, TOP1, MFF, PIPS, E8) around it.

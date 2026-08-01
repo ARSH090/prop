@@ -7,6 +7,7 @@ import {
   MapPin, TrendingUp, Star, X, Send, Globe2, Tag
 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
 interface Payout {
   id: string
@@ -27,6 +28,7 @@ interface Firm {
   id: string
   name: string
   logo_url?: string
+  slug?: string
 }
 
 const REGIONS = ['All Regions', 'India', 'UAE', 'Singapore', 'North America', 'Europe', 'Asia', 'Global']
@@ -124,6 +126,7 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
   }, [initialPayouts])
 
   const getFirmName = (firmId: string) => firms.find((f) => f.id === firmId)?.name || 'Prop Firm'
+  const getFirm = (firmId: string) => firms.find((f) => f.id === firmId)
 
   const handleSubmitProof = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -253,11 +256,30 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
                 <div className="space-y-4">
                   {/* Header */}
                   <div className="flex items-center justify-between pb-3 border-b border-border-subtle/50">
-                    <div>
-                      <p className="font-bold text-text-primary text-sm">{payout.trader_display_name}</p>
-                      <p className="text-[10px] text-accent-cyan font-mono uppercase tracking-wider font-bold">
-                        {getFirmName(payout.firm_id)}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      {(() => {
+                        const firm = getFirm(payout.firm_id)
+                        const logoUrl = firm ? getCleanLogoUrl(firm.name, firm.logo_url) : ''
+                        return logoUrl ? (
+                          <div className="w-10 h-10 rounded-xl bg-bg-base border border-border-subtle flex items-center justify-center p-1.5 shrink-0">
+                            <img
+                              src={logoUrl}
+                              alt={firm?.name}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0">
+                            <span className="text-accent-cyan font-bold text-sm">{getFirmName(payout.firm_id)[0]}</span>
+                          </div>
+                        )
+                      })()}
+                      <div>
+                        <p className="font-bold text-text-primary text-sm">{payout.trader_display_name}</p>
+                        <p className="text-[10px] text-accent-cyan font-mono uppercase tracking-wider font-bold">
+                          {getFirmName(payout.firm_id)}
+                        </p>
+                      </div>
                     </div>
                     <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-accent-green/10 text-accent-green border border-accent-green/20 text-[9px] font-bold uppercase tracking-wider font-mono">
                       <CheckCircle className="w-3 h-3" />
@@ -368,10 +390,21 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-text-muted uppercase">Prop Firm</label>
-                    <select value={submitForm.firm_id} onChange={(e) => setSubmitForm((p) => ({ ...p, firm_id: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none">
-                      {firms.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-                    </select>
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const selectedFirm = firms.find((f) => f.id === submitForm.firm_id)
+                        const logoUrl = selectedFirm ? getCleanLogoUrl(selectedFirm.name, selectedFirm.logo_url) : ''
+                        return logoUrl ? (
+                          <div className="w-8 h-8 rounded-lg bg-bg-base border border-border-subtle flex items-center justify-center p-1 shrink-0">
+                            <img src={logoUrl} alt={selectedFirm?.name} className="w-full h-full object-contain" />
+                          </div>
+                        ) : null
+                      })()}
+                      <select value={submitForm.firm_id} onChange={(e) => setSubmitForm((p) => ({ ...p, firm_id: e.target.value }))}
+                        className="flex-1 px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none">
+                        {firms.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+                      </select>
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-text-muted uppercase">Region</label>

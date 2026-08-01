@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
-import { getPayouts, getFirms } from '@/lib/firebase/server'
+import { getPayouts, getFirms, getSiteContent } from '@/lib/firebase/server'
 import { ShieldCheck } from 'lucide-react'
 import PayoutsClient from './PayoutsClient'
 
@@ -13,7 +13,14 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function PayoutsPage() {
-  const [payouts, firms] = await Promise.all([getPayouts(), getFirms()])
+  const [payouts, firms, siteContent] = await Promise.all([
+    getPayouts(),
+    getFirms(),
+    getSiteContent('payouts')
+  ])
+
+  const headline = siteContent.headline || 'Verified Trader Payouts'
+  const subtext = siteContent.subtext || 'Real payout receipts and proofs verified by Anuraj FX auditing team. No fake statements.'
 
   const verifiedPayouts = payouts
     .filter((p: any) => p.is_verified)
@@ -32,10 +39,10 @@ export default async function PayoutsPage() {
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-text-primary mb-2 afx-gradient-heading flex items-center gap-2">
             <ShieldCheck className="w-8 h-8 text-accent-cyan" />
-            Verified Trader Payouts
+            {headline}
           </h1>
           <p className="text-text-secondary text-sm">
-            Real payout receipts and proofs verified by Anuraj FX auditing team. No fake statements.
+            {subtext}
           </p>
         </div>
 
@@ -45,3 +52,4 @@ export default async function PayoutsPage() {
     </div>
   )
 }
+

@@ -48,8 +48,11 @@ export function ExplainerCards() {
             return (
               <div
                 key={idx}
-                className="relative bg-bg-surface border border-border-subtle hover:border-accent-cyan/40 p-8 rounded-3xl group hover:shadow-xl hover:shadow-accent-cyan/5 transition-all duration-300 flex flex-col"
+                className="relative bg-bg-surface border border-border-subtle hover:border-accent-cyan/60 p-8 rounded-3xl group hover:-translate-y-2 hover:shadow-2xl hover:shadow-accent-cyan/10 transition-all duration-500 flex flex-col overflow-hidden"
               >
+                {/* Subtle Hover Glow Gradient */}
+                <div className="absolute -inset-px bg-gradient-to-br from-accent-cyan/0 to-accent-purple/0 group-hover:from-accent-cyan/5 group-hover:to-accent-purple/5 rounded-3xl transition-all duration-500 pointer-events-none" />
+                <div className="relative z-10 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-6">
                   <div className={`p-4 rounded-2xl border ${item.color} group-hover:scale-110 transition-transform duration-300`}>
                     <Icon className="w-6 h-6" />
@@ -65,6 +68,7 @@ export function ExplainerCards() {
                 <p className="text-text-secondary text-sm leading-relaxed flex-1">
                   {item.description}
                 </p>
+                </div>
               </div>
             )
           })}

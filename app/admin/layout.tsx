@@ -23,6 +23,7 @@ import {
   DollarSign,
   Mail,
   Calendar,
+  Globe,
 } from 'lucide-react'
 
 const navigation = [
@@ -39,6 +40,7 @@ const navigation = [
   { name: 'Events', href: '/admin/events', icon: Calendar },
   { name: 'Contact Messages', href: '/admin/messages', icon: Mail },
   { name: 'Media Library', href: '/admin/media', icon: Image },
+  { name: 'Globe Logos', href: '/admin/page-builder?page=globe', icon: Globe },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
@@ -52,12 +54,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (user) {
+        // Fast-path: check designated admin emails first to avoid Firestore reads/errors
+        if (user.email === 'admin@anurajfx.com' || user.email === 'admin@empirial.com') {
+          setIsAdmin(true)
+          setCheckingAuth(false)
+          return
+        }
+
         try {
           const profileDoc = await getDoc(doc(db, 'profiles', user.uid))
           const isUserAdmin = 
             (profileDoc.exists() && profileDoc.data()?.role === 'admin') || 
-            user.email === 'admin@anurajfx.com' || 
-            user.email === 'admin@empirial.com' ||
             process.env.NODE_ENV === 'development'
           
           if (isUserAdmin) {
@@ -67,14 +74,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             router.push('/')
           }
         } catch (error) {
-          console.error('Error loading admin profile:', error)
-          // Fallback to allow access in local dev or incomplete schemas if the email matches
-          if (user.email === 'admin@anurajfx.com' || user.email === 'admin@empirial.com') {
-            setIsAdmin(true)
-          } else {
-            setIsAdmin(false)
-            router.push('/')
-          }
+          console.warn('Profile document read restricted or unavailable. Access denied.')
+          setIsAdmin(false)
+          router.push('/')
         } finally {
           setCheckingAuth(false)
         }

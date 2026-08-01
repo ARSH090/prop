@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
-import { getPayouts, getFirms, getDeals } from '@/lib/firebase/server'
+import { getPayouts, getFirms, getDeals, getSiteContent } from '@/lib/firebase/server'
 import LeaderboardClient from './LeaderboardClient'
 import { BarChart2 } from 'lucide-react'
 
@@ -16,11 +16,16 @@ export default async function LeaderboardPage({ params }: { params?: Promise<{ c
   const resolvedParams = params ? await params : null
   const category = resolvedParams?.category || 'forex'
 
-  const [payouts, firms, deals] = await Promise.all([
+  const [payouts, firms, deals, siteContent] = await Promise.all([
     getPayouts(),
     getFirms(),
     getDeals(),
+    getSiteContent('leaderboard')
   ])
+
+  const badge_text = siteContent.badge_text || 'Live Rankings'
+  const headline = siteContent.headline || 'Prop Firm Payouts Tracker'
+  const subtext = siteContent.subtext || 'Compare payout times, payout totals, and payout history across prop firms. View firm-level payout trends and individual trader rankings.'
 
   const activeFirms = firms.filter((f: any) => {
     if (f.status !== 'active') return false
@@ -43,16 +48,16 @@ export default async function LeaderboardPage({ params }: { params?: Promise<{ c
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/30">
             <BarChart2 className="w-3.5 h-3.5 text-accent-cyan" />
-            <span className="text-xs font-bold text-accent-cyan uppercase tracking-wider">Live Rankings</span>
+            <span className="text-xs font-bold text-accent-cyan uppercase tracking-wider">{badge_text}</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight afx-gradient-heading">
-            Prop Firm Payouts Tracker
+            {headline}
           </h1>
           <p className="text-text-secondary text-lg max-w-2xl mx-auto">
-            Compare payout times, payout totals, and payout history across prop firms.
-            View firm-level payout trends and individual trader rankings.
+            {subtext}
           </p>
         </div>
+
 
         <LeaderboardClient payouts={verifiedPayouts} firms={enrichedFirms} category={category} />
       </main>

@@ -17,9 +17,11 @@ interface Deal {
 
 interface FeaturedDealsProps {
   deals?: Deal[]
+  title?: string
+  subtext?: string
 }
 
-export function FeaturedDeals({ deals = [] }: FeaturedDealsProps) {
+export function FeaturedDeals({ deals = [], title, subtext }: FeaturedDealsProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   const handleCopyCode = (code: string) => {
@@ -50,8 +52,8 @@ export function FeaturedDeals({ deals = [] }: FeaturedDealsProps) {
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/30 mb-4">
               <span className="text-xs font-bold text-accent-cyan uppercase tracking-wider">PROMOS</span>
             </div>
-            <h2 className="text-4xl font-extrabold text-text-primary tracking-tight">Featured Coupons & Deals</h2>
-            <p className="text-text-secondary mt-1">Exclusive verified discount codes updated daily</p>
+            <h2 className="text-4xl font-extrabold text-text-primary tracking-tight">{title || 'Featured Coupons & Deals'}</h2>
+            <p className="text-text-secondary mt-1">{subtext || 'Exclusive verified discount codes updated daily'}</p>
           </div>
         </div>
 

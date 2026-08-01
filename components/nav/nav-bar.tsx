@@ -24,6 +24,7 @@ import {
   Home,
   Users,
   Search,
+  Bell,
 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 import { signOut } from 'firebase/auth'
@@ -48,11 +49,11 @@ const toolsLinks = [
 
 const subNavLinks = [
   { label: 'Home', href: '/' },
+  { label: 'Events', href: '/events' },
+  { label: 'Community', href: '/community' },
   { label: 'Deals', href: '/deals' },
   { label: 'Challenges', href: '/challenges' },
   { label: 'Best Sellers', href: '/best-sellers' },
-  { label: 'Events', href: '/events' },
-  { label: 'Community', href: '/community' },
   { label: 'Reviews', href: '/reviews' },
   { label: 'Favorite Firms', href: '/favorites' },
 ]
@@ -101,10 +102,39 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [notifications, setNotifications] = useState([
+    { id: '1', title: 'New Discount Deal', message: 'FTMO is offering 10% OFF on all evaluations today.', time: '5m ago', read: false },
+    { id: '2', title: 'Payout Approved', message: 'Trader "Anuraj" received a $4,500 payout proof verified.', time: '2h ago', read: false },
+    { id: '3', title: 'Upcoming Tournament', message: 'ANURAJ FX Q3 2026 registration is now open.', time: '1d ago', read: true }
+  ])
   const toolsCloseTimer = useRef<NodeJS.Timeout | null>(null)
   const userMenuCloseTimer = useRef<NodeJS.Timeout | null>(null)
+  const notifCloseTimer = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const pathname = usePathname()
+
+  const handleNotifMouseEnter = () => {
+    if (notifCloseTimer.current) clearTimeout(notifCloseTimer.current)
+    setNotificationsOpen(true)
+  }
+
+  const handleNotifMouseLeave = () => {
+    notifCloseTimer.current = setTimeout(() => {
+      setNotificationsOpen(false)
+    }, 300)
+  }
+
+  const markAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
+
+  const clearAllNotifications = () => {
+    setNotifications([])
+    setNotificationsOpen(false)
+  }
+
+  const unreadCount = notifications.filter((n) => !n.read).length
 
   // Determine active category and relative path
   let activeCategory = 'forex'
@@ -210,14 +240,8 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
               </span>
             </Link>
 
-            {/* Mock Search & Category Switcher Row */}
+            {/* Category Switcher Row */}
             <div className="hidden lg:flex items-center gap-4 flex-1 max-w-xl justify-center">
-              {/* Mock Search */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-base border border-border-subtle w-44 text-text-secondary text-xs">
-                <Search className="w-3.5 h-3.5 text-text-muted" />
-                <span className="text-text-muted">Search...</span>
-              </div>
-
               {/* Category Pills Switcher */}
               <div className="flex items-center gap-1 bg-bg-base border border-border-subtle rounded-full p-1 shadow-lg shadow-black/10">
                 {[
@@ -315,6 +339,84 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                   </Link>
                 </>
               )}
+
+              {/* Notification Bell Dropdown */}
+              <div
+                className="relative"
+                onMouseEnter={handleNotifMouseEnter}
+                onMouseLeave={handleNotifMouseLeave}
+              >
+                <button 
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  className="relative p-2 rounded-xl bg-bg-base border border-border-subtle text-text-secondary hover:text-accent-cyan hover:border-accent-cyan/40 transition-all focus:outline-none cursor-pointer flex items-center justify-center"
+                >
+                  <Bell className="w-4 h-4" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white font-extrabold text-[8px] rounded-full flex items-center justify-center animate-pulse">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+                
+                {notificationsOpen && (
+                  <div className="absolute top-9 right-0 w-80 bg-bg-surface border border-border-subtle rounded-2xl shadow-2xl py-3 mt-1.5 backdrop-blur-md animate-fade-in z-50 space-y-2">
+                    <div className="flex items-center justify-between px-4 pb-2 border-b border-border-subtle/50">
+                      <span className="text-xs font-black text-text-primary uppercase tracking-wider">Notifications</span>
+                      <div className="flex items-center gap-2">
+                        {unreadCount > 0 && (
+                          <button 
+                            onClick={markAllRead}
+                            className="text-[10px] text-accent-cyan hover:underline font-bold bg-transparent cursor-pointer"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                        {notifications.length > 0 && (
+                          <button 
+                            onClick={clearAllNotifications}
+                            className="text-[10px] text-red-400 hover:text-red-300 hover:underline font-bold bg-transparent cursor-pointer"
+                          >
+                            Clear All
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="max-h-64 overflow-y-auto divide-y divide-border-subtle/30 px-2 space-y-1">
+                      {notifications.length === 0 ? (
+                        <div className="py-8 text-center">
+                          <p className="text-text-muted text-xs font-semibold">No notifications</p>
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div 
+                            key={notif.id} 
+                            className={`p-2.5 rounded-xl transition-colors text-xs ${notif.read ? 'hover:bg-bg-base/30' : 'bg-accent-cyan/[0.03] hover:bg-accent-cyan/[0.06] border-l-2 border-accent-cyan'}`}
+                          >
+                            <div className="flex justify-between items-start gap-2 mb-0.5">
+                              <span className={`font-black ${notif.read ? 'text-text-primary' : 'text-accent-cyan'}`}>
+                                {notif.title}
+                              </span>
+                              <span className="text-[9px] text-text-muted font-mono whitespace-nowrap">{notif.time}</span>
+                            </div>
+                            <p className="text-text-secondary leading-relaxed text-[11px] font-semibold">{notif.message}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    
+                    <div className="text-center pt-2 border-t border-border-subtle/50">
+                      <Link 
+                        href="/community" 
+                        className="text-[10px] font-bold text-text-muted hover:text-accent-cyan uppercase tracking-wider transition-colors"
+                        onClick={() => setNotificationsOpen(false)}
+                      >
+                        View discussions hub
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Tools Dropdown Button */}
               <div

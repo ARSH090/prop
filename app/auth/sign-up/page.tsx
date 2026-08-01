@@ -1,7 +1,8 @@
 'use client'
 
-import { auth } from '@/lib/firebase/client'
+import { auth, db } from '@/lib/firebase/client'
 import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
 import { AFXButton } from '@/components/ui/afx-button'
 import { AFXCard } from '@/components/ui/afx-card'
 import Link from 'next/link'
@@ -60,14 +61,28 @@ export default function Page() {
     setIsLoading(true)
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
       
       // Update display name if provided
       if (displayName.trim()) {
-        await updateProfile(userCredential.user, { displayName: displayName.trim() })
+        await updateProfile(user, { displayName: displayName.trim() })
       }
       
+      // Create user profile in Firestore
+      const isDomainAdmin = email.toLowerCase().endsWith('@anurajfx.com') || 
+                           email.toLowerCase().endsWith('@empirial.com') ||
+                           email.toLowerCase().includes('admin')
+      
+      await setDoc(doc(db, 'profiles', user.uid), {
+        id: user.uid,
+        email: email,
+        displayName: displayName.trim() || email.split('@')[0],
+        role: isDomainAdmin ? 'admin' : 'user',
+        createdAt: new Date().toISOString()
+      })
+      
       // Send email verification
-      await sendEmailVerification(userCredential.user)
+      await sendEmailVerification(user)
       
       setSuccess(true)
     } catch (err: any) {

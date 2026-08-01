@@ -1,43 +1,22 @@
+import React from 'react'
 import { db } from '@/lib/firebase/admin'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Star, CheckCircle, ExternalLink } from 'lucide-react'
-import { NavBar } from '@/components/nav/nav-bar'
-import { Footer } from '@/components/footer'
-import { CopyButton } from '@/components/ui/copy-button'
-import { RatingBadge } from '@/components/ui/rating-badge'
-import { CommentsSection } from '@/components/ui/comments-section'
+import { getFirms, getChallenges } from '@/lib/firebase/server'
+import { Star, AlertOctagon } from 'lucide-react'
 
-export const revalidate = 10 // ISR: revalidate every 10 seconds
+export const revalidate = 10
 
-import { getFirms, getDeals } from '@/lib/firebase/server'
-
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  try {
-    const { slug } = await params
-    const snapshot = await db.collection('firms').where('slug', '==', slug).limit(1).get()
-
-    let firm: any = null
-    if (snapshot.empty) {
-      const allMock = await getFirms()
-      firm = allMock.find((f: any) => f.slug === slug)
-    } else {
-      firm = snapshot.docs[0].data()
-    }
-
-    if (!firm) return { title: 'Firm Not Found' }
-
-    return {
-      title: `${firm.name} - Prop Firm & Broker Details | ANURAJ FX`,
-      description: firm.description,
-    }
-  } catch (err) {
-    return { title: 'ANURAJ FX' }
-  }
+const COUNTRY_NAMES: Record<string, string> = {
+  CZ: 'Czech Republic', US: 'United States', IL: 'Israel', AE: 'UAE', GB: 'United Kingdom',
+  IN: 'India', AU: 'Australia', CY: 'Cyprus', HU: 'Hungary', EU: 'Europe',
+  AF: 'Afghanistan', BY: 'Belarus', IR: 'Iran', IQ: 'Iraq', KP: 'North Korea',
+  RU: 'Russia', SY: 'Syria', YE: 'Yemen'
 }
 
-export default async function FirmDetailPage({ params }: { params: { slug: string } }) {
-  const { slug } = await params
+export default async function FirmOverviewPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params
+  const { slug } = resolvedParams
   const snapshot = await db.collection('firms').where('slug', '==', slug).limit(1).get()
 
   let firm: any = null
@@ -55,339 +34,364 @@ export default async function FirmDetailPage({ params }: { params: { slug: strin
     firm = { id: firmDoc.id, ...firmDoc.data() } as any
   }
 
-  // 1. Fetch published reviews
-  let reviews: any[] = []
-  if (!isFirestoreEmpty) {
-    try {
-      const reviewsSnap = await db
-        .collection('reviews')
-        .where('firm_id', '==', firm.id)
-        .where('status', '==', 'published')
-        .get()
-      reviews = reviewsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
-    } catch (e) {
-      console.warn('Reviews fetch failed, using empty list')
-    }
-  }
+  // Fetch challenges for this firm
+  const allChallenges = await getChallenges()
+  const firmChallenges = allChallenges.filter((c: any) => c.firm_id === firm.id && c.is_active !== false)
+  const challengePreview = firmChallenges.slice(0, 3)
 
-  // 2. Fetch active deals
-  let deals: any[] = []
-  if (isFirestoreEmpty) {
-    const allMockDeals = await getDeals()
-    deals = allMockDeals.filter((d: any) => d.firm_id === firm.id && d.status === 'active')
-  } else {
-    try {
-      const dealsSnap = await db
-        .collection('deals')
-        .where('firm_id', '==', firm.id)
-        .where('status', '==', 'active')
-        .get()
-      deals = dealsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
-    } catch (e) {
-      console.warn('Deals fetch failed')
-    }
-  }
+  // Fetch similar firms
+  const allFirms = await getFirms()
+  const relatedFirms = allFirms
+    .filter((f: any) => f.type === firm.type && f.id !== firm.id && f.status === 'active')
+    .slice(0, 3)
 
-  // 3. Fetch similar firms
-  let relatedFirms: any[] = []
-  if (isFirestoreEmpty) {
-    const allMockFirms = await getFirms()
-    relatedFirms = allMockFirms
-      .filter((f: any) => f.type === firm.type && f.id !== firm.id)
-      .slice(0, 3)
-  } else {
-    try {
-      const relatedSnap = await db
-        .collection('firms')
-        .where('type', '==', firm.type)
-        .limit(4)
-        .get()
-      relatedFirms = relatedSnap.docs
-        .map((doc: any) => ({ id: doc.id, ...doc.data() }))
-        .filter((f: any) => f.id !== firm.id)
-    } catch (e) {
-      console.warn('Related firms fetch failed')
-    }
-  }
+  const isFutures = firm.category?.map((c: string) => c.toLowerCase()).includes('futures')
 
-  const rules = firm.rules || {}
-  const avgRating = firm.rating || 4.0
+  const sidebarLinks = [
+    { label: 'Firm Overview', id: 'firm-overview' },
+    { label: 'Instruments & Assets', id: 'instruments' },
+    { label: isFutures ? 'Contract Specs' : 'Leverage', id: 'leverage-specs' },
+    { label: 'Commissions', id: 'commissions' },
+    { label: 'Consistency Rules', id: 'consistency-rules' },
+    { label: 'Firm Rules', id: 'firm-rules' },
+    { label: 'Challenges (Preview)', id: 'challenges-preview' },
+    { label: 'Payout Policy', id: 'payout-policy' },
+    { label: 'Restricted Countries', id: 'restricted-countries' },
+  ]
 
   return (
-    <div className="min-h-screen bg-bg-base text-text-primary">
-      <NavBar />
-
-      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        {/* Firm Header */}
-        <div className="bg-bg-surface border border-border-subtle mb-12 p-8 rounded-3xl relative overflow-hidden">
-          <div className="flex flex-col md:flex-row items-start gap-8 relative z-10">
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              <div className="w-24 h-24 bg-bg-base border border-border-subtle rounded-2xl flex items-center justify-center p-3">
-                {firm.logo_url ? (
-                  <img
-                    src={firm.logo_url}
-                    alt={firm.name}
-                    className="w-20 h-20 object-contain rounded"
-                  />
-                ) : (
-                  <span className="text-3xl font-extrabold font-mono text-accent-cyan">
-                    {firm.name[0]}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Info */}
-            <div className="flex-grow">
-              <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <h1 className="text-3xl md:text-4xl font-extrabold text-text-primary">
-                  {firm.name}
-                </h1>
-                {firm.is_verified && (
-                  <CheckCircle className="w-6 h-6 text-accent-green" />
-                )}
-              </div>
-
-              <div className="mb-4">
-                <RatingBadge rating={avgRating} reviewCount={firm.review_count} fontVariant="sans" />
-              </div>
-
-              <p className="text-text-secondary text-sm md:text-base mb-6 max-w-2xl leading-relaxed">
-                {firm.description}
-              </p>
-
-              <div className="flex flex-wrap gap-2 mb-6">
-                {firm.category?.map((cat: string) => (
-                  <span
-                    key={cat}
-                    className="px-2.5 py-1 rounded bg-bg-base border border-border-subtle text-[10px] font-mono font-bold text-text-secondary tracking-widest uppercase"
-                  >
-                    {cat}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={firm.affiliate_url || firm.website_url || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 rounded-xl font-bold text-bg-base flex items-center gap-2 hover:opacity-90 transition-opacity bg-gradient-to-r from-accent-cyan to-accent-blue text-sm"
-                >
-                  Visit {firm.name}
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            </div>
-
-            {/* Stats Panel */}
-            <div className="grid grid-cols-2 gap-4 w-full md:w-auto min-w-[240px]">
-              <div className="bg-bg-base/50 border border-border-subtle/50 p-4 rounded-2xl">
-                <p className="text-text-muted text-[10px] uppercase font-bold tracking-wider mb-1 font-mono">
-                  Max Allocation
-                </p>
-                <p className="text-text-primary font-bold font-mono text-base">
-                  ${firm.max_allocation ? (firm.max_allocation / 1000).toFixed(0) : '200'}K
-                </p>
-              </div>
-              <div className="bg-bg-base/50 border border-border-subtle/50 p-4 rounded-2xl">
-                <p className="text-text-muted text-[10px] uppercase font-bold tracking-wider mb-1 font-mono">
-                  Years Active
-                </p>
-                <p className="text-text-primary font-bold text-base">
-                  {firm.years_active || '5'}+ years
-                </p>
-              </div>
-              <div className="bg-bg-base/50 border border-border-subtle/50 p-4 rounded-2xl">
-                <p className="text-text-muted text-[10px] uppercase font-bold tracking-wider mb-1 font-mono">
-                  Regulation
-                </p>
-                <p className="text-text-primary font-bold font-mono text-base">
-                  {firm.country || 'Global'}
-                </p>
-              </div>
-              <div className="bg-bg-base/50 border border-border-subtle/50 p-4 rounded-2xl">
-                <p className="text-text-muted text-[10px] uppercase font-bold tracking-wider mb-1 font-mono">
-                  Platforms
-                </p>
-                <p className="text-text-primary font-bold text-xs truncate">
-                  {firm.platforms?.slice(0, 2).join(', ') || 'MT4, MT5'}
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      {/* 1. Left Sidebar Navigation */}
+      <div className="hidden lg:block lg:col-span-1">
+        <div className="sticky top-6 bg-bg-surface border border-border-subtle p-5 rounded-2xl space-y-2">
+          <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-4 font-mono">
+            Navigation Sections
+          </p>
+          <nav className="flex flex-col gap-1.5">
+            {sidebarLinks.map((link) => (
+              <a
+                key={link.id}
+                href={`#${link.id}`}
+                className="text-xs font-semibold text-text-secondary hover:text-accent-cyan hover:translate-x-1 transition-all py-1.5 block"
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
         </div>
+      </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Main Info Blocks */}
-          <div className="md:col-span-2 space-y-8">
-            {/* Rules Table */}
-            <div className="bg-bg-surface border border-border-subtle p-6 rounded-3xl">
-              <h2 className="text-2xl font-bold text-text-primary mb-6">Trading Rules</h2>
-              <div className="space-y-1">
-                {Object.entries(rules).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className="flex justify-between items-center py-3.5 border-b border-border-subtle last:border-b-0 text-sm"
-                  >
-                    <span className="text-text-secondary capitalize">
-                      {key.replace(/_/g, ' ')}
-                    </span>
-                    <span className="text-text-primary font-bold font-mono">
-                      {String(value)}
-                    </span>
-                  </div>
-                ))}
+      {/* 2. Main Content Sections */}
+      <div className="col-span-1 lg:col-span-3 space-y-12">
+        
+        {/* Section A: Firm Overview */}
+        <section id="firm-overview" className="scroll-mt-6 bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-text-primary border-b border-border-subtle/50 pb-2">
+            Firm Overview
+          </h2>
+          <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-line">
+            {firm.description || `Welcome to ${firm.name}. Our platform is dedicated to providing high-quality accounts, verified payout models, and raw liquidity connection tools.`}
+          </p>
+        </section>
+
+        {/* Section B: Instruments & Assets */}
+        <section id="instruments" className="scroll-mt-6 bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-text-primary border-b border-border-subtle/50 pb-2">
+            Instruments & Assets
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {(firm.instruments || firm.assets || (isFutures
+              ? ['E-mini S&P 500 (ES)', 'E-mini NASDAQ (NQ)', 'E-mini Dow Jones (YM)', 'Crude Oil (CL)', 'Gold (GC)', 'Natural Gas (NG)']
+              : ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD (Gold)', 'BTCUSD (Bitcoin)', 'ETHUSD', 'US30 (Dow Jones)']
+            )).map((ast: string) => (
+              <span key={ast} className="px-3.5 py-1.5 rounded-full bg-bg-base border border-border-subtle/70 text-xs font-bold text-text-primary">
+                {ast}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        {/* Section C: Leverage & Spec Specifications */}
+        <section id="leverage-specs" className="scroll-mt-6 bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-text-primary border-b border-border-subtle/50 pb-2">
+            {isFutures ? 'Contract Specifications' : 'Leverage Parameters'}
+          </h2>
+          {isFutures ? (
+            <div className="overflow-x-auto text-xs">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-border-subtle text-text-muted font-bold">
+                    <th className="py-2">Contract</th>
+                    <th className="py-2">Margin Requirement</th>
+                    <th className="py-2 text-right">Tick Value</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-subtle/40 text-text-secondary font-mono">
+                  <tr>
+                    <td className="py-2 font-bold text-text-primary">ES (S&P 500)</td>
+                    <td className="py-2">$50 / Contract</td>
+                    <td className="py-2 text-right">$12.50 / 0.25 pt</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-bold text-text-primary">NQ (Nasdaq)</td>
+                    <td className="py-2">$50 / Contract</td>
+                    <td className="py-2 text-right">$5.00 / 0.25 pt</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-bold text-text-primary">GC (Gold)</td>
+                    <td className="py-2">$100 / Contract</td>
+                    <td className="py-2 text-right">$10.00 / 0.10 pt</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+              <div className="bg-bg-base/40 p-4 rounded-xl border border-border-subtle/50">
+                <p className="text-[10px] uppercase font-bold text-text-muted mb-1">Forex Majors</p>
+                <p className="text-sm font-black text-accent-cyan font-mono">1:100</p>
+              </div>
+              <div className="bg-bg-base/40 p-4 rounded-xl border border-border-subtle/50">
+                <p className="text-[10px] uppercase font-bold text-text-muted mb-1">Gold & Metals</p>
+                <p className="text-sm font-black text-accent-cyan font-mono">1:50</p>
+              </div>
+              <div className="bg-bg-base/40 p-4 rounded-xl border border-border-subtle/50">
+                <p className="text-[10px] uppercase font-bold text-text-muted mb-1">Indices</p>
+                <p className="text-sm font-black text-accent-cyan font-mono">1:20</p>
+              </div>
+              <div className="bg-bg-base/40 p-4 rounded-xl border border-border-subtle/50">
+                <p className="text-[10px] uppercase font-bold text-text-muted mb-1">Cryptocurrencies</p>
+                <p className="text-sm font-black text-accent-cyan font-mono">1:2</p>
               </div>
             </div>
+          )}
+        </section>
 
-            {/* Active Deals */}
-            {deals.length > 0 && (
-              <div className="bg-bg-surface border border-border-subtle p-6 rounded-3xl">
-                <h2 className="text-2xl font-bold text-text-primary mb-6">Active Deals & Promos</h2>
-                <div className="space-y-3">
-                  {deals.map((deal) => (
-                    <div
-                      key={deal.id}
-                      className="flex justify-between items-center p-4 bg-bg-base/50 border border-border-subtle/50 rounded-xl"
-                    >
-                      <div>
-                        <p className="text-text-primary font-bold font-mono text-base">
-                          {deal.code}
-                        </p>
-                        <p className="text-text-secondary text-xs mt-0.5">{deal.title}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="px-2 py-0.5 rounded bg-accent-cyan/15 text-accent-cyan text-xs font-mono font-bold">
-                          {deal.discount_label}
-                        </span>
-                        <CopyButton text={deal.code} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+        {/* Section D: Commissions */}
+        <section id="commissions" className="scroll-mt-6 bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-text-primary border-b border-border-subtle/50 pb-2">
+            Commissions & Fees
+          </h2>
+          {firm.commissions_text ? (
+            <div
+              className="prose prose-invert max-w-none text-text-secondary text-sm prose-sm"
+              dangerouslySetInnerHTML={{ __html: firm.commissions_text }}
+            />
+          ) : (
+            <>
+              <p className="text-text-secondary text-sm leading-relaxed">
+                Standard Raw spreads apply. Commissions vary per execution platform model:
+              </p>
+              <ul className="list-disc pl-5 text-xs text-text-secondary space-y-1">
+                <li><strong>cTrader:</strong> $3.00 per side per 100k traded.</li>
+                <li><strong>MT5 (Raw Account):</strong> $3.50 per lot commission.</li>
+                <li><strong>Futures (Rithmic/Tradovate):</strong> standard clearing fees plus platform execution costs.</li>
+              </ul>
+            </>
+          )}
+        </section>
 
-            {/* Reviews Section */}
-            <div className="bg-bg-surface border border-border-subtle p-6 rounded-3xl">
-              <h2 className="text-2xl font-bold text-text-primary mb-6">
-                Trader Reviews ({reviews.length})
-              </h2>
-              {reviews.length > 0 ? (
-                <div className="space-y-4">
-                  {reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="p-5 bg-bg-base/40 border border-border-subtle/30 rounded-2xl"
+        {/* Section E: Consistency Rules */}
+        <section id="consistency-rules" className="scroll-mt-6 bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-text-primary border-b border-border-subtle/50 pb-2">
+            Consistency Rules
+          </h2>
+          <div
+            className="prose prose-invert max-w-none text-text-secondary text-sm prose-sm"
+            dangerouslySetInnerHTML={{ __html: firm.consistency_rules_content }}
+          />
+        </section>
+
+        {/* Section F: Firm Rules */}
+        <section id="firm-rules" className="scroll-mt-6 bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-text-primary border-b border-border-subtle/50 pb-2">
+            General Firm Rules
+          </h2>
+          <div
+            className="prose prose-invert max-w-none text-text-secondary text-sm prose-sm"
+            dangerouslySetInnerHTML={{ __html: firm.firm_rules_content }}
+          />
+        </section>
+
+        {/* Section G: Challenges Preview */}
+        <section id="challenges-preview" className="scroll-mt-6 bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-6">
+          <div className="flex justify-between items-center border-b border-border-subtle/50 pb-2">
+            <h2 className="text-xl font-bold text-text-primary">
+              Evaluation Packages
+            </h2>
+            <Link
+              href={`/firms/${slug}/challenges`}
+              className="text-xs font-bold text-accent-cyan hover:underline"
+            >
+              View All Challenges &rarr;
+            </Link>
+          </div>
+
+          {challengePreview.length === 0 ? (
+            <p className="text-xs text-text-muted">No active evaluation packages found for this firm.</p>
+          ) : (
+            <div className="space-y-3.5">
+              {challengePreview.map((ch: any) => (
+                <div key={ch.id} className="flex justify-between items-center bg-bg-base/40 border border-border-subtle/60 p-4 rounded-2xl">
+                  <div>
+                    <h4 className="text-sm font-extrabold text-text-primary">${(ch.account_size || 0).toLocaleString()} Challenge</h4>
+                    <p className="text-[10px] text-text-muted font-bold font-mono mt-0.5">{ch.steps}-step evaluation • Profit split: {ch.profit_split_percent || ch.profit_split_pct || 80}%</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-black text-accent-cyan font-mono">${ch.price}</p>
+                    <Link
+                      href={`/firms/${slug}/challenges`}
+                      className="text-[10px] font-bold text-text-muted hover:text-text-primary transition-colors underline"
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="text-text-primary font-bold">{review.title}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <div className="flex text-accent-yellow">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-3.5 h-3.5 ${
-                                    i < review.rating ? 'fill-current' : 'text-text-muted'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            {review.is_verified_trader && (
-                              <span className="px-2 py-0.5 rounded bg-accent-green/15 text-accent-green text-[10px] font-bold uppercase tracking-wider font-mono">
-                                Verified Trader
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-text-secondary text-sm leading-relaxed">{review.body}</p>
-                      <p className="text-text-muted text-[10px] mt-3 font-mono font-semibold">
-                        by {review.full_name || 'Anonymous'} •{' '}
-                        {review.created_at
-                          ? new Date(review.created_at.seconds ? review.created_at.seconds * 1000 : review.created_at).toLocaleDateString('en-US')
-                          : 'Recent'}
-                      </p>
-                    </div>
-                  ))}
+                      Compare
+                    </Link>
+                  </div>
                 </div>
-              ) : (
-                <p className="text-text-secondary text-sm">
-                  No reviews yet. Be the first to review this firm!
-                </p>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Section H: Payout Policy & Tiers */}
+        <section id="payout-policy" className="scroll-mt-6 bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-8">
+          <h2 className="text-xl font-bold text-text-primary border-b border-border-subtle/50 pb-2">
+            Payout Policy & Limit Tiers
+          </h2>
+
+          {firm.payout_programs?.map((prog: any) => (
+            <div key={prog.id} className="space-y-4 border border-border-subtle/40 p-5 rounded-2xl bg-bg-base/30">
+              <h3 className="text-base font-black text-text-primary flex items-center gap-2">
+                <span className="w-1.5 h-3 rounded-full bg-accent-cyan" />
+                {prog.program_name} Program
+              </h3>
+              <ul className="list-disc pl-5 text-xs text-text-secondary space-y-1">
+                <li><strong>Minimum Payout Request:</strong> ${prog.minimum_payout}</li>
+                <li><strong>Payout Frequency Cycle:</strong> Every {prog.payout_frequency_days} Days</li>
+              </ul>
+
+              <div
+                className="text-xs text-text-secondary leading-relaxed bg-bg-base/40 p-3 rounded-xl border border-border-subtle/30"
+                dangerouslySetInnerHTML={{ __html: prog.trading_days_rule_content }}
+              />
+
+              {prog.tiers && prog.tiers.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <h4 className="text-xs font-black text-text-primary mb-2">Trading Days with Profit</h4>
+                    <div className="overflow-hidden border border-border-subtle rounded-xl text-[10px]">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="bg-bg-base/50 text-text-muted border-b border-border-subtle">
+                            <th className="py-2 px-3 font-semibold">Account Size</th>
+                            <th className="py-2 px-3 font-semibold text-right">Min Profit/Day</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border-subtle/50 font-mono">
+                          {prog.tiers.map((t: any, idx: number) => (
+                            <tr key={idx} className="hover:bg-bg-base/20">
+                              <td className="py-2 px-3 text-text-primary">${(t.account_size || 0).toLocaleString()}</td>
+                              <td className="py-2 px-3 text-right text-accent-cyan">${t.min_profit_per_day || '0'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-black text-text-primary mb-2">Maximum Payout limits per Cycle</h4>
+                    <div className="overflow-hidden border border-border-subtle rounded-xl text-[10px]">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="bg-bg-base/50 text-text-muted border-b border-border-subtle">
+                            <th className="py-2 px-3 font-semibold">Account Size</th>
+                            <th className="py-2 px-3 font-semibold text-right">Max Payout/Cycle</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border-subtle/50 font-mono">
+                          {prog.tiers.map((t: any, idx: number) => (
+                            <tr key={idx} className="hover:bg-bg-base/20">
+                              <td className="py-2 px-3 text-text-primary">${(t.account_size || 0).toLocaleString()}</td>
+                              <td className="py-2 px-3 text-right text-accent-cyan">
+                                {t.max_payout_per_cycle ? `$${t.max_payout_per_cycle.toLocaleString()}` : 'Unlimited'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
+          ))}
+        </section>
 
-            {/* Discussion Thread */}
-            <div className="bg-bg-surface border border-border-default p-6 rounded-3xl mt-8">
-              <CommentsSection firmId={firm.id} />
-            </div>
+        {/* Section I: Restricted Countries */}
+        <section id="restricted-countries" className="scroll-mt-6 bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-text-primary border-b border-border-subtle/50 pb-2 flex items-center gap-2">
+            <AlertOctagon className="w-5 h-5 text-red-400" />
+            Restricted Countries
+          </h2>
+          <p className="text-xs text-text-secondary leading-relaxed">
+            Residents or citizens from the following jurisdictions are restricted from purchasing evaluations or managing mock-funded portfolios:
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-2">
+            {firm.restricted_countries?.map((code: string) => (
+              <div key={code} className="flex items-center gap-2.5 p-2 bg-bg-base/40 border border-border-subtle/40 rounded-xl">
+                <img
+                  src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
+                  alt={COUNTRY_NAMES[code] || code}
+                  className="w-6 h-4 object-cover rounded shadow-sm border border-border-subtle/50"
+                  onError={(e) => {
+                    // Fallback to text box if flag fails
+                    (e.target as HTMLImageElement).style.display = 'none'
+                  }}
+                />
+                <span className="text-xs font-bold text-text-secondary font-sans truncate">
+                  {COUNTRY_NAMES[code] || code}
+                </span>
+              </div>
+            ))}
           </div>
+        </section>
 
-          {/* Sidebar Panel */}
-          <div className="space-y-6">
-            {/* CTA Box */}
-            <div className="bg-bg-surface border border-border-subtle p-6 rounded-3xl relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-blue/5 to-accent-purple/5 pointer-events-none" />
-              <div className="relative space-y-4">
-                <h3 className="text-lg font-bold text-text-primary">Ready to Join?</h3>
-                <p className="text-text-secondary text-sm leading-relaxed">
-                  Start your trading challenge with {firm.name}. Click below to visit their site and
-                  begin your evaluation.
-                </p>
-                <a
-                  href={firm.affiliate_url || firm.website_url || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full px-4 py-3 rounded-xl font-bold text-bg-base text-center hover:opacity-90 transition-opacity bg-gradient-to-r from-accent-cyan to-accent-purple text-sm"
+        {/* Related Similar Firms Recommendation */}
+        {relatedFirms.length > 0 && (
+          <div className="bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-4">
+            <h3 className="text-lg font-bold text-text-primary">Similar Firms You May Like</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {relatedFirms.map((related: any) => (
+                <Link
+                  key={related.id}
+                  href={`/firms/${related.slug}`}
+                  className="block p-4 bg-bg-base/40 border border-border-subtle/50 rounded-2xl hover:border-accent-cyan/30 transition-all hover:bg-bg-base/80"
                 >
-                  Get Started
-                </a>
-              </div>
+                  <p className="text-text-primary font-black text-sm">{related.name}</p>
+                  <div className="flex items-center justify-between mt-1 text-xs">
+                    <div className="flex text-accent-yellow">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${
+                            i < Math.round(related.rating || 4)
+                              ? 'fill-current text-accent-yellow'
+                              : 'text-text-muted'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-text-muted text-[10px] font-mono font-semibold">
+                      ({related.review_count || 0} reviews)
+                    </span>
+                  </div>
+                </Link>
+              ))}
             </div>
-
-            {/* Related Firms */}
-            {relatedFirms.length > 0 && (
-              <div className="bg-bg-surface border border-border-subtle p-6 rounded-3xl">
-                <h3 className="text-lg font-bold text-text-primary mb-4">Similar Firms</h3>
-                <div className="space-y-3">
-                  {relatedFirms.map((related) => (
-                    <Link
-                      key={related.id}
-                      href={`/firms/${related.slug}`}
-                      className="block p-3.5 bg-bg-base/40 border border-border-subtle/50 rounded-xl hover:border-accent-cyan/30 transition-all hover:bg-bg-base/80"
-                    >
-                      <p className="text-text-primary font-bold text-sm">{related.name}</p>
-                      <div className="flex items-center justify-between mt-1 text-xs">
-                        <div className="flex text-accent-yellow">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-3 h-3 ${
-                                i < Math.round(related.rating || 4)
-                                  ? 'fill-current'
-                                  : 'text-text-muted'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-text-muted text-[10px] font-mono font-semibold">
-                          ({related.review_count || 0})
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-      </main>
-
-      <Footer />
+        )}
+      </div>
     </div>
   )
 }

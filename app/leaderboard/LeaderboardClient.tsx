@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { RatingBadge } from '@/components/ui/rating-badge'
 import { cn } from '@/lib/utils'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 import {
   DollarSign, Trophy, Medal, Award, Star, TrendingUp, Crown,
   Clock, Users, Filter, BarChart2, ChevronUp, ChevronDown,
@@ -264,12 +265,15 @@ function FirmPayoutsTab({ payouts, firms, category }: { payouts: Payout[]; firms
                             {idx === 2 && <Award className="w-5 h-5 text-accent-purple" />}
                             {idx > 2 && <span className="text-xs font-mono">#{idx + 1}</span>}
                           </div>
-                          <div className="w-10 h-10 rounded-xl bg-bg-base border border-border-default flex items-center justify-center overflow-hidden shrink-0">
-                            {firm?.logo_url ? (
-                              <img src={firm.logo_url} alt={firm?.name} className="w-8 h-8 object-contain" />
-                            ) : (
-                              <span className="text-xs font-bold text-accent-cyan">{firm?.name?.[0] ?? '?'}</span>
-                            )}
+                           <div className="w-10 h-10 rounded-xl bg-bg-base border border-border-default flex items-center justify-center overflow-hidden shrink-0">
+                            {(() => {
+                              const logoUrl = firm ? getCleanLogoUrl(firm.name, firm.logo_url) : ''
+                              return logoUrl ? (
+                                <img src={logoUrl} alt={firm?.name || 'Firm'} className="w-6 h-6 object-contain" />
+                              ) : (
+                                <span className="text-xs font-bold text-accent-cyan">{firm?.name?.[0] ?? '?'}</span>
+                              )
+                            })()}
                           </div>
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -530,11 +534,14 @@ function TraderLeaderboardTab({ payouts, firms }: { payouts: Payout[]; firms: Fi
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg bg-bg-base border border-border-subtle flex items-center justify-center overflow-hidden">
-                          {firm?.logo_url ? (
-                            <img src={firm.logo_url} alt={firm.name} className="w-6 h-6 object-contain" />
-                          ) : (
-                            <span className="text-[10px] font-bold text-accent-cyan">{firm?.name?.[0] || '?'}</span>
-                          )}
+                          {(() => {
+                            const logoUrl = firm ? getCleanLogoUrl(firm.name, firm.logo_url) : ''
+                            return logoUrl ? (
+                              <img src={logoUrl} alt={firm?.name || 'Firm'} className="w-6 h-6 object-contain" />
+                            ) : (
+                              <span className="text-[10px] font-bold text-accent-cyan">{firm?.name?.[0] || '?'}</span>
+                            )
+                          })()}
                         </div>
                         <span className="text-xs font-semibold text-text-primary">{getFirmName(trader.firm_id)}</span>
                       </div>

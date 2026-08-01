@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { DollarSign, X, TrendingUp } from 'lucide-react'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
 interface PayoutNotification {
   id: string
@@ -72,48 +73,7 @@ export function NotificationToast({ livePayouts }: { livePayouts?: PayoutNotific
 
   if (!visible || !current) return null
 
-  const getCleanLogoUrl = (name: string) => {
-    const cleanName = name.toLowerCase().trim();
-    
-    if (cleanName.includes('5%ers') || cleanName.includes('5ers') || cleanName.includes('the-5ers')) {
-      return 'https://storage.googleapis.com/prop-firm-match-production-logos/the-5ers.png'
-    }
-    if (cleanName.includes('e8')) {
-      return 'https://storage.googleapis.com/prop-firm-match-production-logos/e8-funding.png'
-    }
-    if (cleanName.includes('ftmo')) {
-      return 'https://storage.googleapis.com/prop-firm-match-production-logos/ftmo.png'
-    }
-    if (cleanName.includes('myfundedfutures') || cleanName.includes('mffu')) {
-      return 'https://storage.googleapis.com/prop-firm-match-production-logos/myfundedfutures.png'
-    }
-    if (cleanName.includes('alpha capital')) {
-      return 'https://storage.googleapis.com/prop-firm-match-production-logos/alpha-capital-group.png'
-    }
-    if (cleanName.includes('take profit')) {
-      return 'https://storage.googleapis.com/prop-firm-match-production-logos/take-profit-trader.png'
-    }
-    if (cleanName.includes('goat funded')) {
-      return 'https://storage.googleapis.com/prop-firm-match-production-logos/goat-funded-trader.png'
-    }
-    if (cleanName.includes('apex')) {
-      return 'https://storage.googleapis.com/prop-firm-match-production-logos/apex-trader-funding.png'
-    }
-    if (cleanName.includes('topstep') || cleanName.includes('top step')) {
-      return 'https://storage.googleapis.com/prop-firm-match-production-logos/topstep.png'
-    }
-    
-    const slug = name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      
-    return `https://storage.googleapis.com/prop-firm-match-production-logos/${slug}.png`
-  }
-
-  const logoUrl = getCleanLogoUrl(current.firmName)
+  const logoUrl = getCleanLogoUrl(current.firmName, current.firmLogo || null)
   const gradient = FIRM_COLORS[current.firmName] || 'from-cyan-500 to-blue-600'
 
   return (

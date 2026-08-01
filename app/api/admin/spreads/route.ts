@@ -4,17 +4,15 @@ import { FieldValue } from 'firebase-admin/firestore'
 
 export const dynamic = 'force-dynamic'
 
+import { getBrokerSpreads } from '@/lib/firebase/server'
+
 export async function GET(request: NextRequest) {
   try {
-    const snapshot = await db.collection('broker_spreads').get()
-    const spreads: any[] = []
-    snapshot.forEach((doc: any) => {
-      spreads.push({ id: doc.id, ...doc.data() })
-    })
+    const spreads = await getBrokerSpreads()
     return NextResponse.json({ data: spreads })
   } catch (error) {
     console.error('Error fetching admin broker spreads:', error)
-    return NextResponse.json({ error: 'Failed to fetch spreads' }, { status: 500 })
+    return NextResponse.json({ data: [] })
   }
 }
 

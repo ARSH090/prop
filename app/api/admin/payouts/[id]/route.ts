@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
@@ -26,7 +26,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
@@ -35,6 +35,8 @@ export async function PUT(
 
     const updated: any = { ...body }
     if (body.amount !== undefined) updated.amount = Number(body.amount)
+    if (body.payout_amount !== undefined) updated.payout_amount = Number(body.payout_amount)
+    if (body.account_size !== undefined) updated.account_size = Number(body.account_size)
     if (body.payout_date !== undefined) {
       updated.payout_date = Timestamp.fromDate(new Date(body.payout_date))
     }
@@ -53,7 +55,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params

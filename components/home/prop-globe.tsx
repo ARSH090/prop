@@ -1,241 +1,162 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
+import React, { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { FirmLink } from '@/components/ui/firm-link'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
-interface MeshPoint {
-  x: number
-  y: number
-  z: number
-}
-
-interface RingPoint {
-  x: number
-  y: number
-  z: number
-}
-
-const generateMeshPoints = (): MeshPoint[] => {
-  const points: MeshPoint[] = []
-  const latCount = 10
-  const lonCount = 28
-  for (let i = 1; i < latCount; i++) {
-    const lat = (i / latCount) * Math.PI - Math.PI / 2
-    const sinLat = Math.sin(lat)
-    const cosLat = Math.cos(lat)
-    for (let j = 0; j < lonCount; j++) {
-      const lon = (j / lonCount) * 2 * Math.PI
-      const x = cosLat * Math.cos(lon)
-      const z = cosLat * Math.sin(lon)
-      const y = sinLat
-      points.push({ x, y, z })
-    }
-  }
-  return points
-}
-
-const generateRingPoints = (tiltX: number, tiltY: number): RingPoint[] => {
-  const points: RingPoint[] = []
-  const count = 64
-  const cosTX = Math.cos(tiltX)
-  const sinTX = Math.sin(tiltX)
-  const cosTY = Math.cos(tiltY)
-  const sinTY = Math.sin(tiltY)
-
-  for (let i = 0; i <= count; i++) {
-    const angle = (i / count) * 2 * Math.PI
-    const cx = Math.cos(angle)
-    const cy = Math.sin(angle)
-    const cz = 0
-
-    // Tilt around X
-    const y1 = cy * cosTX - cz * sinTX
-    const z1 = cy * sinTX + cz * cosTX
-
-    // Tilt around Y
-    const rx = cx * cosTY + z1 * sinTY
-    const ry = y1
-    const rz = -cx * sinTY + cz * cosTY
-
-    points.push({ x: rx, y: ry, z: rz })
-  }
-  return points
-}
-
-interface FirmNode {
+interface SlotConfig {
   id: string
-  name: string
-  logo_url?: string
-  website_url?: string
-  affiliate_url?: string
-  // 3D coordinates on unit sphere
-  x: number
-  y: number
-  z: number
-  // Rotated coordinates
-  rx: number
-  ry: number
-  rz: number
-  // Screen projected coordinates
-  sx: number
-  sy: number
-  // Indices of connected nodes
-  connections: number[]
+  left: string
+  top: string
+  animDelay: string
+  animDuration: string
+  pathD: string
+  defaultColor: string
+  defaultName: string
+  defaultFullName: string
+  defaultHref: string
+  defaultRender: () => React.ReactNode
 }
 
-// Fallback firms to populate the globe if the database does not have enough active listings
-const FALLBACK_FIRMS = [
-  { id: 'ftmo', name: 'FTMO', logo_url: 'https://ftmo.com/wp-content/themes/ftmo-theme/images/ftmo_logo.svg' },
-  { id: 'funding-pips', name: 'Funding Pips', logo_url: 'https://fundingpips.com/wp-content/uploads/2023/10/Logo.svg' },
-  { id: 'gft-funding', name: 'GFT Funding', logo_url: '' },
-  { id: 'topstep', name: 'Topstep', logo_url: 'https://www.topstep.com/wp-content/themes/topstep/assets/images/ts-logo-white.svg' },
-  { id: '5ers', name: 'The 5%ers', logo_url: 'https://the5ers.com/wp-content/themes/the5ers/img/logo.svg' },
-  { id: 'fundednext', name: 'FundedNext', logo_url: 'https://fundednext.com/wp-content/uploads/2023/07/fn-logo.svg' },
-  { id: 'alpha-capital', name: 'Alpha Capital', logo_url: '' },
-  { id: 'e8-funding', name: 'E8 Markets', logo_url: '' },
-  { id: 'myfundedfx', name: 'MyFundedFX', logo_url: '' },
-  { id: 'blue-guardian', name: 'Blue Guardian', logo_url: '' },
-  { id: 'instant-funding', name: 'Instant Funding', logo_url: '' },
-  { id: 'funded-trading-plus', name: 'Funded Trading Plus', logo_url: '' },
-  { id: 'apex-trader', name: 'Apex Funding', logo_url: '' },
-  { id: 'funded-academy', name: 'Funded Academy', logo_url: '' },
-  { id: 'goat-funded', name: 'Goat Funded', logo_url: '' }
+const SLOTS: SlotConfig[] = [
+  {
+    id: 'slot-gft',
+    left: '12%',
+    top: '15%',
+    animDelay: '0s',
+    animDuration: '4.2s',
+    pathD: "M 210 210 Q 140 180 95 110",
+    defaultColor: '#00D2FF',
+    defaultName: 'GFT',
+    defaultFullName: 'GFT Funding',
+    defaultHref: '/firms/gft-funding',
+    defaultRender: () => (
+      <span className="text-[17px] font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 filter drop-shadow-[0_0_6px_#00D2FF] font-sans">
+        GFT
+      </span>
+    )
+  },
+  {
+    id: 'slot-ftmo',
+    left: '68%',
+    top: '10%',
+    animDelay: '0.8s',
+    animDuration: '4.6s',
+    pathD: "M 290 190 Q 340 130 350 85",
+    defaultColor: '#FF4E00',
+    defaultName: 'FTMO',
+    defaultFullName: 'FTMO',
+    defaultHref: '/firms/ftmo',
+    defaultRender: () => (
+      <div className="flex items-center gap-0.5 filter drop-shadow-[0_0_8px_rgba(255,78,0,0.6)]">
+        <span className="text-[10px] text-white">♦</span>
+        <span className="text-[13px] font-black tracking-tighter text-white font-mono uppercase">
+          FTMO
+        </span>
+      </div>
+    )
+  },
+  {
+    id: 'slot-top1',
+    left: '82%',
+    top: '46%',
+    animDelay: '1.5s',
+    animDuration: '5.2s',
+    pathD: "M 330 260 Q 400 240 420 245",
+    defaultColor: '#FFD700',
+    defaultName: 'TOP1',
+    defaultFullName: 'Topstep',
+    defaultHref: '/firms/topstep',
+    defaultRender: () => (
+      <span className="text-[14px] font-black tracking-widest text-[#FFD700] filter drop-shadow-[0_0_8px_rgba(255,215,0,0.7)] font-sans">
+        TOP<span className="text-white font-black text-[16px]">1</span>
+      </span>
+    )
+  },
+  {
+    id: 'slot-mff',
+    left: '66%',
+    top: '78%',
+    animDelay: '2.2s',
+    animDuration: '4.4s',
+    pathD: "M 285 305 Q 330 350 345 395",
+    defaultColor: '#FF007F',
+    defaultName: 'MFF',
+    defaultFullName: 'MyFundedFutures',
+    defaultHref: '/firms/myfundedfutures',
+    defaultRender: () => (
+      <span className="text-[15px] font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-600 filter drop-shadow-[0_0_8px_rgba(255,0,127,0.7)] font-sans">
+        MFF
+      </span>
+    )
+  },
+  {
+    id: 'slot-pips',
+    left: '24%',
+    top: '82%',
+    animDelay: '1.2s',
+    animDuration: '4.8s',
+    pathD: "M 215 310 Q 150 360 155 410",
+    defaultColor: '#8A2BE2',
+    defaultName: 'PIPS',
+    defaultFullName: 'Funding Pips',
+    defaultHref: '/firms/funding-pips',
+    defaultRender: () => (
+      <span className="text-[14px] font-black tracking-wider text-purple-300 filter drop-shadow-[0_0_6px_rgba(138,43,226,0.7)] font-mono">
+        PIPS
+      </span>
+    )
+  },
+  {
+    id: 'slot-e8',
+    left: '3%',
+    top: '52%',
+    animDelay: '0.5s',
+    animDuration: '3.8s',
+    pathD: "M 175 260 Q 90 280 50 270",
+    defaultColor: '#00FF66',
+    defaultName: 'E8',
+    defaultFullName: 'E8 Markets',
+    defaultHref: '/firms/e8-markets',
+    defaultRender: () => (
+      <span className="text-[18px] font-black tracking-tighter text-[#00FF66] filter drop-shadow-[0_0_8px_rgba(0,255,102,0.7)] font-mono">
+        E8
+      </span>
+    )
+  }
 ]
 
-export function PropGlobe() {
+function getGlowColor(color: string, alpha: number = 0.45) {
+  if (color.startsWith('#')) {
+    try {
+      const cleanHex = color.replace('#', '')
+      const r = parseInt(cleanHex.substring(0, 2), 16)
+      const g = parseInt(cleanHex.substring(2, 4), 16)
+      const b = parseInt(cleanHex.substring(4, 6), 16)
+      if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  return color
+}
+
+interface PropGlobeProps {
+  globeFirms?: any[]
+}
+
+export function PropGlobe({ globeFirms = [] }: PropGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [hoveredBubble, setHoveredBubble] = useState<string | null>(null)
 
-  const [nodes, setNodes] = useState<FirmNode[]>([])
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  // 3D rotation variables for the central holographic Earth grid
+  const angleRef = useRef({ x: 0.35, y: 0 })
 
-  // Rotation parameters
-  const angleRef = useRef({ x: -0.2, y: 0 })
-  const rotationSpeedRef = useRef({ x: 0.001, y: 0.003 })
-  const dragRef = useRef({ isDragging: false, lastX: 0, lastY: 0 })
-  const isHoveredRef = useRef<number | null>(null)
-
-  const meshPointsRef = useRef<MeshPoint[]>([])
-  const ringsRef = useRef<RingPoint[][]>([])
-
-  if (meshPointsRef.current.length === 0) {
-    meshPointsRef.current = generateMeshPoints()
-    ringsRef.current = [
-      generateRingPoints(0.6, 0.4),
-      generateRingPoints(-0.5, 0.7),
-      generateRingPoints(0.3, -0.9)
-    ]
-  }
-
-  // Fetch firms and build the network
   useEffect(() => {
-    async function loadFirms() {
-      try {
-        const response = await fetch('/api/firms?type=prop_firm')
-        const data = await response.json()
-        
-        let fetchedFirms = data.firms || []
-        
-        // Remove inactive firms
-        fetchedFirms = fetchedFirms.filter((f: any) => f.status === 'active')
-
-        // Combine fetched firms with fallback firms to reach a visually pleasing density (e.g. 15 nodes)
-        const combinedFirmsMap = new Map<string, { name: string; logo_url?: string; website_url?: string }>()
-        
-        fetchedFirms.forEach((f: any) => {
-          combinedFirmsMap.set(f.name.toLowerCase(), {
-            name: f.name,
-            logo_url: f.logo_url,
-            website_url: f.affiliate_url || f.website_url
-          })
-        })
-
-        // Pad with fallbacks if needed
-        let fallbackIndex = 0
-        while (combinedFirmsMap.size < 15 && fallbackIndex < FALLBACK_FIRMS.length) {
-          const fallback = FALLBACK_FIRMS[fallbackIndex]
-          if (!combinedFirmsMap.has(fallback.name.toLowerCase())) {
-            combinedFirmsMap.set(fallback.name.toLowerCase(), {
-              name: fallback.name,
-              logo_url: fallback.logo_url,
-              website_url: `/firms/${fallback.id}`
-            })
-          }
-          fallbackIndex++
-        }
-
-        const finalFirmsList = Array.from(combinedFirmsMap.values())
-        const N = finalFirmsList.length
-
-        // Generate Fibonacci sphere points
-        const phi = Math.PI * (Math.sqrt(5) - 1) // Golden angle in radians
-        const rawNodes: Omit<FirmNode, 'connections'>[] = []
-
-        for (let i = 0; i < N; i++) {
-          const y = 1 - (i / (N - 1)) * 2 // Goes from 1 to -1
-          const radius = Math.sqrt(1 - y * y) // Radius at y
-
-          const theta = phi * i
-
-          const x = Math.cos(theta) * radius
-          const z = Math.sin(theta) * radius
-
-          rawNodes.push({
-            id: `firm-${i}`,
-            name: finalFirmsList[i].name,
-            logo_url: finalFirmsList[i].logo_url,
-            website_url: finalFirmsList[i].website_url,
-            x,
-            y,
-            z,
-            rx: x,
-            ry: y,
-            rz: z,
-            sx: 0,
-            sy: 0
-          })
-        }
-
-        // Compute 5-6 connections per node (nearest in 3D space)
-        const finalNodes: FirmNode[] = rawNodes.map((node, i) => {
-          // Calculate 3D distances to all other nodes
-          const distances = rawNodes
-            .map((other, j) => {
-              if (i === j) return { index: j, dist: Infinity }
-              const dist = Math.sqrt(
-                Math.pow(node.x - other.x, 2) +
-                Math.pow(node.y - other.y, 2) +
-                Math.pow(node.z - other.z, 2)
-              )
-              return { index: j, dist }
-            })
-            .sort((a, b) => a.dist - b.dist)
-
-          // Connect to the 5 nearest neighbors
-          const connections = distances.slice(0, 5).map(item => item.index)
-
-          return {
-            ...node,
-            connections
-          }
-        })
-
-        setNodes(finalNodes)
-        setIsLoaded(true)
-      } catch (error) {
-        console.error('Failed to load firms for globe:', error)
-      }
-    }
-
-    loadFirms()
-  }, [])
-
-  // Animation Loop
-  useEffect(() => {
-    if (!isLoaded || nodes.length === 0) return
-
-    let animationFrameId: number
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
@@ -243,7 +164,6 @@ export function PropGlobe() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Set high-DPI canvas resolution
     const resizeCanvas = () => {
       const rect = container.getBoundingClientRect()
       canvas.width = rect.width * window.devicePixelRatio
@@ -256,14 +176,12 @@ export function PropGlobe() {
     resizeCanvas()
     window.addEventListener('resize', resizeCanvas)
 
+    let animationFrameId: number
+
     const animate = () => {
-      // Rotation logic
-      if (!dragRef.current.isDragging) {
-        // Slow down when someone is hovering over any node
-        const speedMultiplier = isHoveredRef.current !== null ? 0.1 : 1.0
-        angleRef.current.y += rotationSpeedRef.current.y * speedMultiplier
-        angleRef.current.x += rotationSpeedRef.current.x * speedMultiplier
-      }
+      // Rotate the globe continuously
+      angleRef.current.y += 0.003
+      angleRef.current.x = 0.3 + Math.sin(Date.now() * 0.0005) * 0.1 // subtle oscillation
 
       const cosX = Math.cos(angleRef.current.x)
       const sinX = Math.sin(angleRef.current.x)
@@ -271,160 +189,105 @@ export function PropGlobe() {
       const sinY = Math.sin(angleRef.current.y)
 
       const rect = container.getBoundingClientRect()
-      const width = rect.width
-      const height = rect.height
-      const cx = width / 2
-      const cy = height / 2
-      // Sphere radius relative to container size
-      const R = Math.min(width, height) * 0.35
+      const w = rect.width
+      const h = rect.height
+      const cx = w / 2
+      const cy = h / 2
+      const R = Math.min(w, h) * 0.28 // sphere radius
 
-      // 1. Rotate & Project all nodes
-      const updatedNodes = nodes.map(node => {
-        // Rotate around X axis
-        const y1 = node.y * cosX - node.z * sinX
-        const z1 = node.y * sinX + node.z * cosX
+      ctx.clearRect(0, 0, w, h)
 
-        // Rotate around Y axis
-        const rx = node.x * cosY + z1 * sinY
-        const ry = y1
-        const rz = -node.x * sinY + z1 * cosY
+      // 1. Draw glowing sphere atmospheric core gradient
+      const coreGlow = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 1.1)
+      coreGlow.addColorStop(0, 'rgba(34, 211, 238, 0.18)')
+      coreGlow.addColorStop(0.5, 'rgba(139, 92, 246, 0.06)')
+      coreGlow.addColorStop(1, 'rgba(0, 0, 0, 0)')
+      ctx.fillStyle = coreGlow
+      ctx.beginPath()
+      ctx.arc(cx, cy, R * 1.1, 0, 2 * Math.PI)
+      ctx.fill()
 
-        // Perspective scaling
-        const perspective = (rz + 2) / 2
-        const sx = cx + rx * R
-        const sy = cy + ry * R
-
-        return {
-          ...node,
-          rx,
-          ry,
-          rz,
-          sx,
-          sy
-        }
-      })
-
-      // Sync state for positioning HTML nodes
-      setNodes(updatedNodes)
-
-      // 2. Draw lines on Canvas
-      ctx.clearRect(0, 0, width, height)
-
-      // Draw background sphere dotted mesh
-      meshPointsRef.current.forEach(pt => {
-        // Rotate
-        const y1 = pt.y * cosX - pt.z * sinX
-        const z1 = pt.y * sinX + pt.z * cosX
-        const rx = pt.x * cosY + z1 * sinY
-        const ry = y1
-        const rz = -pt.x * sinY + z1 * cosY
-
-        // Project
-        const sx = cx + rx * R
-        const sy = cy + ry * R
-
-        // Depth based opacity
-        const depth = (rz + 1) / 2 // 0 to 1
-        const opacity = 0.015 + 0.085 * depth
-
-        ctx.fillStyle = `rgba(34, 211, 238, ${opacity})`
-        ctx.fillRect(sx, sy, 1.2, 1.2)
-      })
-
-      // Draw orbital rings wrapping the sphere
-      ringsRef.current.forEach((ring, ringIdx) => {
+      // 2. Draw 3D grid lines (Latitude parallels)
+      const parallels = 9
+      for (let i = 1; i < parallels; i++) {
         ctx.beginPath()
-        ring.forEach((pt, idx) => {
-          // Rotate
-          const y1 = pt.y * cosX - pt.z * sinX
-          const z1 = pt.y * sinX + pt.z * cosX
-          const rx = pt.x * cosY + z1 * sinY
+        const latAngle = (i / parallels) * Math.PI - Math.PI / 2
+        const cosLat = Math.cos(latAngle)
+        const sinLat = Math.sin(latAngle)
+
+        for (let j = 0; j <= 60; j++) {
+          const lonAngle = (j / 60) * 2 * Math.PI
+          // coordinates on unit sphere
+          const x = cosLat * Math.cos(lonAngle)
+          const z = cosLat * Math.sin(lonAngle)
+          const y = sinLat
+
+          // 3D rotation
+          const y1 = y * cosX - z * sinX
+          const z1 = y * sinX + z * cosX
+          const rx = x * cosY + z1 * sinY
           const ry = y1
-          const rz = -pt.x * sinY + z1 * cosY
+          const rz = -x * sinY + z1 * cosY
 
-          // Project slightly larger than sphere radius
-          const sx = cx + rx * R * 1.05
-          const sy = cy + ry * R * 1.05
+          // Projection
+          const sx = cx + rx * R
+          const sy = cy + ry * R
 
-          if (idx === 0) {
+          if (j === 0) {
             ctx.moveTo(sx, sy)
           } else {
             ctx.lineTo(sx, sy)
           }
-        })
-        ctx.strokeStyle = ringIdx === 0 
-          ? 'rgba(34, 211, 238, 0.08)' // Cyan
-          : ringIdx === 1 
-          ? 'rgba(139, 92, 246, 0.06)' // Purple
-          : 'rgba(59, 130, 246, 0.07)' // Blue
-        ctx.lineWidth = 1.0
+        }
+        ctx.strokeStyle = 'rgba(34, 211, 238, 0.09)'
+        ctx.lineWidth = 0.9
         ctx.stroke()
-      })
+      }
 
-      // Draw curved connections between nodes
-      updatedNodes.forEach((node, i) => {
-        const isNodeHoveredOrConnected = 
-          isHoveredRef.current === i || 
-          (isHoveredRef.current !== null && node.connections.includes(isHoveredRef.current)) ||
-          (isHoveredRef.current !== null && updatedNodes[isHoveredRef.current]?.connections.includes(i))
+      // 3. Draw 3D grid lines (Longitude meridians)
+      const meridians = 12
+      for (let i = 0; i < meridians; i++) {
+        ctx.beginPath()
+        const lonAngle = (i / meridians) * 2 * Math.PI
 
-        node.connections.forEach(targetIdx => {
-          // Avoid double drawing
-          if (targetIdx < i) return
+        for (let j = 0; j <= 40; j++) {
+          const latAngle = (j / 40) * Math.PI - Math.PI / 2
+          const x = Math.cos(latAngle) * Math.cos(lonAngle)
+          const z = Math.cos(latAngle) * Math.sin(lonAngle)
+          const y = Math.sin(latAngle)
 
-          const target = updatedNodes[targetIdx]
-          if (!target) return
+          const y1 = y * cosX - z * sinX
+          const z1 = y * sinX + z * cosX
+          const rx = x * cosY + z1 * sinY
+          const ry = y1
+          const rz = -x * sinY + z1 * cosY
 
-          // Depth based opacity
-          const avgZ = (node.rz + target.rz) / 2 // goes from -1 to 1
-          let opacity = 0.06 + 0.14 * ((avgZ + 1) / 2) // Front lines are brighter
+          const sx = cx + rx * R
+          const sy = cy + ry * R
 
-          // Highlight lines if connected to hovered node
-          if (isHoveredRef.current !== null) {
-            if (isNodeHoveredOrConnected) {
-              opacity = 0.5 + 0.4 * ((avgZ + 1) / 2)
-            } else {
-              opacity *= 0.2 // fade non-related lines
-            }
-          }
-
-          // Curved Bezier calculation (bends outwards from sphere center)
-          const mx = (node.sx + target.sx) / 2
-          const my = (node.sy + target.sy) / 2
-          const vx = mx - cx
-          const vy = my - cy
-          const dist2d = Math.sqrt(Math.pow(node.sx - target.sx, 2) + Math.pow(node.sy - target.sy, 2))
-          const len = Math.sqrt(vx * vx + vy * vy)
-
-          const curvature = 0.20 * dist2d
-          const ux = len > 0 ? vx / len : 0
-          const uy = len > 0 ? vy / len : 0
-
-          const cpx = mx + ux * curvature
-          const cpy = my + uy * curvature
-
-          ctx.beginPath()
-          ctx.moveTo(node.sx, node.sy)
-          ctx.quadraticCurveTo(cpx, cpy, target.sx, target.sy)
-
-          // Line styling
-          if (isHoveredRef.current !== null && isNodeHoveredOrConnected) {
-            ctx.strokeStyle = `rgba(34, 211, 238, ${opacity})` // Cyan
-            ctx.lineWidth = 1.5
+          if (j === 0) {
+            ctx.moveTo(sx, sy)
           } else {
-            ctx.strokeStyle = `rgba(139, 92, 246, ${opacity})` // Purple
-            ctx.lineWidth = 0.8
+            ctx.lineTo(sx, sy)
           }
+        }
+        ctx.strokeStyle = 'rgba(34, 211, 238, 0.09)'
+        ctx.lineWidth = 0.9
+        ctx.stroke()
+      }
 
-          ctx.stroke()
-        })
-      })
-
-      // Draw outer atmosphere wireframe circle
+      // 4. Draw atmospheric wireframe borders
       ctx.beginPath()
-      ctx.arc(cx, cy, R + 10, 0, 2 * Math.PI)
-      ctx.strokeStyle = 'rgba(34, 211, 238, 0.04)'
+      ctx.arc(cx, cy, R, 0, 2 * Math.PI)
+      ctx.strokeStyle = 'rgba(34, 211, 238, 0.15)'
       ctx.lineWidth = 1
+      ctx.stroke()
+
+      // Glow atmosphere ring outer
+      ctx.beginPath()
+      ctx.arc(cx, cy, R * 1.05, 0, 2 * Math.PI)
+      ctx.strokeStyle = 'rgba(139, 92, 246, 0.08)'
+      ctx.lineWidth = 1.5
       ctx.stroke()
 
       animationFrameId = requestAnimationFrame(animate)
@@ -436,175 +299,187 @@ export function PropGlobe() {
       window.removeEventListener('resize', resizeCanvas)
       cancelAnimationFrame(animationFrameId)
     }
-  }, [isLoaded, nodes.length])
+  }, [])
 
-  // Mouse Drag to Rotate handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    dragRef.current = {
-      isDragging: true,
-      lastX: e.clientX,
-      lastY: e.clientY
+  // Build custom nodes mapped to each slot
+  const bubbles = SLOTS.map((slot, index) => {
+    const firm = globeFirms[index]
+    if (firm) {
+      const color = firm.color || firm.globe_color || slot.defaultColor
+      const glowColor = getGlowColor(color, 0.45)
+      
+      const renderLogo = () => {
+        const logoUrl = getCleanLogoUrl(firm.name, firm.globe_logo_url || firm.logo_url)
+        if (logoUrl) {
+          return (
+            <img 
+              src={logoUrl} 
+              alt={firm.name} 
+              className="max-h-[60%] max-w-[60%] object-contain filter brightness-110 drop-shadow-[0_0_6px_rgba(255,255,255,0.4)] animate-fade-in"
+              onError={(e) => {
+                const parent = (e.target as HTMLImageElement).parentElement
+                if (parent) {
+                  parent.innerHTML = `<span class="text-[14px] font-black tracking-tight text-transparent bg-clip-text filter drop-shadow-[0_0_6px_rgba(255,255,255,0.6)] font-sans uppercase" style="background-image: linear-gradient(to right, ${color}, #ffffff)">${firm.name.substring(0, 4)}</span>`
+                }
+              }}
+            />
+          )
+        }
+        return (
+          <span 
+            className="text-[14px] font-black tracking-tight text-transparent bg-clip-text filter drop-shadow-[0_0_6px_rgba(255,255,255,0.6)] font-sans uppercase"
+            style={{ backgroundImage: `linear-gradient(to right, ${color}, #ffffff)` }}
+          >
+            {firm.name.substring(0, 4)}
+          </span>
+        )
+      }
+
+      return {
+        id: firm.id,
+        name: firm.name,
+        color,
+        glowColor,
+        left: slot.left,
+        top: slot.top,
+        animDelay: slot.animDelay,
+        animDuration: slot.animDuration,
+        href: `/firms/${firm.slug}`,
+        pathD: slot.pathD,
+        renderLogo
+      }
+    } else {
+      // Use slot default settings
+      const color = slot.defaultColor
+      const glowColor = getGlowColor(color, 0.45)
+      return {
+        id: slot.id,
+        name: slot.defaultName,
+        color,
+        glowColor,
+        left: slot.left,
+        top: slot.top,
+        animDelay: slot.animDelay,
+        animDuration: slot.animDuration,
+        href: slot.defaultHref,
+        pathD: slot.pathD,
+        renderLogo: slot.defaultRender
+      }
     }
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragRef.current.isDragging) return
-    const dx = e.clientX - dragRef.current.lastX
-    const dy = e.clientY - dragRef.current.lastY
-
-    angleRef.current.y += dx * 0.005
-    angleRef.current.x += dy * 0.005
-
-    // Clamp vertical rotation to avoid tumbling upside down
-    angleRef.current.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, angleRef.current.x))
-
-    dragRef.current.lastX = e.clientX
-    dragRef.current.lastY = e.clientY
-  }
-
-  const handleMouseUpOrLeave = () => {
-    dragRef.current.isDragging = false
-  }
-
-  // Handle Touch devices
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return
-    dragRef.current = {
-      isDragging: true,
-      lastX: e.touches[0].clientX,
-      lastY: e.touches[0].clientY
-    }
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!dragRef.current.isDragging || e.touches.length !== 1) return
-    const dx = e.touches[0].clientX - dragRef.current.lastX
-    const dy = e.touches[0].clientY - dragRef.current.lastY
-
-    angleRef.current.y += dx * 0.005
-    angleRef.current.x += dy * 0.005
-
-    angleRef.current.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, angleRef.current.x))
-
-    dragRef.current.lastX = e.touches[0].clientX
-    dragRef.current.lastY = e.touches[0].clientY
-  }
-
-  // Get first letter for fallback badge
-  const getAbbreviation = (name: string) => {
-    return name.slice(0, 2).toUpperCase()
-  }
+  })
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="relative w-full h-[280px] xs:h-[320px] sm:h-[380px] md:h-[450px] max-w-lg mx-auto overflow-visible select-none cursor-grab active:cursor-grabbing flex items-center justify-center"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUpOrLeave}
-      onMouseLeave={handleMouseUpOrLeave}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleMouseUpOrLeave}
+      className="relative w-full h-[320px] xs:h-[360px] sm:h-[420px] md:h-[480px] max-w-[480px] mx-auto select-none flex items-center justify-center overflow-visible"
     >
-      {/* 2D Canvas for connections */}
-      <canvas 
-        ref={canvasRef}
-        className="absolute inset-0 z-0 pointer-events-none"
-      />
+      {/* 2D Canvas for spinning central Earth grid */}
+      <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />
 
-      {/* HTML elements for nodes */}
-      {isLoaded && nodes.map((node, index) => {
-        // Map depth rz [-1, 1] to scale and opacity
-        const depth = (node.rz + 1) / 2 // 0 (back) to 1 (front)
-        const scale = 0.65 + 0.45 * depth
-        const opacity = 0.15 + 0.85 * depth
-        const zIndex = Math.round(depth * 100) + 10
+      {/* SVG layer for orbit paths connecting nodes to central globe */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 500 500">
+        <defs>
+          <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
 
-        const isHovered = index === hoveredIndex
-        const isNeighborHovered = hoveredIndex !== null && 
-          (node.connections.includes(hoveredIndex) || nodes[hoveredIndex]?.connections.includes(index))
+        {/* Global orbital rings matching the image structure */}
+        <ellipse
+          cx="250"
+          cy="250"
+          rx="210"
+          ry="110"
+          fill="none"
+          stroke="rgba(34, 211, 238, 0.15)"
+          strokeWidth="1.2"
+          strokeDasharray="4 4"
+          transform="rotate(-20 250 250)"
+        />
+        <ellipse
+          cx="250"
+          cy="250"
+          rx="225"
+          ry="95"
+          fill="none"
+          stroke="rgba(139, 92, 246, 0.1)"
+          strokeWidth="1"
+          transform="rotate(35 250 250)"
+        />
 
-        // Position offset to center node
-        const size = 38
-        const leftPos = node.sx - size / 2
-        const topPos = node.sy - size / 2
+        {/* Connective curves to bubble centers */}
+        {bubbles.map((b) => (
+          <path
+            key={`path-${b.id}`}
+            d={b.pathD}
+            fill="none"
+            stroke={hoveredBubble === b.id ? b.color : getGlowColor(b.color, 0.25)}
+            strokeWidth={hoveredBubble === b.id ? '1.8' : '1.0'}
+            strokeDasharray={hoveredBubble === b.id ? 'none' : '4 4'}
+            className="transition-all duration-300"
+            filter={hoveredBubble === b.id ? 'url(#glow-cyan)' : undefined}
+          />
+        ))}
+      </svg>
 
+      {/* Interactive float-animated glass spheres */}
+      {bubbles.map((b) => {
         return (
-          <a
-            key={node.id}
-            href={node.website_url}
-            target={node.website_url?.startsWith('http') ? '_blank' : undefined}
-            rel="noopener noreferrer"
+          <FirmLink
+            key={b.id}
+            firm={{ slug: b.href }}
             style={{
               position: 'absolute',
-              left: `${leftPos}px`,
-              top: `${topPos}px`,
-              width: `${size}px`,
-              height: `${size}px`,
-              transform: `scale(${isHovered ? scale * 1.25 : scale})`,
-              opacity: hoveredIndex !== null && !isHovered && !isNeighborHovered ? opacity * 0.4 : opacity,
-              zIndex: isHovered ? 200 : zIndex,
-              transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease',
+              left: b.left,
+              top: b.top,
+              animation: `float ${b.animDuration} ease-in-out infinite`,
+              animationDelay: b.animDelay,
+              zIndex: 30,
             }}
-            className="flex flex-col items-center justify-center"
-            onMouseEnter={() => {
-              setHoveredIndex(index)
-              isHoveredRef.current = index
-            }}
-            onMouseLeave={() => {
-              setHoveredIndex(null)
-              isHoveredRef.current = null
-            }}
+            onMouseEnter={() => setHoveredBubble(b.id)}
+            onMouseLeave={() => setHoveredBubble(null)}
+            className="group cursor-pointer select-none animate-float"
           >
-            {/* Glowing active outer ring */}
-            <div 
-              className={`relative rounded-full p-[2px] transition-all duration-300 ${
-                isHovered 
-                  ? 'bg-gradient-to-r from-accent-cyan to-accent-purple shadow-[0_0_15px_rgba(34,211,238,0.6)] scale-110' 
-                  : isNeighborHovered
-                  ? 'bg-accent-purple/50'
-                  : 'bg-border-subtle/80 hover:bg-border-subtle'
-              }`}
+            {/* Realistic 3D Glass Bubble Container */}
+            <div
+              style={{
+                background:
+                  'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 60%, rgba(0, 0, 0, 0.6) 100%)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: hoveredBubble === b.id ? `
+                  inset 0 12px 18px rgba(255, 255, 255, 0.28),
+                  inset -6px -6px 14px rgba(0, 0, 0, 0.5),
+                  inset 0 0 4px rgba(255, 255, 255, 0.2),
+                  0 0 35px ${b.color}
+                ` : `
+                  inset 0 12px 18px rgba(255, 255, 255, 0.22),
+                  inset -6px -6px 14px rgba(0, 0, 0, 0.5),
+                  inset 0 0 4px rgba(255, 255, 255, 0.1),
+                  0 0 18px ${b.glowColor}
+                `,
+              }}
+              className="w-[68px] h-[68px] sm:w-[74px] sm:h-[74px] rounded-full border border-white/20 hover:border-white/50 flex flex-col items-center justify-center relative transition-all duration-300 group-hover:scale-110"
             >
-              {/* Node interior circular box */}
-              <div className="w-8 h-8 rounded-full bg-[#0D1321] flex items-center justify-center overflow-hidden border border-border-subtle/50">
-                {node.logo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={node.logo_url}
-                    alt={node.name}
-                    className="w-5 h-5 object-contain filter brightness-95 hover:brightness-100 transition-all"
-                    onError={(e) => {
-                      // Remove logo URL so it renders fallback abbreviation badge
-                      const updated = [...nodes]
-                      if (updated[index]) {
-                        updated[index].logo_url = undefined
-                        setNodes(updated)
-                      }
-                    }}
-                  />
-                ) : (
-                  <span className="text-[9px] font-bold font-mono tracking-tighter text-accent-cyan">
-                    {getAbbreviation(node.name)}
-                  </span>
-                )}
+              {/* Highlight refraction sheen gloss */}
+              <div className="absolute top-1.5 left-2.5 w-4 h-2 bg-white/35 rounded-full rotate-[-15deg] blur-[0.4px] pointer-events-none" />
+              <div className="absolute bottom-1 right-2.5 w-2 h-1 bg-white/10 rounded-full rotate-[35deg] blur-[0.6px] pointer-events-none" />
+
+              {/* Styled neon brand logo inside */}
+              <div className="flex items-center justify-center w-full h-full relative z-10">
+                {b.renderLogo()}
               </div>
             </div>
 
-            {/* Label below the node */}
-            <div 
-              className={`absolute top-[42px] whitespace-nowrap px-1.5 py-0.5 rounded bg-bg-base/90 border border-border-subtle/30 text-[8px] font-mono font-bold uppercase tracking-wider text-text-primary transition-all duration-200 pointer-events-none ${
-                isHovered 
-                  ? 'opacity-100 translate-y-0 scale-105 text-accent-cyan border-accent-cyan/30' 
-                  : depth < 0.4
-                  ? 'opacity-0' // Hide names of nodes far in the background to avoid clutter
-                  : 'opacity-70'
-              }`}
-            >
-              {node.name}
-            </div>
-          </a>
+            {/* Glowing neon halo indicator below bubble */}
+            <div
+              style={{ backgroundColor: b.color }}
+              className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-1.5 rounded-full opacity-0 group-hover:opacity-60 transition-opacity blur-[1.5px]"
+            />
+          </FirmLink>
         )
       })}
     </div>

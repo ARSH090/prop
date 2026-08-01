@@ -9,13 +9,20 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = searchParams.get('page') || 'home'
 
-    const snapshot = await db.collection('site_content').where('page', '==', page).get()
+    let snapshot: any = null
+    try {
+      snapshot = await db.collection('site_content').where('page', '==', page).get()
+    } catch (error) {
+      console.warn(`Firestore read failed in page-builder API for page ${page}. Falling back to mocks:`, error)
+    }
 
     const dbItemsMap = new Map()
-    snapshot.forEach((doc: any) => {
-      const data = doc.data()
-      dbItemsMap.set(data.section_key, { id: doc.id, ...data })
-    })
+    if (snapshot && !snapshot.empty) {
+      snapshot.forEach((doc: any) => {
+        const data = doc.data()
+        dbItemsMap.set(data.section_key, { id: doc.id, ...data })
+      })
+    }
 
     const pageDefaults = MOCK_SITE_CONTENT[page] || {}
     const items: any[] = []

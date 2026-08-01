@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
-import { TrendingUp, Percent } from 'lucide-react'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
 interface Spread {
   id: string
@@ -59,7 +59,7 @@ export default function SpreadsClient({ spreads, brokers }: SpreadsClientProps) 
       </div>
 
       {filteredSpreads.length > 0 ? (
-        <AFXCard className="overflow-hidden border border-border-subtle bg-bg-surface p-0">
+          <AFXCard className="overflow-hidden border border-border-subtle bg-bg-surface p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -74,21 +74,22 @@ export default function SpreadsClient({ spreads, brokers }: SpreadsClientProps) 
               <tbody>
                 {filteredSpreads.map((spread) => {
                   const broker = getBroker(spread.firm_id)
+                  const brokerLogo = broker ? getCleanLogoUrl(broker.name, broker.logo_url) : ''
                   return (
                     <tr
                       key={spread.id}
                       className="border-b border-border-subtle hover:bg-bg-base/20 transition-all font-medium text-text-secondary"
                     >
                       <td className="px-6 py-4 font-bold text-text-primary flex items-center gap-2">
-                        {broker?.logo_url ? (
+                        {brokerLogo ? (
                           <img
-                            src={broker.logo_url}
-                            alt={broker.name}
+                            src={brokerLogo}
+                            alt={broker?.name}
                             className="w-6 h-6 object-contain rounded"
                           />
                         ) : (
                           <div className="w-6 h-6 bg-bg-base text-[10px] font-bold rounded flex items-center justify-center text-accent-cyan">
-                            {broker?.name[0] || 'B'}
+                            {broker?.name?.[0] || 'B'}
                           </div>
                         )}
                         <span>{broker?.name || 'Broker Partner'}</span>

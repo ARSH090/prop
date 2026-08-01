@@ -1,32 +1,46 @@
 import { db } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
+import { clearServerCache } from '@/lib/firebase/server'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
+import { MOCK_CHALLENGES } from '@/lib/firebase/server'
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  let paramId = ''
   try {
     const { id } = await params
+    paramId = id
     const docRef = db.collection('challenges').doc(id)
     const docSnap = await docRef.get()
 
     if (!docSnap.exists) {
+      const mockCh = MOCK_CHALLENGES.find((c: any) => c.id === id)
+      if (mockCh) {
+        return NextResponse.json(mockCh)
+      }
       return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
     }
 
     return NextResponse.json({ id: docSnap.id, ...docSnap.data() })
   } catch (error) {
     console.error('Error fetching admin challenge details:', error)
+    const mockCh = MOCK_CHALLENGES.find((c: any) => c.id === paramId)
+    if (mockCh) {
+      return NextResponse.json(mockCh)
+    }
     return NextResponse.json({ error: 'Failed to fetch challenge' }, { status: 500 })
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
@@ -51,6 +65,9 @@ export async function PUT(
       updated_at: FieldValue.serverTimestamp(),
     })
 
+    clearServerCache()
+    revalidatePath('/challenges', 'layout')
+    revalidatePath('/firms', 'layout')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error updating admin challenge details:', error)
@@ -60,13 +77,16 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
     const docRef = db.collection('challenges').doc(id)
     await docRef.delete()
 
+    clearServerCache()
+    revalidatePath('/challenges', 'layout')
+    revalidatePath('/firms', 'layout')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting admin challenge:', error)

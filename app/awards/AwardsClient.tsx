@@ -6,6 +6,7 @@ import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
 import { Trophy, Users, ShieldCheck, Check, Info, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
 interface Firm {
   id: string
@@ -173,11 +174,14 @@ export default function AwardsClient({ initialFirms, dataAwards }: AwardsClientP
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className="w-10 h-10 rounded-xl bg-bg-base border border-border-default flex items-center justify-center overflow-hidden shrink-0">
-                              {firm.logo_url ? (
-                                <img src={firm.logo_url} alt={firm.name} className="w-8 h-8 object-contain" />
-                              ) : (
-                                <span className="text-xs font-bold text-accent-cyan">{firm.name[0]}</span>
-                              )}
+                              {(() => {
+                                const logoUrl = getCleanLogoUrl(firm.name, firm.logo_url)
+                                return logoUrl ? (
+                                  <img src={logoUrl} alt={firm.name} className="w-8 h-8 object-contain" />
+                                ) : (
+                                  <span className="text-xs font-bold text-accent-cyan">{firm.name[0]}</span>
+                                )
+                              })()}
                             </div>
                             <div className="min-w-0 flex-1 space-y-1.5">
                               <div className="flex items-center justify-between text-xs font-bold text-text-primary">
@@ -261,11 +265,14 @@ export default function AwardsClient({ initialFirms, dataAwards }: AwardsClientP
                 <div className="space-y-3 pt-4 border-t border-border-default">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-bg-base border border-border-default flex items-center justify-center overflow-hidden shrink-0">
-                      {award.firm.logo_url ? (
-                        <img src={award.firm.logo_url} alt={award.firm.name} className="w-6 h-6 object-contain" />
-                      ) : (
-                        <span className="text-[10px] font-bold text-accent-cyan">{award.firm.name[0]}</span>
-                      )}
+                      {(() => {
+                        const logoUrl = getCleanLogoUrl(award.firm.name, award.firm.logo_url)
+                        return logoUrl ? (
+                          <img src={logoUrl} alt={award.firm.name} className="w-6 h-6 object-contain" />
+                        ) : (
+                          <span className="text-[10px] font-bold text-accent-cyan">{award.firm.name[0]}</span>
+                        )
+                      })()}
                     </div>
                     <div className="min-w-0">
                       <p className="font-extrabold text-xs text-text-primary truncate">{award.firm.name}</p>

@@ -35,9 +35,11 @@ interface Firm {
 
 interface FeaturedFirmsProps {
   firms: Firm[]
+  title?: string
+  subtext?: string
 }
 
-export function FeaturedFirms({ firms }: FeaturedFirmsProps) {
+export function FeaturedFirms({ firms, title, subtext }: FeaturedFirmsProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   const handleBuyNow = async (firm: Firm) => {
@@ -67,10 +69,10 @@ export function FeaturedFirms({ firms }: FeaturedFirmsProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10">
           <h2 className="text-4xl font-bold text-text-primary mb-2 afx-gradient-heading">
-            Featured Prop Firms
+            {title || 'Featured Prop Firms'}
           </h2>
           <p className="text-text-secondary text-lg">
-            Compare premium programs, get exclusive discount codes, and buy with one click.
+            {subtext || 'Compare premium programs, get exclusive discount codes, and buy with one click.'}
           </p>
         </div>
 
@@ -79,13 +81,16 @@ export function FeaturedFirms({ firms }: FeaturedFirmsProps) {
             {firms.map((firm, i) => (
               <AFXCard
                 key={firm.id}
-                className={`relative flex flex-col justify-between group overflow-hidden border transition-all duration-300 bg-bg-card/50 hover:-translate-y-1 ${
+                className={`relative flex flex-col justify-between group overflow-hidden border transition-all duration-500 bg-bg-card/50 hover:-translate-y-2 ${
                   i === 0
-                    ? 'neon-border-cyan hover:shadow-[0_0_30px_rgba(34,211,238,0.2)]'
-                    : 'border-border-default hover:border-accent-cyan/60 hover:shadow-[0_0_20px_rgba(34,211,238,0.15)]'
+                    ? 'neon-border-cyan hover:shadow-[0_0_35px_rgba(34,211,238,0.25)]'
+                    : 'border-border-default hover:border-accent-cyan/60 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)]'
                 }`}
               >
-                <div className="space-y-6">
+                {/* Glow Overlay */}
+                <div className="absolute -inset-px bg-gradient-to-br from-accent-cyan/0 via-accent-cyan/0 to-accent-purple/0 group-hover:from-accent-cyan/5 group-hover:to-accent-purple/10 rounded-3xl transition-all duration-500 pointer-events-none" />
+                
+                <div className="space-y-6 relative z-10">
                   {/* Header */}
                   <div className="flex justify-between items-start">
                     <div className="flex gap-4 items-center">
@@ -159,11 +164,11 @@ export function FeaturedFirms({ firms }: FeaturedFirmsProps) {
                   </span>
                   <AFXButton
                     variant="primary"
-                    className="bg-gradient-to-r from-accent-cyan to-accent-purple hover:opacity-90 font-semibold group flex items-center gap-1.5 text-xs py-2 px-4"
+                    className="bg-gradient-to-r from-accent-cyan to-accent-purple hover:opacity-90 font-semibold group/btn flex items-center gap-1.5 text-xs py-2 px-4"
                     onClick={() => handleBuyNow(firm)}
                   >
                     Buy Now
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <ExternalLink className="w-3.5 h-3.5 transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
                   </AFXButton>
                 </div>
               </AFXCard>

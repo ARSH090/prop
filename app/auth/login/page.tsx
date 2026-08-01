@@ -5,15 +5,17 @@ import { signInWithEmailAndPassword } from 'firebase/auth'
 import { AFXButton } from '@/components/ui/afx-button'
 import { AFXCard } from '@/components/ui/afx-card'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, Suspense } from 'react'
 
-export default function Page() {
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/'
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,7 +24,7 @@ export default function Page() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      router.push('/')
+      router.push(redirect)
     } catch (error: any) {
       setError(error.message || 'An error occurred')
     } finally {
@@ -96,5 +98,17 @@ export default function Page() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-svh w-full items-center justify-center p-6 bg-bg-base">
+        <div className="w-8 h-8 border-4 border-accent-cyan border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

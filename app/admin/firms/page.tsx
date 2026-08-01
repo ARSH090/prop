@@ -9,6 +9,7 @@ interface Firm {
   id: string
   slug: string
   name: string
+  logo_url?: string
   type: string
   rating: number
   is_featured: boolean
@@ -96,7 +97,18 @@ export default function AdminFirmsPage() {
                     key={firm.id}
                     className="border-b border-border-subtle hover:bg-bg-base/20 transition-all"
                   >
-                    <td className="px-6 py-4 font-bold text-text-primary">{firm.name}</td>
+                    <td className="px-6 py-4 font-bold text-text-primary">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-bg-base border border-border-subtle flex items-center justify-center p-1 overflow-hidden shrink-0">
+                          {firm.logo_url ? (
+                            <img src={firm.logo_url} alt={firm.name} className="w-6 h-6 object-contain" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-accent-cyan">{firm.name[0]}</span>
+                          )}
+                        </div>
+                        <span>{firm.name}</span>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-text-secondary capitalize font-mono text-xs">
                       {firm.type.replace('_', ' ')}
                     </td>

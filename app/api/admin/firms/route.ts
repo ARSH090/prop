@@ -1,34 +1,27 @@
 import { db } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
+import { clearServerCache } from '@/lib/firebase/server'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
 const MOCK_FIRMS_FALLBACK = [
-  { id: 'ftmo', name: 'FTMO', type: 'prop_firm', status: 'active' },
-  { id: 'topstep', name: 'TopStep Trader', type: 'prop_firm', status: 'active' },
-  { id: '5ers', name: '5ers', type: 'prop_firm', status: 'active' },
-  { id: 'zerodha', name: 'Zerodha', type: 'broker', status: 'active' },
+  { id: 'ftmo', name: 'FTMO', type: 'prop_firm', category: ['forex', 'futures', 'crypto'], status: 'active' },
+  { id: 'topstep', name: 'TopStep Trader', type: 'prop_firm', category: ['futures'], status: 'active' },
+  { id: '5ers', name: '5ers', type: 'prop_firm', category: ['forex'], status: 'active' },
+  { id: 'zerodha', name: 'Zerodha', type: 'broker', category: ['stocks'], status: 'active' },
 ]
+
+import { getFirms } from '@/lib/firebase/server'
 
 export async function GET(request: NextRequest) {
   try {
-    const snapshot = await db.collection('firms').get()
-    const firms: any[] = []
-    snapshot.forEach((doc: any) => {
-      firms.push({ id: doc.id, ...doc.data() })
-    })
-
-    // If Firestore is empty, return mock firms so forms always have options
-    if (firms.length === 0) {
-      return NextResponse.json({ data: MOCK_FIRMS_FALLBACK })
-    }
-
+    const firms = await getFirms()
     return NextResponse.json({ data: firms })
   } catch (error) {
     console.error('Error fetching admin firms:', error)
-    // Return mock fallback on error so deals/challenges forms still work
-    return NextResponse.json({ data: MOCK_FIRMS_FALLBACK })
+    return NextResponse.json({ data: [] })
   }
 }
 
@@ -41,6 +34,11 @@ export async function POST(request: NextRequest) {
       type,
       category,
       logo_url,
+      marquee_logo_url,
+      show_in_marquee,
+      show_in_globe,
+      globe_logo_url,
+      globe_color,
       country,
       platforms,
       max_allocation,
@@ -66,6 +64,11 @@ export async function POST(request: NextRequest) {
       type,
       category: category || [],
       logo_url: logo_url || '',
+      marquee_logo_url: marquee_logo_url || '',
+      show_in_marquee: show_in_marquee !== false,
+      show_in_globe: !!show_in_globe,
+      globe_logo_url: globe_logo_url || '',
+      globe_color: globe_color || '#00D2FF',
       country: country || '',
       platforms: platforms || [],
       max_allocation: Number(max_allocation) || 0,
@@ -82,6 +85,9 @@ export async function POST(request: NextRequest) {
       updated_at: FieldValue.serverTimestamp(),
     })
 
+    clearServerCache()
+    revalidatePath('/firms', 'layout')
+    revalidatePath('/', 'layout')
     return NextResponse.json({ success: true, id: docId })
   } catch (error) {
     console.error('Error creating admin firm:', error)

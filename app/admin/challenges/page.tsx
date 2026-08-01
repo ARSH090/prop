@@ -12,11 +12,13 @@ interface Challenge {
   steps: number
   price: number
   is_active: boolean
+  logo_url?: string
 }
 
 interface Firm {
   id: string
   name: string
+  logo_url?: string
 }
 
 export default function AdminChallengesPage() {
@@ -108,7 +110,20 @@ export default function AdminChallengesPage() {
                     className="border-b border-border-subtle hover:bg-bg-base/20 transition-all text-text-secondary"
                   >
                     <td className="px-6 py-4 text-left font-bold text-text-primary">
-                      {getFirmName(c.firm_id)}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-bg-base border border-border-subtle flex items-center justify-center p-1 overflow-hidden shrink-0">
+                          {c.logo_url || firms.find((f) => f.id === c.firm_id)?.logo_url ? (
+                            <img 
+                              src={c.logo_url || firms.find((f) => f.id === c.firm_id)?.logo_url} 
+                              alt={getFirmName(c.firm_id)} 
+                              className="w-6 h-6 object-contain" 
+                            />
+                          ) : (
+                            <span className="text-[10px] font-bold text-accent-cyan">{getFirmName(c.firm_id)[0]}</span>
+                          )}
+                        </div>
+                        <span>{getFirmName(c.firm_id)}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-center font-mono font-bold">
                       ${(c.account_size / 1000).toFixed(0)}K

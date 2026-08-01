@@ -10,11 +10,14 @@ import Link from 'next/link'
 interface Firm {
   id: string
   name: string
+  category?: string[]
+  logo_url?: string
 }
 
 interface Deal {
   id: string
   code: string
+  discount_label?: string
 }
 
 export default function NewChallengePage() {
@@ -22,7 +25,9 @@ export default function NewChallengePage() {
   const [loading, setLoading] = useState(false)
   const [firms, setFirms] = useState<Firm[]>([])
   const [deals, setDeals] = useState<Deal[]>([])
-  
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const [formData, setFormData] = useState({
     firm_id: '',
     account_size: '',
@@ -40,7 +45,17 @@ export default function NewChallengePage() {
     currency: 'USD',
     deal_id: '',
     affiliate_url: '',
+    logo_url: '',
     is_active: true,
+    activation_fee: '',
+    max_contract_size_minis: '',
+    max_contract_size_micros: '',
+    profit_target: '',
+    max_loss: '',
+    max_loss_type: 'eod_trailing',
+    max_payout_amount: '',
+    min_payout_threshold: '',
+    consistency_eval_percent: '',
   })
 
   useEffect(() => {
@@ -75,8 +90,30 @@ export default function NewChallengePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
 
+    // Numeric validations
+    const accountSizeNum = Number(formData.account_size)
+    const priceNum = Number(formData.price)
+    const originalPriceNum = formData.original_price ? Number(formData.original_price) : priceNum
+    const p1TargetNum = Number(formData.profit_target_p1 || 0)
+    const p2TargetNum = Number(formData.profit_target_p2 || 0)
+    const dailyLossNum = Number(formData.daily_loss_pct || 0)
+    const maxLossNum = Number(formData.max_loss_pct || 0)
+
+    if (accountSizeNum <= 0) {
+      alert('Account size must be a positive number!')
+      return
+    }
+    if (priceNum < 0 || originalPriceNum < 0) {
+      alert('Price values cannot be negative!')
+      return
+    }
+    if (p1TargetNum < 0 || p2TargetNum < 0 || dailyLossNum < 0 || maxLossNum < 0) {
+      alert('Metric targets/limits cannot be negative!')
+      return
+    }
+
+    setLoading(true)
     try {
       const res = await fetch('/api/admin/challenges', {
         method: 'POST',
@@ -96,6 +133,9 @@ export default function NewChallengePage() {
       setLoading(false)
     }
   }
+
+  const selectedFirm = firms.find(f => f.id === formData.firm_id)
+  const isFutures = selectedFirm?.category?.map(c => c.toLowerCase()).includes('futures')
 
   return (
     <div className="space-y-8">
@@ -122,21 +162,80 @@ export default function NewChallengePage() {
             </h3>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <label className="text-xs font-semibold text-text-secondary">Prop Firm Partner</label>
-                <select
-                  name="firm_id"
-                  value={formData.firm_id}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none"
-                >
-                  {firms.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search partner firm..."
+                    value={searchTerm || (firms.find(f => f.id === formData.firm_id)?.name || '')}
+                    onFocus={() => {
+                      setShowDropdown(true)
+                      setSearchTerm('')
+                    }}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none"
+                  />
+                  {showDropdown && (
+                    <div className="absolute top-full left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-xl border border-border-subtle bg-bg-surface shadow-2xl z-50 py-1">
+                      {firms
+                        .filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                        .map(f => (
+                          <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, firm_id: f.id }))
+                              setSearchTerm(f.name)
+                              setShowDropdown(false)
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-accent-cyan/10 transition-colors flex items-center gap-2"
+                          >
+                            <div className="w-6 h-6 rounded bg-white border border-border-subtle flex items-center justify-center p-0.5 overflow-hidden shrink-0">
+                              {f.logo_url ? (
+                                <img src={f.logo_url} alt="" className="w-full h-full object-contain" />
+                              ) : (
+                                <span className="text-[10px] font-bold text-accent-cyan">{f.name[0]}</span>
+                              )}
+                            </div>
+                            <span>{f.name}</span>
+                          </button>
+                        ))
+                      }
+                      {firms.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                        <p className="text-xs text-text-secondary p-3 text-center">No firms found</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {showDropdown && (
+                  <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />
+                )}
+                
+                {/* Visual Live Preview of Selected Partner */}
+                {formData.firm_id && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-bg-base/50 border border-border-subtle/50 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-white border border-border-subtle flex items-center justify-center p-1.5 overflow-hidden shrink-0">
+                      {firms.find(f => f.id === formData.firm_id)?.logo_url ? (
+                        <img 
+                          src={firms.find(f => f.id === formData.firm_id)?.logo_url || ''} 
+                          alt="" 
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <span className="text-xs font-bold text-accent-cyan">
+                          {firms.find(f => f.id === formData.firm_id)?.name?.[0] || '?'}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Partner Preview</p>
+                      <p className="text-xs font-black text-text-primary">
+                        {firms.find(f => f.id === formData.firm_id)?.name || 'Unknown'}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -264,6 +363,185 @@ export default function NewChallengePage() {
                   onChange={handleChange}
                   className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none font-mono"
                 />
+              </div>
+            </div>
+
+            {isFutures && (
+              <div className="space-y-4 pt-4 border-t border-border-subtle/50">
+                <h4 className="text-xs font-black text-accent-cyan uppercase tracking-wider">Futures Specifications</h4>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-text-secondary">Activation Fee ($)</label>
+                    <input
+                      type="text"
+                      name="activation_fee"
+                      value={formData.activation_fee || ''}
+                      onChange={handleChange}
+                      placeholder="e.g. None, or 150"
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-text-secondary">Max Minis Contracts</label>
+                    <input
+                      type="number"
+                      name="max_contract_size_minis"
+                      value={formData.max_contract_size_minis || ''}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-text-secondary">Max Micros Contracts</label>
+                    <input
+                      type="number"
+                      name="max_contract_size_micros"
+                      value={formData.max_contract_size_micros || ''}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-text-secondary">Profit Target ($)</label>
+                    <input
+                      type="number"
+                      name="profit_target"
+                      value={formData.profit_target || ''}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-text-secondary">Max Drawdown ($)</label>
+                    <input
+                      type="number"
+                      name="max_loss"
+                      value={formData.max_loss || ''}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-text-secondary">Max Loss Type</label>
+                    <select
+                      name="max_loss_type"
+                      value={formData.max_loss_type || 'eod_trailing'}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none"
+                    >
+                      <option value="eod_trailing">EOD Trailing</option>
+                      <option value="intraday_trailing">Intraday Trailing</option>
+                      <option value="static">Static</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-text-secondary">Max Payout Amount ($)</label>
+                    <input
+                      type="number"
+                      name="max_payout_amount"
+                      value={formData.max_payout_amount || ''}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-text-secondary">Min Payout Threshold ($)</label>
+                    <input
+                      type="number"
+                      name="min_payout_threshold"
+                      value={formData.min_payout_threshold || ''}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-text-secondary">Consistency Eval (%)</label>
+                    <input
+                      type="number"
+                      name="consistency_eval_percent"
+                      value={formData.consistency_eval_percent || ''}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2 pt-2 border-t border-border-subtle/50">
+              <label className="text-xs font-semibold text-text-secondary">Custom Challenge Logo Override (Optional)</label>
+              <div className="flex gap-4 items-start">
+                {formData.logo_url && (
+                  <div className="relative w-12 h-12 rounded-lg bg-bg-base border border-border-subtle overflow-hidden flex items-center justify-center p-1.5 group shrink-0">
+                    <img 
+                      src={formData.logo_url} 
+                      alt="Logo preview" 
+                      className="w-full h-full object-contain"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, logo_url: '' }))}
+                      className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-red-400 font-bold text-[10px] transition-opacity"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+                <div className="flex-1 space-y-2">
+                  <input
+                    type="text"
+                    name="logo_url"
+                    value={formData.logo_url}
+                    onChange={handleChange}
+                    placeholder="https://... or upload below"
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+                  />
+                  <div className="flex items-center gap-3">
+                    <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold text-text-primary bg-bg-base hover:bg-bg-base/80 border border-border-subtle transition-all">
+                      <span>Upload Local Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          
+                          const uploaderData = new FormData()
+                          uploaderData.append('file', file)
+                          
+                          try {
+                            setIsUploading(true)
+                            const res = await fetch('/api/admin/upload', {
+                              method: 'POST',
+                              body: uploaderData,
+                            })
+                            const result = await res.json()
+                            if (result.success && result.url) {
+                              setFormData(prev => ({ ...prev, logo_url: result.url }))
+                            } else {
+                              alert(result.error || 'Upload failed')
+                            }
+                          } catch (err) {
+                            console.error('Upload error:', err)
+                            alert('An error occurred during file upload')
+                          } finally {
+                            setIsUploading(false)
+                          }
+                        }}
+                      />
+                    </label>
+                    {isUploading && (
+                      <span className="text-xs text-accent-cyan font-mono animate-pulse">Uploading file...</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </AFXCard>

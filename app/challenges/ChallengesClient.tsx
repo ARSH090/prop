@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Search, Filter, Bookmark, Copy, ExternalLink, HelpCircle, Check, ArrowUpDown, Flame, Trophy, Heart, ChevronDown } from 'lucide-react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { ChallengeLink } from '@/components/ui/challenge-link'
 
 interface Challenge {
   id: string
@@ -26,10 +28,12 @@ interface Challenge {
   deal_id: string | null
   affiliate_url: string | null
   is_active: boolean
+  logo_url?: string | null
 }
 
 interface Firm {
   id: string
+  slug: string
   name: string
   logo_url: string
   rating: number
@@ -50,46 +54,7 @@ interface ChallengesClientProps {
   deals: Deal[]
 }
 
-const getCleanLogoUrl = (name: string, url: string | null) => {
-  if (url && url.startsWith('http') && !url.includes('images.unsplash.com') && !url.includes('ftmo.com/wp-content/themes') && !url.includes('the5ers.com/wp-content')) {
-    return url
-  }
-  const cleanName = name.toLowerCase().trim();
-  
-  if (cleanName.includes('5%ers') || cleanName.includes('5ers')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/the-5ers.png'
-  }
-  if (cleanName.includes('e8')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/e8-funding.png'
-  }
-  if (cleanName.includes('ftmo')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/ftmo.png'
-  }
-  if (cleanName.includes('myfundedfutures') || cleanName.includes('mffu')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/myfundedfutures.png'
-  }
-  if (cleanName.includes('alpha capital')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/alpha-capital-group.png'
-  }
-  if (cleanName.includes('take profit')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/take-profit-trader.png'
-  }
-  if (cleanName.includes('goat funded')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/goat-funded-trader.png'
-  }
-  if (cleanName.includes('apex')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/apex-trader-funding.png'
-  }
-  
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    
-  return `https://storage.googleapis.com/prop-firm-match-production-logos/${slug}.png`
-}
+
 
 const GOLD_TIER_FIRMS = [
   'ftmo',
@@ -659,8 +624,8 @@ export default function ChallengesClient({
                     }
                   }
 
-                  // Retrieve clean logo URL using helper function
-                  const logoUrl = getCleanLogoUrl(firm?.name || 'challenge', firm?.logo_url || null)
+                  // Retrieve clean logo URL using helper function, respecting overrides
+                  const logoUrl = getCleanLogoUrl(firm?.name || 'challenge', ch.logo_url || firm?.logo_url || null)
 
                   return (
                     <tr
@@ -675,7 +640,7 @@ export default function ChallengesClient({
                           {/* Logo with gold tier badge overlap */}
                           <div className="relative shrink-0 transition-all duration-300 group-hover:scale-110">
                             <div className="w-10 h-10 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1.5 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-all">
-                              <img src={logoUrl} alt={firm?.name || 'Challenge'} className="w-8 h-8 object-contain" onError={(e) => {
+                              <img src={logoUrl} alt={firm?.name || 'Challenge'} className="w-full h-full object-contain" onError={(e) => {
                                 if (firm) {
                                   (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
                                 }
@@ -689,9 +654,12 @@ export default function ChallengesClient({
                           </div>
 
                           <div className="min-w-0">
-                            <span className="block text-[15px] font-black text-text-primary truncate">
+                            <ChallengeLink
+                              firmSlug={firm?.slug || ''}
+                              className="block text-[15px] font-black text-text-primary truncate hover:text-accent-cyan transition-colors"
+                            >
                               {firm?.name || 'Challenge'}
-                            </span>
+                            </ChallengeLink>
                             
                             {/* Rating block under title */}
                             <div className="flex items-center gap-1.5 mt-0.5">

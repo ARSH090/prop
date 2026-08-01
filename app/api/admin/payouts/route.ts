@@ -4,26 +4,37 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore'
 
 export const dynamic = 'force-dynamic'
 
+import { getPayouts } from '@/lib/firebase/server'
+
 export async function GET(request: NextRequest) {
   try {
-    const snapshot = await db.collection('payouts').get()
-    const payouts: any[] = []
-    snapshot.forEach((doc: any) => {
-      payouts.push({ id: doc.id, ...doc.data() })
-    })
+    const payouts = await getPayouts()
     return NextResponse.json({ data: payouts })
   } catch (error) {
     console.error('Error fetching admin payouts:', error)
-    return NextResponse.json({ error: 'Failed to fetch payouts' }, { status: 500 })
+    return NextResponse.json({ data: [] })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { firm_id, trader_display_name, amount, currency, proof_image_url, payout_date, is_verified } = body
+    const { 
+      firm_id, 
+      trader_display_name, 
+      trader_alias,
+      amount, 
+      payout_amount,
+      account_size,
+      payout_method,
+      region,
+      currency, 
+      proof_image_url, 
+      payout_date, 
+      is_verified 
+    } = body
 
-    if (!firm_id || !trader_display_name || !amount) {
+    if (!firm_id || (!trader_display_name && !trader_alias) || (!amount && !payout_amount)) {
       return NextResponse.json({ error: 'Firm ID, Trader Name, and Amount are required' }, { status: 400 })
     }
 
@@ -32,12 +43,17 @@ export async function POST(request: NextRequest) {
 
     await ref.set({
       firm_id,
-      trader_display_name,
-      amount: Number(amount),
+      trader_display_name: trader_display_name || trader_alias || 'Trader',
+      trader_alias: trader_alias || trader_display_name || 'Trader',
+      amount: Number(amount || payout_amount || 0),
+      payout_amount: Number(payout_amount || amount || 0),
+      account_size: Number(account_size) || 100000,
+      payout_method: payout_method || 'Bank Transfer',
+      region: region || 'Asia',
       currency: currency || 'USD',
       proof_image_url: proof_image_url || '',
       payout_date: payout_date ? Timestamp.fromDate(new Date(payout_date)) : FieldValue.serverTimestamp(),
-      is_verified: !!is_verified,
+      is_verified: is_verified !== false,
       created_at: FieldValue.serverTimestamp(),
     })
 

@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { auth } from '@/lib/firebase/client'
-import { Star, Lock, Eye } from 'lucide-react'
+import { Star, Lock, Eye, Trash2 } from 'lucide-react'
 import { RatingBadge } from './rating-badge'
 import Link from 'next/link'
+import { FirmLink } from './firm-link'
 
 export function WatchlistWidget() {
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -14,36 +15,81 @@ export function WatchlistWidget() {
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       setCurrentUser(user)
-      if (user) {
-        try {
-          // Fetch favorites
-          const favRes = await fetch(`/api/favorites?user_id=${user.uid}`)
-          const favData = await favRes.json()
-          
-          // Fetch firms
-          const firmsRes = await fetch(`/api/admin/firms`)
-          const firmsData = await firmsRes.json()
+      try {
+        // Fetch firms
+        const firmsRes = await fetch(`/api/admin/firms`)
+        const firmsData = await firmsRes.json()
+        const allFirms = firmsData.data || []
 
-          if (favData.data && firmsData.data) {
-            // Enrich favorites with firm details
-            const enriched = favData.data.map((fav: any) => {
-              const firm = firmsData.data.find((f: any) => f.id === fav.firm_id)
-              return { ...fav, firm }
-            }).filter((fav: any) => fav.firm)
-            setFavorites(enriched)
+        // Load local storage favorites as base
+        const localSaved = localStorage.getItem('afx_favorites')
+        const localIds = localSaved ? JSON.parse(localSaved) : []
+        
+        let favIds = [...localIds]
+
+        if (user) {
+          try {
+            // Fetch firestore favorites
+            const favRes = await fetch(`/api/favorites?user_id=${user.uid}`)
+            const favData = await favRes.json()
+            const dbIds = favData.data?.map((f: any) => f.firm_id) || []
+            
+            // Merge db and local favorites
+            favIds = Array.from(new Set([...dbIds, ...localIds]))
+            
+            // Sync back to local storage
+            localStorage.setItem('afx_favorites', JSON.stringify(favIds))
+          } catch (e) {
+            console.warn('Could not sync Firestore favorites:', e)
           }
-        } catch (e) {
-          console.error('Error fetching watchlist data', e)
         }
+
+        // Enrich with firm details
+        const enriched = favIds.map((firmId: string) => {
+          const firm = allFirms.find((f: any) => f.id === firmId)
+          return firm ? { id: firmId, firm_id: firmId, firm } : null
+        }).filter(Boolean) as any[]
+
+        setFavorites(enriched)
+      } catch (e) {
+        console.error('Error fetching watchlist data', e)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
     return unsub
   }, [])
 
+  const handleRemoveFavorite = async (firmId: string) => {
+    // 1. Remove from local state
+    setFavorites((prev) => prev.filter((fav) => fav.firm_id !== firmId))
+
+    // 2. Remove from local storage
+    const localSaved = localStorage.getItem('afx_favorites')
+    if (localSaved) {
+      const localIds = JSON.parse(localSaved) as string[]
+      const updated = localIds.filter((id) => id !== firmId)
+      localStorage.setItem('afx_favorites', JSON.stringify(updated))
+    }
+
+    // 3. Remove from firestore if logged in
+    if (currentUser) {
+      try {
+        await fetch('/api/favorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: currentUser.uid, firm_id: firmId }),
+        })
+      } catch (e) {
+        console.error('Error removing favorite from DB:', e)
+      }
+    }
+  }
+
   if (loading) {
     return (
-      <div className="bg-bg-surface border border-border-default rounded-3xl p-6 text-center text-xs text-text-muted">
+      <div className="bg-bg-surface border border-border-default rounded-3xl p-6 text-center text-xs text-text-muted min-h-[180px] flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin mr-2" />
         Loading your watchlist...
       </div>
     )
@@ -97,7 +143,7 @@ export function WatchlistWidget() {
       {favorites.length === 0 ? (
         <div className="text-center py-8 border border-dashed border-border-default rounded-2xl text-xs text-text-muted leading-relaxed">
           Your watchlist is empty.<br />
-          Click the bookmark icon on any firm or challenge page to save firms here!
+          Bookmark firms to track active payouts and codes.
         </div>
       ) : (
         <div className="space-y-3">
@@ -122,19 +168,25 @@ export function WatchlistWidget() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   {firm.activeDeal && (
-                    <span className="text-[9px] font-extrabold text-white bg-accent-green/25 border border-accent-green/50 px-2 py-0.5 rounded-full font-mono">
+                    <span className="text-[9px] font-extrabold text-white bg-accent-green/25 border border-accent-green/50 px-2 py-0.5 rounded-full font-mono hidden xs:inline">
                       {firm.activeDeal.discount_label || 'ACTIVE'}
                     </span>
                   )}
-                  <Link
-                    href={`/firms/${firm.slug}`}
+                  <FirmLink
+                    firm={firm}
                     className="p-1.5 rounded-lg border border-border-default bg-bg-base hover:border-accent-cyan/40 hover:text-accent-cyan text-text-muted transition-all"
-                    title="View Details"
                   >
                     <Eye className="w-3.5 h-3.5" />
-                  </Link>
+                  </FirmLink>
+                  <button
+                    onClick={() => handleRemoveFavorite(firm.id)}
+                    className="p-1.5 rounded-lg border border-border-default bg-bg-base hover:border-red-400/40 hover:text-red-400 text-text-muted transition-all cursor-pointer"
+                    title="Remove from Watchlist"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             )

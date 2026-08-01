@@ -3,12 +3,15 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { FirmLink } from '@/components/ui/firm-link'
+import { ChallengeLink } from '@/components/ui/challenge-link'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
 import { Bookmark, Star, ExternalLink, Trash2 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
 interface Firm {
   id: string
@@ -103,17 +106,20 @@ export default function FavoritesPage() {
                 <div>
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-12 h-12 bg-bg-base rounded-xl flex items-center justify-center p-2 border border-border-subtle">
-                      {firm.logo_url ? (
-                        <img
-                          src={firm.logo_url}
-                          alt={firm.name}
-                          className="w-10 h-10 object-contain"
-                        />
-                      ) : (
-                        <span className="text-xl font-extrabold font-mono text-accent-cyan">
-                          {firm.name[0]}
-                        </span>
-                      )}
+                      {(() => {
+                        const logoUrl = getCleanLogoUrl(firm.name, firm.logo_url)
+                        return logoUrl ? (
+                          <img
+                            src={logoUrl}
+                            alt={firm.name}
+                            className="w-10 h-10 object-contain"
+                          />
+                        ) : (
+                          <span className="text-xl font-extrabold font-mono text-accent-cyan">
+                            {firm.name[0]}
+                          </span>
+                        )
+                      })()}
                     </div>
 
                     <button
@@ -151,17 +157,17 @@ export default function FavoritesPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-5 border-t border-border-subtle/50 mt-5">
-                  <Link href={`/firms/${firm.slug}`}>
+                  <FirmLink firm={firm} className="w-full">
                     <AFXButton variant="secondary" className="w-full text-xs font-bold py-2 rounded-xl">
                       View details
                     </AFXButton>
-                  </Link>
+                  </FirmLink>
 
-                  <Link href={`/challenges?firm=${firm.id}`}>
+                  <ChallengeLink firmSlug={firm.slug} className="w-full">
                     <AFXButton variant="primary" className="w-full text-xs font-bold py-2 rounded-xl bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base">
                       Challenges
                     </AFXButton>
-                  </Link>
+                  </ChallengeLink>
                 </div>
               </AFXCard>
             ))}

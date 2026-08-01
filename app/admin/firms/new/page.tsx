@@ -16,6 +16,10 @@ export default function NewFirmPage() {
     slug: '',
     type: 'prop_firm',
     logo_url: '',
+    marquee_logo_url: '',
+    show_in_globe: false,
+    globe_logo_url: '',
+    globe_color: '#00D2FF',
     country: '',
     website_url: '',
     affiliate_url: '',
@@ -25,6 +29,7 @@ export default function NewFirmPage() {
     description: '',
     is_featured: false,
     is_verified: true,
+    show_in_marquee: true,
     status: 'active',
   })
 
@@ -174,77 +179,274 @@ export default function NewFirmPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-text-secondary">Logo Image</label>
-              <div className="flex gap-4 items-start">
-                {formData.logo_url && (
-                  <div className="relative w-16 h-16 rounded-xl bg-bg-base border border-border-subtle overflow-hidden flex items-center justify-center p-2 group">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
-                      src={formData.logo_url} 
-                      alt="Logo preview" 
-                      className="w-full h-full object-contain"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, logo_url: '' }))}
-                      className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-red-400 font-bold text-xs transition-opacity"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-                <div className="flex-1 space-y-2">
-                  <input
-                    type="text"
-                    name="logo_url"
-                    value={formData.logo_url}
-                    onChange={handleChange}
-                    placeholder="https://... or upload below"
-                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
-                  />
-                  <div className="flex items-center gap-3">
-                    <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold text-text-primary bg-bg-base hover:bg-bg-base/80 border border-border-subtle transition-all">
-                      <span>Upload Local Image</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0]
-                          if (!file) return
-                          
-                          const uploaderData = new FormData()
-                          uploaderData.append('file', file)
-                          
-                          try {
-                            setIsUploading(true)
-                            const res = await fetch('/api/admin/upload', {
-                              method: 'POST',
-                              body: uploaderData,
-                            })
-                            const result = await res.json()
-                            if (result.success && result.url) {
-                              setFormData(prev => ({ ...prev, logo_url: result.url }))
-                            } else {
-                              alert(result.error || 'Upload failed')
-                            }
-                          } catch (err) {
-                            console.error('Upload error:', err)
-                            alert('An error occurred during file upload')
-                          } finally {
-                            setIsUploading(false)
-                          }
-                        }}
+             <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Standard Logo Image</label>
+                <div className="flex gap-4 items-start">
+                  {formData.logo_url && (
+                    <div className="relative w-16 h-16 rounded-xl bg-bg-base border border-border-subtle overflow-hidden flex items-center justify-center p-2 group">
+                      <img 
+                        src={formData.logo_url} 
+                        alt="Logo preview" 
+                        className="w-full h-full object-contain"
                       />
-                    </label>
-                    {isUploading && (
-                      <span className="text-xs text-accent-cyan font-mono animate-pulse">Uploading file...</span>
-                    )}
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, logo_url: '' }))}
+                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-red-400 font-bold text-xs transition-opacity"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="text"
+                      name="logo_url"
+                      value={formData.logo_url}
+                      onChange={handleChange}
+                      placeholder="https://... or upload below"
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+                    />
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold text-text-primary bg-bg-base hover:bg-bg-base/80 border border-border-subtle transition-all">
+                        <span>Upload Local Image</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (!file) return
+                            
+                            const uploaderData = new FormData()
+                            uploaderData.append('file', file)
+                            
+                            try {
+                              setIsUploading(true)
+                              const res = await fetch('/api/admin/upload', {
+                                method: 'POST',
+                                body: uploaderData,
+                              })
+                              const result = await res.json()
+                              if (result.success && result.url) {
+                                setFormData(prev => ({ ...prev, logo_url: result.url }))
+                              } else {
+                                alert(result.error || 'Upload failed')
+                              }
+                            } catch (err) {
+                              console.error('Upload error:', err)
+                              alert('An error occurred during file upload')
+                            } finally {
+                              setIsUploading(false)
+                            }
+                          }}
+                        />
+                      </label>
+                      {isUploading && (
+                        <span className="text-xs text-accent-cyan font-mono animate-pulse">Uploading...</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Marquee Logo (Optional override)</label>
+                <div className="flex gap-4 items-start">
+                  {formData.marquee_logo_url && (
+                    <div className="relative w-16 h-16 rounded-xl bg-bg-base border border-border-subtle overflow-hidden flex items-center justify-center p-2 group">
+                      <img 
+                        src={formData.marquee_logo_url} 
+                        alt="Marquee preview" 
+                        className="w-full h-full object-contain"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, marquee_logo_url: '' }))}
+                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-red-400 font-bold text-xs transition-opacity"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="text"
+                      name="marquee_logo_url"
+                      value={formData.marquee_logo_url}
+                      onChange={handleChange}
+                      placeholder="https://... or upload below"
+                      className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+                    />
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold text-text-primary bg-bg-base hover:bg-bg-base/80 border border-border-subtle transition-all">
+                        <span>Upload Marquee Image</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (!file) return
+                            
+                            const uploaderData = new FormData()
+                            uploaderData.append('file', file)
+                            
+                            try {
+                              setIsUploading(true)
+                              const res = await fetch('/api/admin/upload', {
+                                method: 'POST',
+                                body: uploaderData,
+                              })
+                              const result = await res.json()
+                              if (result.success && result.url) {
+                                setFormData(prev => ({ ...prev, marquee_logo_url: result.url }))
+                              } else {
+                                alert(result.error || 'Upload failed')
+                              }
+                            } catch (err) {
+                              console.error('Upload error:', err)
+                              alert('An error occurred during file upload')
+                            } finally {
+                              setIsUploading(false)
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ===== DEDICATED GLOBE SETTINGS SECTION ===== */}
+              <div className="mt-4 rounded-2xl border border-accent-cyan/20 bg-bg-base/50 p-5 space-y-5">
+                <div className="flex items-center gap-3 pb-3 border-b border-border-subtle/50">
+                  <div className="w-9 h-9 rounded-xl bg-accent-cyan/10 border border-accent-cyan/30 flex items-center justify-center text-lg">
+                    🌍
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-text-primary">Globe Logo Settings</h3>
+                    <p className="text-[11px] text-text-muted">
+                      Control how this firm appears on the rotating 3D globe on the home page.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Globe Logo Upload */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-secondary">Globe Logo (displayed inside the globe bubble)</label>
+                  <div className="flex gap-4 items-start">
+                    {/* Preview */}
+                    <div className="shrink-0">
+                      <div
+                        className="w-[68px] h-[68px] rounded-full border border-white/20 flex items-center justify-center relative overflow-hidden"
+                        style={{
+                          background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 60%, rgba(0,0,0,0.6) 100%)',
+                          backdropFilter: 'blur(10px)',
+                          boxShadow: `inset 0 12px 18px rgba(255,255,255,0.22), 0 0 18px ${formData.globe_color || '#00D2FF'}80`,
+                        }}
+                      >
+                        {formData.globe_logo_url ? (
+                          <img
+                            src={formData.globe_logo_url}
+                            alt="Globe preview"
+                            className="max-h-[60%] max-w-[60%] object-contain filter brightness-110"
+                          />
+                        ) : (
+                          <span
+                            className="text-[13px] font-black tracking-tight uppercase"
+                            style={{ color: formData.globe_color || '#00D2FF', textShadow: `0 0 10px ${formData.globe_color || '#00D2FF'}` }}
+                          >
+                            {formData.name.substring(0, 4) || 'FIRM'}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[9px] text-text-muted text-center mt-1 font-bold uppercase tracking-wide">PREVIEW</p>
+                    </div>
+
+                    {/* Upload controls */}
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="text"
+                        name="globe_logo_url"
+                        value={formData.globe_logo_url}
+                        onChange={handleChange}
+                        placeholder="https://... or upload below"
+                        className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+                      />
+                      <div className="flex items-center gap-2">
+                        <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-text-primary bg-accent-cyan/10 hover:bg-accent-cyan/20 border border-accent-cyan/30 transition-all">
+                          <span>📤 Upload Globe Logo</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0]
+                              if (!file) return
+                              const uploaderData = new FormData()
+                              uploaderData.append('file', file)
+                              try {
+                                setIsUploading(true)
+                                const res = await fetch('/api/admin/upload', { method: 'POST', body: uploaderData })
+                                const result = await res.json()
+                                if (result.success && result.url) {
+                                  setFormData(prev => ({ ...prev, globe_logo_url: result.url }))
+                                } else {
+                                  alert(result.error || 'Upload failed')
+                                }
+                              } catch (err) {
+                                console.error('Upload error:', err)
+                                alert('An error occurred during file upload')
+                              } finally {
+                                setIsUploading(false)
+                              }
+                            }}
+                          />
+                        </label>
+                        {formData.globe_logo_url && (
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, globe_logo_url: '' }))}
+                            className="px-3 py-2 rounded-xl text-xs font-bold text-red-400 hover:bg-red-400/10 border border-red-400/20 transition-all"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-text-muted">
+                        Use a transparent PNG for best results. Will fall back to main logo_url if empty.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Globe Bubble Color */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-text-secondary">Globe Bubble Glow Color (Hex code)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      name="globe_color"
+                      value={formData.globe_color}
+                      onChange={handleChange}
+                      placeholder="#00D2FF"
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+                    />
+                    <input
+                      type="color"
+                      name="globe_color"
+                      value={formData.globe_color.startsWith('#') ? formData.globe_color : '#00D2FF'}
+                      onChange={handleChange}
+                      className="w-12 h-[42px] p-1 rounded-xl bg-bg-base border border-border-subtle cursor-pointer"
+                    />
                   </div>
                 </div>
               </div>
             </div>
+
+
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -418,6 +620,28 @@ export default function NewFirmPage() {
                   className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
                 />
                 <span className="text-xs font-semibold text-text-primary">Verified Account Badge</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="show_in_marquee"
+                  checked={formData.show_in_marquee}
+                  onChange={handleChange}
+                  className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+                />
+                <span className="text-xs font-semibold text-text-primary">Show in Logo Marquee</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="show_in_globe"
+                  checked={formData.show_in_globe}
+                  onChange={handleChange}
+                  className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+                />
+                <span className="text-xs font-semibold text-text-primary">Show in rotating 3D Globe</span>
               </label>
 
               <div className="space-y-2">

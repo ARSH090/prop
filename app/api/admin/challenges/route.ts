@@ -1,20 +1,20 @@
 import { db } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
+import { clearServerCache } from '@/lib/firebase/server'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
+import { getChallenges } from '@/lib/firebase/server'
+
 export async function GET(request: NextRequest) {
   try {
-    const snapshot = await db.collection('challenges').get()
-    const challenges: any[] = []
-    snapshot.forEach((doc: any) => {
-      challenges.push({ id: doc.id, ...doc.data() })
-    })
+    const challenges = await getChallenges()
     return NextResponse.json({ data: challenges })
   } catch (error) {
     console.error('Error fetching admin challenges:', error)
-    return NextResponse.json({ error: 'Failed to fetch challenges' }, { status: 500 })
+    return NextResponse.json({ data: [] })
   }
 }
 
@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       deal_id,
       affiliate_url,
       is_active,
+      logo_url,
     } = body
 
     if (!firm_id || !account_size || !price) {
@@ -66,11 +67,15 @@ export async function POST(request: NextRequest) {
       currency: currency || 'USD',
       deal_id: deal_id || null,
       affiliate_url: affiliate_url || null,
+      logo_url: logo_url || null,
       is_active: is_active !== false,
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
     })
 
+    clearServerCache()
+    revalidatePath('/challenges', 'layout')
+    revalidatePath('/firms', 'layout')
     return NextResponse.json({ success: true, id: docId })
   } catch (error) {
     console.error('Error creating admin challenge:', error)

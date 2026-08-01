@@ -3,7 +3,12 @@
 import React, { useState } from 'react'
 import { AFXButton } from '@/components/ui/afx-button'
 
-export function Newsletter() {
+interface NewsletterProps {
+  title?: string
+  subtext?: string
+}
+
+export function Newsletter({ title, subtext }: NewsletterProps) {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
@@ -36,10 +41,10 @@ export function Newsletter() {
       <div className="absolute inset-0 bg-gradient-to-br from-accent-blue/5 to-accent-purple/5 pointer-events-none" />
       <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center space-y-6">
         <h2 className="text-3xl md:text-4xl font-bold text-text-primary afx-gradient-heading">
-          Never Miss a Verified Deal
+          {title || 'Never Miss a Verified Deal'}
         </h2>
         <p className="text-text-secondary max-w-xl mx-auto text-sm md:text-base">
-          Join our newsletter list to receive weekly comparison reports, broker reviews, and new prop firm codes directly in your inbox.
+          {subtext || 'Join our newsletter list to receive weekly comparison reports, broker reviews, and new prop firm codes directly in your inbox.'}
         </p>
 
         {status === 'success' ? (

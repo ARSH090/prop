@@ -229,9 +229,29 @@ function EventCard({ event }: { event: (typeof EVENTS)[0] }) {
   )
 }
 
-export default function EventsPage() {
+import { getSiteContent } from '@/lib/firebase/server'
+
+export default async function EventsPage() {
+  const content = await getSiteContent('events')
+  const badge_text = content.badge_text || 'Events & Tournaments'
+  const headline = content.headline || 'Trading Events & Community'
+  const subtext = content.subtext || 'Join live trading tournaments, prop firm bootcamps, educational sessions, and competitive trading events for the ANURAJ FX community.'
+
   const upcoming = EVENTS.filter((e) => e.status === 'upcoming' || e.status === 'recurring')
   const past = EVENTS.filter((e) => e.status === 'past')
+
+  // Group upcoming events by type
+  const tournaments = upcoming.filter((e) => e.type === 'tournament')
+  const bootcamps = upcoming.filter((e) => e.type === 'bootcamp')
+  const sessions = upcoming.filter((e) => e.type === 'session')
+  const gaming = upcoming.filter((e) => e.type === 'gaming')
+
+  const categorySections = [
+    { key: 'tournament', label: 'Tournaments & Competitions', events: tournaments, icon: Trophy, accent: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30', desc: 'Compete for prizes and glory in our live trading tournaments.' },
+    { key: 'bootcamp', label: 'Bootcamps & Intensives', events: bootcamps, icon: Zap, accent: 'text-accent-cyan', bg: 'bg-accent-cyan/10 border-accent-cyan/30', desc: 'Intensive training programs to accelerate your trading skills.' },
+    { key: 'session', label: 'Live Sessions & Masterclasses', events: sessions, icon: BookOpen, accent: 'text-accent-purple', bg: 'bg-accent-purple/10 border-accent-purple/30', desc: 'Weekly live trading sessions and expert-led masterclasses.' },
+    { key: 'gaming', label: 'Gaming & Fun Events', events: gaming, icon: Trophy, accent: 'text-accent-green', bg: 'bg-accent-green/10 border-accent-green/30', desc: 'Fun community events with a trading twist.' },
+  ].filter((s) => s.events.length > 0)
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">
@@ -242,44 +262,57 @@ export default function EventsPage() {
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/30 mb-4">
             <Calendar className="w-3.5 h-3.5 text-accent-cyan" />
-            <span className="text-xs font-bold text-accent-cyan uppercase tracking-wider">Events & Tournaments</span>
+            <span className="text-xs font-bold text-accent-cyan uppercase tracking-wider">{badge_text}</span>
           </div>
           <h1 className="text-4xl font-extrabold text-text-primary mb-4 afx-gradient-heading">
-            Trading Events & Community
+            {headline}
           </h1>
           <p className="text-text-secondary text-lg max-w-2xl">
-            Join live trading tournaments, prop firm bootcamps, educational sessions, and competitive trading events for the ANURAJ FX community.
+            {subtext}
           </p>
         </div>
 
-        {/* Event Type Legend */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          {Object.entries(EVENT_TYPE_CONFIG).map(([type, config]) => (
-            <div key={type} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold ${config.bg} ${config.color}`}>
-              <config.icon className="w-3.5 h-3.5" />
-              {config.label}
-            </div>
-          ))}
-        </div>
 
-        {/* Upcoming Events */}
-        <div className="mb-12">
-          <h2 className="text-xl font-bold text-text-primary mb-6 flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent-green/10 border border-accent-green/30 text-xs font-bold text-accent-green">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
-              Live & Upcoming
-            </span>
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {upcoming.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
+        {/* Category Sections */}
+        <div className="space-y-16">
+          {categorySections.map((section) => {
+            const SectionIcon = section.icon
+            return (
+              <div key={section.key}>
+                {/* Section Header */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 ${section.bg}`}>
+                    <SectionIcon className={`w-6 h-6 ${section.accent}`} />
+                  </div>
+                  <div>
+                    <h2 className={`text-2xl font-extrabold ${section.accent}`}>{section.label}</h2>
+                    <p className="text-text-muted text-sm">{section.desc}</p>
+                  </div>
+                  <div className="ml-auto hidden sm:flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-green/10 border border-accent-green/30 text-xs font-bold text-accent-green">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse" />
+                      {section.events.length} {section.events.length === 1 ? 'Event' : 'Events'} Active
+                    </span>
+                  </div>
+                </div>
+
+                {/* Separator line */}
+                <div className={`h-px mb-6 bg-gradient-to-r from-transparent via-current to-transparent opacity-20 ${section.accent}`} />
+
+                {/* Events Grid */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {section.events.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {/* Past Events */}
         {past.length > 0 && (
-          <div>
+          <div className="mt-16">
             <h2 className="text-xl font-bold text-text-primary mb-6 text-text-secondary">Past Events</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-60">
               {past.map((event) => (

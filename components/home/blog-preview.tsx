@@ -16,26 +16,29 @@ interface BlogPost {
 
 interface BlogPreviewProps {
   posts: BlogPost[]
+  title?: string
+  subtext?: string
+  ctaText?: string
 }
 
-export function BlogPreview({ posts }: BlogPreviewProps) {
+export function BlogPreview({ posts, title, subtext, ctaText }: BlogPreviewProps) {
   return (
     <section className="py-20 bg-bg-base border-t border-border-subtle/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
           <div>
             <h2 className="text-4xl font-bold text-text-primary mb-2 afx-gradient-heading">
-              Latest Articles
+              {title || 'Latest Articles'}
             </h2>
             <p className="text-text-secondary">
-              Trading guidelines, review logs, and industry insights for prop traders.
+              {subtext || 'Trading guidelines, review logs, and industry insights for prop traders.'}
             </p>
           </div>
           <Link
             href="/blog"
             className="flex items-center gap-1.5 text-accent-cyan hover:underline text-sm font-semibold transition-all group"
           >
-            View All Posts
+            {ctaText || 'View All Posts'}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

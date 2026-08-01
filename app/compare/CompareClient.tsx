@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
 import { Search, X, Check, ArrowRight } from 'lucide-react'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
 interface Rules {
   profit_target: string
@@ -152,13 +153,11 @@ export default function CompareClient({ firms }: CompareClientProps) {
                     {selectedFirms.map((f) => (
                       <th key={f.id} className="px-6 py-4 text-center font-bold w-48">
                         <div className="flex flex-col items-center gap-1.5">
-                          {f.logo_url && (
-                            <img
-                              src={f.logo_url}
-                              alt={f.name}
-                              className="w-8 h-8 object-contain bg-bg-base rounded p-1 border border-border-subtle"
-                            />
-                          )}
+                          <img
+                            src={getCleanLogoUrl(f.name, f.logo_url)}
+                            alt={f.name}
+                            className="w-8 h-8 object-contain bg-bg-base rounded p-1 border border-border-subtle"
+                          />
                           <span className="text-text-primary font-bold">{f.name}</span>
                         </div>
                       </th>

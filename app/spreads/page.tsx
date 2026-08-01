@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
-import { getBrokerSpreads, getFirms } from '@/lib/firebase/server'
+import { getBrokerSpreads, getFirms, getSiteContent } from '@/lib/firebase/server'
 import SpreadsClient from './SpreadsClient'
 
 export const metadata = {
@@ -11,10 +11,14 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function SpreadsPage() {
-  const [spreads, brokers] = await Promise.all([
+  const [spreads, brokers, siteContent] = await Promise.all([
     getBrokerSpreads(),
     getFirms('broker'),
+    getSiteContent('spreads')
   ])
+
+  const headline = siteContent.headline || 'Live Broker Spreads'
+  const subtext = siteContent.subtext || 'Compare live bid/ask spreads and execution commission structures across registered broker pools.'
 
   const activeBrokers = brokers.filter((b) => b.status === 'active')
 
@@ -24,10 +28,10 @@ export default async function SpreadsPage() {
       <main className="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-6">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-text-primary mb-2 afx-gradient-heading">
-            Live Broker Spreads
+            {headline}
           </h1>
           <p className="text-text-secondary text-sm">
-            Compare live bid/ask spreads and execution commission structures across registered broker pools.
+            {subtext}
           </p>
         </div>
 
@@ -37,3 +41,4 @@ export default async function SpreadsPage() {
     </div>
   )
 }
+

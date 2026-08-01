@@ -24,14 +24,15 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'ANURAJ FX - Prop Firm & Broker Intelligence Platform',
   description: 'Compare prop firms, regulated brokers, and get exclusive discount codes. AFX Trade Intelligence for Indian traders.',
-  generator: 'v0.app',
   icons: {
     icon: [
       {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: '/logo.png',
+        type: 'image/png',
       },
     ],
+    shortcut: '/logo.png',
+    apple: '/logo.png',
   },
 }
 

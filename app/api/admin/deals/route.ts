@@ -29,22 +29,15 @@ const MOCK_DEALS_FALLBACK = [
   },
 ]
 
+import { getDeals } from '@/lib/firebase/server'
+
 export async function GET(request: NextRequest) {
   try {
-    const snapshot = await db.collection('deals').get()
-    const deals: any[] = []
-    snapshot.forEach((doc: any) => {
-      deals.push({ id: doc.id, ...doc.data() })
-    })
-
-    if (deals.length === 0) {
-      return NextResponse.json({ data: MOCK_DEALS_FALLBACK })
-    }
-
+    const deals = await getDeals()
     return NextResponse.json({ data: deals })
   } catch (error) {
     console.error('Error fetching admin deals:', error)
-    return NextResponse.json({ data: MOCK_DEALS_FALLBACK })
+    return NextResponse.json({ data: [] })
   }
 }
 

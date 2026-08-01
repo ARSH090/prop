@@ -3,8 +3,10 @@
 import { AFXButton } from '@/components/ui/afx-button'
 import { AFXBadge } from '@/components/ui/afx-badge'
 import Link from 'next/link'
+import { FirmLink } from '@/components/ui/firm-link'
 import { useEffect, useRef, useState } from 'react'
 import { PropGlobe } from '@/components/home/prop-globe'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
 interface HeroProps {
   headlinePart1?: string
@@ -13,6 +15,8 @@ interface HeroProps {
   ctaExplore?: string
   ctaBrokers?: string
   discordUrl?: string
+  marqueeFirms?: any[]
+  globeFirms?: any[]
 }
 
 // Neon cursor-aware glow background component
@@ -73,9 +77,11 @@ export function HeroSection({
   ctaExplore = 'Explore Firms',
   ctaBrokers = 'Join Discord',
   discordUrl = 'https://discord.gg/empirial',
+  marqueeFirms = [],
+  globeFirms = [],
 }: HeroProps) {
   return (
-    <section className="relative min-h-[auto] md:min-h-screen bg-bg-base overflow-hidden pt-28 pb-12 md:py-0 flex items-center">
+    <section className="relative min-h-[auto] md:min-h-screen bg-bg-base overflow-hidden pt-28 pb-24 md:pb-24 flex items-center">
       {/* Dynamic Neon Background */}
       <NeonBackground />
 
@@ -140,11 +146,12 @@ export function HeroSection({
               <div className="absolute w-60 h-60 rounded-full bg-gradient-to-br from-accent-cyan/15 to-accent-purple/20 blur-2xl animate-pulse" />
 
               {/* 2D Globe Component */}
-              <PropGlobe />
+              <PropGlobe globeFirms={globeFirms} />
             </div>
           </div>
         </div>
       </div>
+
     </section>
   )
 }

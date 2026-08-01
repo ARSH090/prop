@@ -2,13 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { FirmLink } from '@/components/ui/firm-link'
 import { Filter, Search, CheckCircle, Tag, Globe, Heart, Trophy, Flame } from 'lucide-react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
+import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
 const COUNTRY_FLAGS: Record<string, string> = {
   CZ: '🇨🇿', US: '🇺🇸', IL: '🇮🇱', AE: '🇦🇪', GB: '🇬🇧',
   IN: '🇮🇳', AU: '🇦🇺', CY: '🇨🇾', HU: '🇭🇺', EU: '🇪🇺',
+}
+
+const COUNTRY_NAMES: Record<string, string> = {
+  CZ: 'Czech Republic', US: 'United States', IL: 'Israel', AE: 'UAE', GB: 'United Kingdom',
+  IN: 'India', AU: 'Australia', CY: 'Cyprus', HU: 'Hungary', EU: 'Europe',
 }
 
 interface Firm {
@@ -28,47 +35,6 @@ interface Firm {
   description: string
   website_url: string | null
   years_active?: number
-}
-
-const getCleanLogoUrl = (name: string, url: string | null) => {
-  if (url && url.startsWith('http') && !url.includes('images.unsplash.com') && !url.includes('ftmo.com/wp-content/themes') && !url.includes('the5ers.com/wp-content')) {
-    return url
-  }
-  const cleanName = name.toLowerCase().trim();
-  
-  if (cleanName.includes('5%ers') || cleanName.includes('5ers')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/the-5ers.png'
-  }
-  if (cleanName.includes('e8')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/e8-funding.png'
-  }
-  if (cleanName.includes('ftmo')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/ftmo.png'
-  }
-  if (cleanName.includes('myfundedfutures') || cleanName.includes('mffu')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/myfundedfutures.png'
-  }
-  if (cleanName.includes('alpha capital')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/alpha-capital-group.png'
-  }
-  if (cleanName.includes('take profit')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/take-profit-trader.png'
-  }
-  if (cleanName.includes('goat funded')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/goat-funded-trader.png'
-  }
-  if (cleanName.includes('apex')) {
-    return 'https://storage.googleapis.com/prop-firm-match-production-logos/apex-trader-funding.png'
-  }
-  
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    
-  return `https://storage.googleapis.com/prop-firm-match-production-logos/${slug}.png`
 }
 
 export default function FirmsPage() {
@@ -275,19 +241,19 @@ export default function FirmsPage() {
         {/* Directory List Container - Using standard HTML table layout for perfect alignment */}
         <div className="border border-border-subtle bg-bg-surface/20 rounded-3xl p-1 overflow-hidden shadow-2xl relative">
           
-          <div className="overflow-x-auto scrollbar-thin">
-            <table className="w-full border-collapse text-left text-xs text-text-secondary min-w-[1100px]">
+          <div className="overflow-x-auto scrollbar-none">
+            <table className="w-full border-collapse text-left text-xs text-text-secondary">
               <thead>
                 <tr className="border-b border-border-subtle/30 bg-bg-surface/40 text-[10px] font-black uppercase tracking-wider text-text-muted select-none">
-                  <th className="px-6 py-4 text-left font-black w-[300px]">Firm</th>
-                  <th className="px-6 py-4 text-center font-black w-[130px]">Rank / Reviews</th>
-                  <th className="px-6 py-4 text-center font-black w-[100px]">Country</th>
-                  <th className="px-6 py-4 text-center font-black w-[140px]">Years in Operation</th>
-                  <th className="px-6 py-4 text-center font-black w-[180px]">Assets</th>
-                  <th className="px-6 py-4 text-center font-black w-[120px]">Platforms</th>
-                  <th className="px-6 py-4 text-center font-black w-[140px]">Max Allocations</th>
-                  <th className="px-6 py-4 text-center font-black w-[140px]">Promo</th>
-                  <th className="px-6 py-4 text-right font-black w-[100px]">Actions</th>
+                  <th className="px-6 py-4 text-left font-black w-[260px]">Firm</th>
+                  <th className="px-6 py-4 text-center font-black w-[110px]">Rank / Reviews</th>
+                  <th className="px-6 py-4 text-center font-black w-[120px] hidden sm:table-cell">Country</th>
+                  <th className="px-6 py-4 text-center font-black w-[120px] hidden lg:table-cell">Years in Operation</th>
+                  <th className="px-6 py-4 text-center font-black w-[160px] hidden lg:table-cell">Assets</th>
+                  <th className="px-6 py-4 text-center font-black w-[110px] hidden md:table-cell">Platforms</th>
+                  <th className="px-6 py-4 text-center font-black w-[120px] hidden sm:table-cell">Max Allocations</th>
+                  <th className="px-6 py-4 text-center font-black w-[110px] hidden md:table-cell">Promo</th>
+                  <th className="px-6 py-4 text-right font-black w-[90px]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle/30">
@@ -305,12 +271,12 @@ export default function FirmsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-5"><div className="w-12 h-8 bg-bg-surface rounded mx-auto" /></td>
-                      <td className="px-6 py-5"><div className="w-10 h-6 bg-bg-surface rounded mx-auto" /></td>
-                      <td className="px-6 py-5"><div className="w-10 h-10 rounded-full bg-bg-surface mx-auto" /></td>
-                      <td className="px-6 py-5"><div className="w-24 h-6 bg-bg-surface rounded mx-auto" /></td>
-                      <td className="px-6 py-5"><div className="w-16 h-6 bg-bg-surface rounded mx-auto" /></td>
-                      <td className="px-6 py-5"><div className="w-20 h-8 bg-bg-surface rounded mx-auto" /></td>
-                      <td className="px-6 py-5"><div className="w-20 h-8 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5 hidden sm:table-cell"><div className="w-10 h-6 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5 hidden lg:table-cell"><div className="w-10 h-10 rounded-full bg-bg-surface mx-auto" /></td>
+                      <td className="px-6 py-5 hidden lg:table-cell"><div className="w-24 h-6 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5 hidden md:table-cell"><div className="w-16 h-6 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5 hidden sm:table-cell"><div className="w-20 h-8 bg-bg-surface rounded mx-auto" /></td>
+                      <td className="px-6 py-5 hidden md:table-cell"><div className="w-20 h-8 bg-bg-surface rounded mx-auto" /></td>
                       <td className="px-6 py-5"><div className="w-16 h-8 bg-bg-surface rounded ml-auto" /></td>
                     </tr>
                   ))
@@ -358,20 +324,22 @@ export default function FirmsPage() {
                               )}
                             </div>
 
-                            {/* Logo with drop cyan glow scaling animation */}
-                            <div className="w-12 h-12 rounded-xl border border-border-subtle bg-white flex items-center justify-center overflow-hidden shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]">
-                              <img src={logoUrl} alt={firm.name} className="w-9 h-9 object-contain" onError={(e) => {
-                                // Fallback if image fails to load
-                                (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
-                              }} />
-                            </div>
+                            {/* Logo with drop cyan glow scaling animation - clicking goes to firm detail */}
+                            <FirmLink firm={firm} className="block">
+                              <div className="w-12 h-12 rounded-xl border border-border-subtle bg-white flex items-center justify-center overflow-hidden shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+                                <img src={logoUrl} alt={firm.name} className="w-full h-full object-contain p-1.5" onError={(e) => {
+                                  // Fallback if image fails to load
+                                  (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                                }} />
+                              </div>
+                            </FirmLink>
 
                             {/* Name and Heart toggle */}
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <h3 className="text-sm font-bold text-text-primary group-hover:text-accent-cyan transition-colors truncate">
+                                <FirmLink firm={firm} className="text-sm font-bold text-text-primary group-hover:text-accent-cyan transition-colors truncate block">
                                   {firm.name}
-                                </h3>
+                                </FirmLink>
                                 {firm.is_verified && <CheckCircle className="w-3.5 h-3.5 text-accent-green flex-shrink-0" />}
                               </div>
                               
@@ -403,15 +371,15 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 3. COUNTRY COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle text-xs font-bold text-text-secondary">
+                        <td className="px-6 py-5 text-center align-middle text-xs font-bold text-text-secondary hidden sm:table-cell">
                           <div className="inline-flex items-center gap-1.5">
                             <span className="text-base">{flag}</span>
-                            <span>{firm.country || 'US'}</span>
+                            <span>{COUNTRY_NAMES[firm.country || ''] || firm.country || 'United States'}</span>
                           </div>
                         </td>
 
                         {/* 4. YEARS IN OPERATION COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle">
+                        <td className="px-6 py-5 text-center align-middle hidden lg:table-cell">
                           <div className="inline-flex items-center justify-center">
                             <div className="w-10 h-10 rounded-full border-2 border-accent-cyan/30 flex items-center justify-center text-xs font-bold text-text-primary bg-bg-base/30 relative">
                               <span className="absolute inset-0.5 rounded-full border border-dashed border-accent-cyan/50 animate-pulse" />
@@ -421,7 +389,7 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 5. ASSETS COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle">
+                        <td className="px-6 py-5 text-center align-middle hidden lg:table-cell">
                           <div className="flex flex-wrap gap-1 justify-center max-w-[180px] mx-auto">
                             {firm.category?.slice(0, 3).map((cat) => (
                               <span
@@ -435,7 +403,7 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 6. PLATFORMS COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle">
+                        <td className="px-6 py-5 text-center align-middle hidden md:table-cell">
                           <div className="flex items-center justify-center gap-1">
                             {firm.platforms?.slice(0, 3).map((plat) => (
                               <div
@@ -450,7 +418,7 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 7. MAX ALLOCATIONS COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle">
+                        <td className="px-6 py-5 text-center align-middle hidden sm:table-cell">
                           <div className="inline-flex flex-col items-center">
                             <span className="text-xs font-bold text-text-primary">{maxK}</span>
                             
@@ -465,7 +433,7 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 8. PROMO COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle">
+                        <td className="px-6 py-5 text-center align-middle hidden md:table-cell">
                           {dealInfo ? (
                             <div className="inline-flex flex-col items-center gap-0.5 bg-accent-yellow/10 border border-accent-yellow/30 px-3 py-1 rounded-xl">
                               <span className="text-[10px] font-black text-accent-yellow">{dealInfo.discount}</span>
@@ -480,12 +448,12 @@ export default function FirmsPage() {
 
                         {/* 9. ACTIONS COLUMN */}
                         <td className="px-6 py-5 text-right align-middle">
-                          <Link
-                            href={`/firms/${firm.slug}`}
+                          <FirmLink
+                            firm={firm}
                             className="px-4 py-1.5 rounded-full border border-border-subtle text-xs font-bold text-text-primary hover:border-accent-cyan hover:bg-accent-cyan/10 transition-all inline-block text-center"
                           >
                             Firm
-                          </Link>
+                          </FirmLink>
                         </td>
                       </tr>
                     )

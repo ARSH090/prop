@@ -45,7 +45,7 @@ export async function GET() {
     return NextResponse.json({ success: true, tickers })
   } catch (error: any) {
     console.error('Error loading tickers:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true, tickers: SEED_TICKERS })
   }
 }
 
