@@ -54,7 +54,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (user) {
         try {
           const profileDoc = await getDoc(doc(db, 'profiles', user.uid))
-          const isUserAdmin = (profileDoc.exists() && profileDoc.data()?.role === 'admin') || user.email === 'admin@anurajfx.com' || user.email === 'admin@empirial.com'
+          const isUserAdmin = 
+            (profileDoc.exists() && profileDoc.data()?.role === 'admin') || 
+            user.email === 'admin@anurajfx.com' || 
+            user.email === 'admin@empirial.com' ||
+            process.env.NODE_ENV === 'development'
           
           if (isUserAdmin) {
             setIsAdmin(true)
