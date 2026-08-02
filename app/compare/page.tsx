@@ -1,18 +1,23 @@
 import React from 'react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
-import { getFirms } from '@/lib/firebase/server'
+import { getFirms, getChallenges } from '@/lib/firebase/server'
 import CompareClient from './CompareClient'
 
 export const metadata = {
-  title: 'Compare Prop Firms Side-by-Side - ANURAJ FX',
+  title: 'Compare Prop Challenges Side-by-Side - ANURAJ FX',
 }
 
 export const dynamic = 'force-dynamic'
 
 export default async function ComparePage() {
-  const firms = await getFirms('prop_firm')
+  const [firms, challenges] = await Promise.all([
+    getFirms('prop_firm'),
+    getChallenges(),
+  ])
+
   const activeFirms = firms.filter((f) => f.status === 'active')
+  const activeChallenges = challenges.filter((c) => c.is_active !== false)
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">
@@ -20,14 +25,14 @@ export default async function ComparePage() {
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-6">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-text-primary mb-2 afx-gradient-heading">
-            Firms Comparison Dashboard
+            Challenges Comparison Dashboard
           </h1>
           <p className="text-text-secondary text-sm">
-            Stack evaluation attributes and limits side-by-side to choose the best funded challenge.
+            Stack challenge evaluation sizes, targets, and pricing side-by-side to choose the best program.
           </p>
         </div>
 
-        <CompareClient firms={activeFirms} />
+        <CompareClient firms={activeFirms} challenges={activeChallenges} />
       </main>
       <Footer />
     </div>

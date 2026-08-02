@@ -1,19 +1,27 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
-import { Search, X, Check, ArrowRight } from 'lucide-react'
+import { Check, X, ArrowRight, Star, RefreshCw, Layers } from 'lucide-react'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import Link from 'next/link'
 
-interface Rules {
-  profit_target: string
-  daily_loss: string
-  max_drawdown: string
-  profit_split: string
+interface Challenge {
+  id: string
+  firm_id: string
+  account_size: number
   steps: number | string
-  duration: string
-  re_entry: string
+  profit_target_p1?: number | string
+  profit_target_p2?: number | string
+  daily_loss_pct?: number | string
+  max_loss_pct?: number | string
+  pt_dd_ratio?: string
+  profit_split_pct?: number | string
+  payout_freq?: string
+  price: number | string
+  currency?: string
+  affiliate_url?: string
 }
 
 interface Firm {
@@ -22,273 +30,445 @@ interface Firm {
   logo_url: string
   rating: number
   review_count: number
-  max_allocation: number
-  rules: Rules
+  category?: string[]
+  type: string
 }
 
 interface CompareClientProps {
   firms: Firm[]
+  challenges: Challenge[]
 }
 
-export default function CompareClient({ firms }: CompareClientProps) {
-  const [selectedIds, setSelectedIds] = useState<string[]>(['ftmo', 'topstep'])
-  const [searchTerm, setSearchTerm] = useState('')
+const TABS = [
+  { id: 'forex', label: 'Forex / CFDs', icon: '📈' },
+  { id: 'futures', label: 'Futures', icon: '⛓' },
+  { id: 'crypto', label: 'Crypto', icon: '🪙' },
+] as const
 
-  const selectedFirms = selectedIds
-    .map((id) => firms.find((f) => f.id === id))
-    .filter(Boolean) as Firm[]
+export default function CompareClient({ firms, challenges }: CompareClientProps) {
+  const [activeTab, setActiveTab] = useState<'forex' | 'futures' | 'crypto'>('forex')
+  
+  // Left side selections
+  const [leftFirmId, setLeftFirmId] = useState<string>('')
+  const [leftChallengeId, setLeftChallengeId] = useState<string>('')
+  
+  // Right side selections
+  const [rightFirmId, setRightFirmId] = useState<string>('')
+  const [rightChallengeId, setRightChallengeId] = useState<string>('')
 
-  const handleSelect = (id: string) => {
-    if (selectedIds.includes(id)) {
-      setSelectedIds((prev) => prev.filter((i) => i !== id))
-    } else {
-      if (selectedIds.length >= 4) {
-        alert('You can select up to 4 firms to compare.')
-        return
+  // Filter firms based on active tab
+  const getTabFirms = () => {
+    return firms.filter((f) => {
+      const cats = f.category?.map((c) => c.toLowerCase()) || []
+      if (activeTab === 'forex') {
+        return cats.includes('forex') || f.type === 'prop_firm' || cats.length === 0
       }
-      setSelectedIds((prev) => [...prev, id])
+      return cats.includes(activeTab)
+    })
+  }
+
+  const tabFirms = getTabFirms()
+
+  // Initialize/Set defaults on mount or tab switch
+  useEffect(() => {
+    const availableFirms = getTabFirms()
+    if (availableFirms.length > 0) {
+      // Default left side
+      const firstFirm = availableFirms[0]
+      setLeftFirmId(firstFirm.id)
+      const firstChallenges = challenges.filter((c) => c.firm_id === firstFirm.id)
+      if (firstChallenges.length > 0) {
+        // Sort by size asc
+        const sorted = [...firstChallenges].sort((a, b) => a.account_size - b.account_size)
+        setLeftChallengeId(sorted[0].id)
+      } else {
+        setLeftChallengeId('')
+      }
+
+      // Default right side
+      if (availableFirms.length > 1) {
+        const secondFirm = availableFirms[1]
+        setRightFirmId(secondFirm.id)
+        const secondChallenges = challenges.filter((c) => c.firm_id === secondFirm.id)
+        if (secondChallenges.length > 0) {
+          const sorted = [...secondChallenges].sort((a, b) => a.account_size - b.account_size)
+          setRightChallengeId(sorted[0].id)
+        } else {
+          setRightChallengeId('')
+        }
+      } else {
+        setRightFirmId('')
+        setRightChallengeId('')
+      }
+    } else {
+      setLeftFirmId('')
+      setLeftChallengeId('')
+      setRightFirmId('')
+      setRightChallengeId('')
+    }
+  }, [activeTab])
+
+  // Get active lists
+  const leftFirm = firms.find((f) => f.id === leftFirmId)
+  const leftChallenges = leftFirmId
+    ? challenges.filter((c) => c.firm_id === leftFirmId).sort((a, b) => a.account_size - b.account_size)
+    : []
+  const leftChallenge = challenges.find((c) => c.id === leftChallengeId)
+
+  const rightFirm = firms.find((f) => f.id === rightFirmId)
+  const rightChallenges = rightFirmId
+    ? challenges.filter((c) => c.firm_id === rightFirmId).sort((a, b) => a.account_size - b.account_size)
+    : []
+  const rightChallenge = challenges.find((c) => c.id === rightChallengeId)
+
+  // Handlers
+  const handleLeftFirmChange = (firmId: string) => {
+    setLeftFirmId(firmId)
+    const chList = challenges.filter((c) => c.firm_id === firmId).sort((a, b) => a.account_size - b.account_size)
+    if (chList.length > 0) {
+      setLeftChallengeId(chList[0].id)
+    } else {
+      setLeftChallengeId('')
     }
   }
 
-  const parsePercent = (val: string | undefined) => {
-    if (!val) return 0
-    return parseFloat(val.replace(/[^0-9.]/g, '')) || 0
+  const handleRightFirmChange = (firmId: string) => {
+    setRightFirmId(firmId)
+    const chList = challenges.filter((c) => c.firm_id === firmId).sort((a, b) => a.account_size - b.account_size)
+    if (chList.length > 0) {
+      setRightChallengeId(chList[0].id)
+    } else {
+      setRightChallengeId('')
+    }
   }
 
-  // Find best value helpers
-  const getBestAllocation = () => {
-    if (selectedFirms.length < 2) return null
-    const max = Math.max(...selectedFirms.map((f) => f.max_allocation || 0))
-    return max > 0 ? max : null
+  // Value highlight comparison helpers
+  const getCompareColor = (leftVal: number, rightVal: number, lowerIsBetter = false) => {
+    if (leftVal === rightVal) return 'text-text-primary'
+    const isLeftBetter = lowerIsBetter ? leftVal < rightVal : leftVal > rightVal
+    return isLeftBetter ? 'text-accent-green font-extrabold' : 'text-text-secondary'
   }
-
-  const getBestRating = () => {
-    if (selectedFirms.length < 2) return null
-    const max = Math.max(...selectedFirms.map((f) => f.rating || 0))
-    return max > 0 ? max : null
-  }
-
-  const getBestSplit = () => {
-    if (selectedFirms.length < 2) return null
-    const max = Math.max(...selectedFirms.map((f) => parsePercent(f.rules?.profit_split)))
-    return max > 0 ? max : null
-  }
-
-  const bestAllocation = getBestAllocation()
-  const bestRating = getBestRating()
-  const bestSplit = getBestSplit()
-
-  const filteredFirms = firms.filter(
-    (f) =>
-      f.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !selectedIds.includes(f.id)
-  )
 
   return (
-    <div className="grid md:grid-cols-4 gap-8">
-      {/* Sidebar Selector */}
-      <div className="md:col-span-1 space-y-4">
-        <AFXCard className="bg-bg-surface border border-border-subtle p-5 space-y-4">
-          <h3 className="font-bold text-text-primary text-sm uppercase tracking-wider font-mono">
-            Select Prop Program
-          </h3>
-
-          <div className="relative">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-text-muted" />
-            <input
-              type="text"
-              placeholder="Search firms..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-cyan"
-            />
-          </div>
-
-          <div className="space-y-1.5 max-h-60 overflow-y-auto">
-            {filteredFirms.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => handleSelect(f.id)}
-                className="w-full text-left p-2.5 rounded-lg hover:bg-bg-base text-text-secondary hover:text-text-primary transition-all flex items-center justify-between text-xs font-semibold"
-              >
-                <span>{f.name}</span>
-                <span className="text-[10px] text-accent-cyan font-mono">+ Add</span>
-              </button>
-            ))}
-          </div>
-
-          {selectedFirms.length > 0 && (
-            <div className="pt-4 border-t border-border-subtle/50 space-y-2">
-              <p className="text-[10px] font-bold text-text-muted uppercase font-mono">Comparing:</p>
-              <div className="flex flex-wrap gap-1.5">
-                {selectedFirms.map((f) => (
-                  <span
-                    key={f.id}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-bg-base border border-border-subtle text-xs text-text-primary"
-                  >
-                    {f.name}
-                    <button
-                      onClick={() => handleSelect(f.id)}
-                      className="text-text-muted hover:text-red-400 font-bold"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </AFXCard>
+    <div className="space-y-8">
+      {/* Category Tabs */}
+      <div className="flex items-center justify-center p-1.5 bg-bg-surface/50 border border-border-subtle/50 rounded-2xl max-w-md mx-auto">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 text-xs font-bold rounded-xl transition-all ${
+              activeTab === tab.id
+                ? 'bg-gradient-to-r from-accent-cyan to-accent-purple text-text-primary shadow-lg'
+                : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            <span>{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
       </div>
 
-      {/* Comparison Matrix Table */}
-      <div className="md:col-span-3">
-        {selectedFirms.length > 0 ? (
-          <AFXCard className="overflow-hidden border border-border-subtle bg-bg-surface p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border-subtle bg-bg-base/30 text-text-secondary font-mono">
-                    <th className="px-6 py-4 text-left font-bold">Metrics</th>
-                    {selectedFirms.map((f) => (
-                      <th key={f.id} className="px-6 py-4 text-center font-bold w-48">
-                        <div className="flex flex-col items-center gap-1.5">
-                          <img
-                            src={getCleanLogoUrl(f.name, f.logo_url)}
-                            alt={f.name}
-                            className="w-8 h-8 object-contain bg-bg-base rounded p-1 border border-border-subtle"
-                          />
-                          <span className="text-text-primary font-bold">{f.name}</span>
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Rating */}
-                  <tr className="border-b border-border-subtle hover:bg-bg-base/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-secondary">Community Rating</td>
-                    {selectedFirms.map((f) => {
-                      const isBest = bestRating !== null && f.rating === bestRating
-                      return (
-                        <td
-                          key={f.id}
-                          className={`px-6 py-4 text-center font-mono font-bold ${
-                            isBest ? 'text-accent-green' : 'text-text-primary'
-                          }`}
-                        >
-                          {f.rating}/5 ⭐
-                        </td>
-                      );
-                    })}
-                  </tr>
+      {/* Selectors Grid (VS Layout) */}
+      <div className="grid grid-cols-1 md:grid-cols-9 gap-4 items-center max-w-4xl mx-auto">
+        {/* Left Selector Panel */}
+        <div className="md:col-span-4 p-5 rounded-2xl bg-bg-surface border border-border-subtle/60 space-y-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block font-mono">Select Firm</label>
+            <select
+              value={leftFirmId}
+              onChange={(e) => handleLeftFirmChange(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none transition-colors"
+            >
+              <option value="">-- Choose Firm --</option>
+              {tabFirms.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+          </div>
 
-                  {/* Max Allocation */}
-                  <tr className="border-b border-border-subtle hover:bg-bg-base/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-secondary">Max Allocation</td>
-                    {selectedFirms.map((f) => {
-                      const isBest = bestAllocation !== null && f.max_allocation === bestAllocation
-                      return (
-                        <td
-                          key={f.id}
-                          className={`px-6 py-4 text-center font-mono font-bold ${
-                            isBest ? 'text-accent-green' : 'text-text-primary'
-                          }`}
-                        >
-                          ${(f.max_allocation / 1000).toFixed(0)}K
-                        </td>
-                      );
-                    })}
-                  </tr>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block font-mono">Select Package Size</label>
+            <select
+              value={leftChallengeId}
+              onChange={(e) => setLeftChallengeId(e.target.value)}
+              disabled={!leftFirmId || leftChallenges.length === 0}
+              className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {leftChallenges.length === 0 ? (
+                <option value="">No packages available</option>
+              ) : (
+                leftChallenges.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    ${(c.account_size).toLocaleString()} Package (${c.price} {c.currency || 'USD'})
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+        </div>
 
-                  {/* Steps */}
-                  <tr className="border-b border-border-subtle hover:bg-bg-base/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-secondary">Steps Structures</td>
-                    {selectedFirms.map((f) => (
-                      <td key={f.id} className="px-6 py-4 text-center font-mono text-xs">
-                        {f.rules?.steps || '2'}-Step
-                      </td>
-                    ))}
-                  </tr>
+        {/* VS Divider Text */}
+        <div className="md:col-span-1 flex flex-col items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-accent-cyan/20 to-accent-purple/20 border border-accent-cyan/30 flex items-center justify-center font-black text-xs text-accent-cyan shadow-[0_0_15px_rgba(34,211,238,0.25)] animate-pulse">
+            VS
+          </div>
+        </div>
 
-                  {/* Profit Target */}
-                  <tr className="border-b border-border-subtle hover:bg-bg-base/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-secondary">Profit Targets</td>
-                    {selectedFirms.map((f) => (
-                      <td key={f.id} className="px-6 py-4 text-center font-mono text-text-primary">
-                        {f.rules?.profit_target || '10%'}
-                      </td>
-                    ))}
-                  </tr>
+        {/* Right Selector Panel */}
+        <div className="md:col-span-4 p-5 rounded-2xl bg-bg-surface border border-border-subtle/60 space-y-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block font-mono">Select Firm</label>
+            <select
+              value={rightFirmId}
+              onChange={(e) => handleRightFirmChange(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none transition-colors"
+            >
+              <option value="">-- Choose Firm --</option>
+              {tabFirms.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+          </div>
 
-                  {/* Daily Loss */}
-                  <tr className="border-b border-border-subtle hover:bg-bg-base/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-secondary">Daily Loss Limits</td>
-                    {selectedFirms.map((f) => (
-                      <td key={f.id} className="px-6 py-4 text-center font-mono text-red-400">
-                        {f.rules?.daily_loss || '5%'}
-                      </td>
-                    ))}
-                  </tr>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider block font-mono">Select Package Size</label>
+            <select
+              value={rightChallengeId}
+              onChange={(e) => setRightChallengeId(e.target.value)}
+              disabled={!rightFirmId || rightChallenges.length === 0}
+              className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {rightChallenges.length === 0 ? (
+                <option value="">No packages available</option>
+              ) : (
+                rightChallenges.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    ${(c.account_size).toLocaleString()} Package (${c.price} {c.currency || 'USD'})
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+        </div>
+      </div>
 
-                  {/* Max Loss */}
-                  <tr className="border-b border-border-subtle hover:bg-bg-base/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-secondary">Maximum Loss Allowed</td>
-                    {selectedFirms.map((f) => (
-                      <td key={f.id} className="px-6 py-4 text-center font-mono text-red-400">
-                        {f.rules?.max_drawdown || '10%'}
-                      </td>
-                    ))}
-                  </tr>
+      {/* Comparison Cards Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        {/* Left Side Program details */}
+        {leftChallenge && leftFirm ? (
+          <AFXCard className="relative overflow-hidden bg-bg-surface border border-border-subtle p-6 space-y-6 flex flex-col justify-between transition-all hover:shadow-[0_0_25px_rgba(34,211,238,0.06)] hover:border-accent-cyan/20">
+            {/* Glossy sheen reflection */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent-cyan/5 rounded-full blur-3xl pointer-events-none" />
 
-                  {/* Profit Split */}
-                  <tr className="border-b border-border-subtle hover:bg-bg-base/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-secondary">Profit Split (%)</td>
-                    {selectedFirms.map((f) => {
-                      const isBest = bestSplit !== null && parsePercent(f.rules?.profit_split) === bestSplit
-                      return (
-                        <td
-                          key={f.id}
-                          className={`px-6 py-4 text-center font-mono font-bold ${
-                            isBest ? 'text-accent-green' : 'text-text-primary'
-                          }`}
-                        >
-                          {f.rules?.profit_split || '80%'}
-                        </td>
-                      );
-                    })}
-                  </tr>
+            <div className="space-y-6">
+              {/* Card Header details */}
+              <div className="flex items-center gap-4 pb-4 border-b border-border-subtle/50">
+                <div className="w-16 h-16 rounded-full bg-bg-base flex items-center justify-center p-2.5 border border-border-subtle shrink-0">
+                  <img
+                    src={getCleanLogoUrl(leftFirm.name, leftFirm.logo_url)}
+                    alt={leftFirm.name}
+                    className="max-h-full max-w-full object-contain filter brightness-110"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-text-primary">{leftFirm.name}</h3>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <Star className="w-3.5 h-3.5 fill-current text-accent-yellow" />
+                    <span className="text-xs font-mono font-bold text-text-secondary">{leftFirm.rating}/5</span>
+                    <span className="text-[10px] text-text-muted">({leftFirm.review_count} reviews)</span>
+                  </div>
+                </div>
+              </div>
 
-                  {/* Trading Period */}
-                  <tr className="border-b border-border-subtle hover:bg-bg-base/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-secondary">Trading Duration</td>
-                    {selectedFirms.map((f) => (
-                      <td key={f.id} className="px-6 py-4 text-center text-xs">
-                        {f.rules?.duration || 'Unlimited'}
-                      </td>
-                    ))}
-                  </tr>
+              {/* Challenge main attributes */}
+              <div className="text-center p-4 rounded-2xl bg-bg-base/40 border border-border-subtle/30 space-y-1">
+                <p className="text-2xl font-black text-text-primary tracking-tight">
+                  ${(leftChallenge.account_size).toLocaleString()} Challenge
+                </p>
+                <p className="text-sm font-bold text-accent-cyan font-mono">
+                  {leftChallenge.steps}-Step Evaluation
+                </p>
+              </div>
 
-                  {/* Re-Entry */}
-                  <tr className="hover:bg-bg-base/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-secondary">Re-Entry Mode</td>
-                    {selectedFirms.map((f) => (
-                      <td key={f.id} className="px-6 py-4 text-center text-xs capitalize">
-                        {f.rules?.re_entry || 'Allowed'}
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
+              {/* Specs detailed listings */}
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Evaluation Price</span>
+                  <span className="font-mono font-black text-text-primary">
+                    ${leftChallenge.price} {leftChallenge.currency || 'USD'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Profit Target (Phase 1 / 2)</span>
+                  <span className="font-mono font-bold text-text-primary">
+                    {leftChallenge.profit_target_p1 || '8'}% / {leftChallenge.profit_target_p2 || '5'}%
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Daily Loss Limit</span>
+                  <span className="font-mono font-bold text-red-400">
+                    {leftChallenge.daily_loss_pct || '5'}%
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Maximum Loss Allowed</span>
+                  <span className="font-mono font-bold text-red-400">
+                    {leftChallenge.max_loss_pct || '10'}%
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Profit Split Share</span>
+                  <span className="font-mono font-bold text-accent-green">
+                    {leftChallenge.profit_split_pct || '80'}%
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Payout Frequency Cycle</span>
+                  <span className="font-semibold text-text-primary">
+                    {leftChallenge.payout_freq || 'Bi-weekly'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2">
+                  <span className="text-text-muted font-semibold">Reward/Risk Ratio (PT/DD)</span>
+                  <span className="font-mono font-semibold text-accent-cyan">
+                    {leftChallenge.pt_dd_ratio || '1:1'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* redirect URL button */}
+            <div className="pt-6">
+              <Link href={leftChallenge.affiliate_url || leftFirm.logo_url || '/'} target="_blank" className="w-full">
+                <AFXButton variant="primary" className="w-full bg-gradient-to-r from-accent-cyan to-accent-purple font-bold flex items-center justify-center gap-2 py-3 rounded-xl transition-all hover:scale-[1.02]">
+                  <span>Get Funded Now</span>
+                  <ArrowRight className="w-4 h-4" />
+                </AFXButton>
+              </Link>
             </div>
           </AFXCard>
         ) : (
-          <div className="border border-border-subtle bg-bg-surface/50 p-12 text-center rounded-3xl">
-            <p className="text-text-secondary text-sm font-semibold">Select prop firms from the panel to compare.</p>
+          <div className="border-2 border-dashed border-border-subtle/60 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+            <span className="text-4xl mb-2">👈</span>
+            <p className="text-sm font-bold text-text-secondary">Select a program on the left</p>
+            <p className="text-xs text-text-muted mt-1">Choose a firm and challenge size to populate specifications.</p>
+          </div>
+        )}
+
+        {/* Right Side Program details */}
+        {rightChallenge && rightFirm ? (
+          <AFXCard className="relative overflow-hidden bg-bg-surface border border-border-subtle p-6 space-y-6 flex flex-col justify-between transition-all hover:shadow-[0_0_25px_rgba(139,92,246,0.06)] hover:border-accent-purple/20">
+            {/* Glossy sheen reflection */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent-purple/5 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="space-y-6">
+              {/* Card Header details */}
+              <div className="flex items-center gap-4 pb-4 border-b border-border-subtle/50">
+                <div className="w-16 h-16 rounded-full bg-bg-base flex items-center justify-center p-2.5 border border-border-subtle shrink-0">
+                  <img
+                    src={getCleanLogoUrl(rightFirm.name, rightFirm.logo_url)}
+                    alt={rightFirm.name}
+                    className="max-h-full max-w-full object-contain filter brightness-110"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-text-primary">{rightFirm.name}</h3>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <Star className="w-3.5 h-3.5 fill-current text-accent-yellow" />
+                    <span className="text-xs font-mono font-bold text-text-secondary">{rightFirm.rating}/5</span>
+                    <span className="text-[10px] text-text-muted">({rightFirm.review_count} reviews)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Challenge main attributes */}
+              <div className="text-center p-4 rounded-2xl bg-bg-base/40 border border-border-subtle/30 space-y-1">
+                <p className="text-2xl font-black text-text-primary tracking-tight">
+                  ${(rightChallenge.account_size).toLocaleString()} Challenge
+                </p>
+                <p className="text-sm font-bold text-accent-purple font-mono">
+                  {rightChallenge.steps}-Step Evaluation
+                </p>
+              </div>
+
+              {/* Specs detailed listings */}
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Evaluation Price</span>
+                  <span className="font-mono font-black text-text-primary">
+                    ${rightChallenge.price} {rightChallenge.currency || 'USD'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Profit Target (Phase 1 / 2)</span>
+                  <span className="font-mono font-bold text-text-primary">
+                    {rightChallenge.profit_target_p1 || '8'}% / {rightChallenge.profit_target_p2 || '5'}%
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Daily Loss Limit</span>
+                  <span className="font-mono font-bold text-red-400">
+                    {rightChallenge.daily_loss_pct || '5'}%
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Maximum Loss Allowed</span>
+                  <span className="font-mono font-bold text-red-400">
+                    {rightChallenge.max_loss_pct || '10'}%
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Profit Split Share</span>
+                  <span className="font-mono font-bold text-accent-green">
+                    {rightChallenge.profit_split_pct || '80'}%
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2 border-b border-border-subtle/30">
+                  <span className="text-text-muted font-semibold">Payout Frequency Cycle</span>
+                  <span className="font-semibold text-text-primary">
+                    {rightChallenge.payout_freq || 'Bi-weekly'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between py-2">
+                  <span className="text-text-muted font-semibold">Reward/Risk Ratio (PT/DD)</span>
+                  <span className="font-mono font-semibold text-accent-cyan">
+                    {rightChallenge.pt_dd_ratio || '1:1'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* redirect URL button */}
+            <div className="pt-6">
+              <Link href={rightChallenge.affiliate_url || rightFirm.logo_url || '/'} target="_blank" className="w-full">
+                <AFXButton variant="primary" className="w-full bg-gradient-to-r from-accent-cyan to-accent-purple font-bold flex items-center justify-center gap-2 py-3 rounded-xl transition-all hover:scale-[1.02]">
+                  <span>Get Funded Now</span>
+                  <ArrowRight className="w-4 h-4" />
+                </AFXButton>
+              </Link>
+            </div>
+          </AFXCard>
+        ) : (
+          <div className="border-2 border-dashed border-border-subtle/60 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+            <span className="text-4xl mb-2">👉</span>
+            <p className="text-sm font-bold text-text-secondary">Select a program on the right</p>
+            <p className="text-xs text-text-muted mt-1">Choose a firm and challenge size to populate specifications.</p>
           </div>
         )}
       </div>
     </div>
   )
 }
-export const dynamic = 'force-dynamic'
