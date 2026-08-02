@@ -45,6 +45,7 @@ export default function NewChallengePage() {
     currency: 'USD',
     deal_id: '',
     affiliate_url: '',
+    cta_text: '',
     logo_url: '',
     is_active: true,
     activation_fee: '',
@@ -602,6 +603,18 @@ export default function NewChallengePage() {
                   value={formData.affiliate_url}
                   onChange={handleChange}
                   className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-secondary">Custom Button CTA Text Override</label>
+                <input
+                  type="text"
+                  name="cta_text"
+                  value={formData.cta_text}
+                  onChange={handleChange}
+                  placeholder="Get Funded Now"
+                  className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan"
                 />
               </div>
 

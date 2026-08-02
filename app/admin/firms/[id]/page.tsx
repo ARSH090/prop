@@ -26,6 +26,7 @@ export default function EditFirmPage() {
     country: '',
     website_url: '',
     affiliate_url: '',
+    cta_text: '',
     max_allocation: '',
     platforms: '',
     category: '',
@@ -88,6 +89,7 @@ export default function EditFirmPage() {
             country: data.country || '',
             website_url: data.website_url || '',
             affiliate_url: data.affiliate_url || '',
+            cta_text: data.cta_text || '',
             max_allocation: data.max_allocation ? String(data.max_allocation) : '',
             platforms: data.platforms ? data.platforms.join(', ') : '',
             category: data.category ? data.category.join(', ') : '',
@@ -610,6 +612,20 @@ export default function EditFirmPage() {
                   value={formData.affiliate_url}
                   onChange={handleChange}
                   className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Custom Button CTA Text</label>
+                <input
+                  type="text"
+                  name="cta_text"
+                  value={formData.cta_text}
+                  onChange={handleChange}
+                  placeholder="Get Funded Now"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
                 />
               </div>
             </div>

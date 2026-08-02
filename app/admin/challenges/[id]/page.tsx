@@ -49,6 +49,7 @@ export default function EditChallengePage() {
     currency: 'USD',
     deal_id: '',
     affiliate_url: '',
+    cta_text: '',
     logo_url: '',
     is_active: true,
     activation_fee: '',
@@ -95,6 +96,7 @@ export default function EditChallengePage() {
             currency: chData.currency || 'USD',
             deal_id: chData.deal_id || '',
             affiliate_url: chData.affiliate_url || '',
+            cta_text: chData.cta_text || '',
             logo_url: chData.logo_url || '',
             is_active: chData.is_active !== false,
             activation_fee: chData.activation_fee || '',
@@ -635,6 +637,18 @@ export default function EditChallengePage() {
                   value={formData.affiliate_url}
                   onChange={handleChange}
                   className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-secondary">Custom Button CTA Text Override</label>
+                <input
+                  type="text"
+                  name="cta_text"
+                  value={formData.cta_text}
+                  onChange={handleChange}
+                  placeholder="Get Funded Now"
+                  className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan"
                 />
               </div>
 

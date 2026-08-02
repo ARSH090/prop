@@ -23,6 +23,7 @@ export default function NewFirmPage() {
     country: '',
     website_url: '',
     affiliate_url: '',
+    cta_text: '',
     max_allocation: '',
     platforms: '',
     category: '',
@@ -346,6 +347,20 @@ export default function NewFirmPage() {
                   onChange={handleChange}
                   placeholder="https://..."
                   className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Custom Button CTA Text</label>
+                <input
+                  type="text"
+                  name="cta_text"
+                  value={formData.cta_text}
+                  onChange={handleChange}
+                  placeholder="Get Funded Now"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
                 />
               </div>
             </div>

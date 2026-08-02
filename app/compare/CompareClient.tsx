@@ -23,6 +23,7 @@ interface Challenge {
   price: number | string
   currency?: string
   affiliate_url?: string
+  cta_text?: string
   
   // Futures specific fields
   activation_fee?: string
@@ -45,6 +46,9 @@ interface Firm {
   category?: string[]
   type: string
   platforms?: string[]
+  cta_text?: string
+  affiliate_url?: string
+  website_url?: string
 }
 
 interface CompareClientProps {
@@ -510,18 +514,18 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
                   </>
                 )}
 
-                {/* Supported Platforms */}
+                {/* Supported Platforms (ENHANCED: Larger Platform names) */}
                 <div className="flex justify-between items-center p-3.5 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
                   <span className="text-text-muted font-bold flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-accent-cyan" /> Platforms</span>
-                  <div className="flex flex-wrap gap-1 justify-end max-w-[200px]">
+                  <div className="flex flex-wrap gap-2 justify-end max-w-[260px]">
                     {leftFirm.platforms && leftFirm.platforms.length > 0 ? (
                       leftFirm.platforms.map((p: string) => (
-                        <span key={p} className="px-2 py-0.5 rounded bg-bg-base/50 border border-border-subtle/30 text-[9px] font-bold text-accent-cyan font-mono uppercase tracking-wide">
+                        <span key={p} className="px-3.5 py-1.5 rounded-xl bg-bg-base/60 border border-border-subtle/35 text-[11px] font-black text-accent-cyan font-mono uppercase tracking-widest shadow-inner">
                           {p}
                         </span>
                       ))
                     ) : (
-                      <span className="text-text-muted font-mono font-semibold">Standard</span>
+                      <span className="text-text-muted font-mono font-bold text-[11px] uppercase tracking-widest bg-bg-base/50 px-3 py-1 rounded-xl border border-border-subtle/30">Standard</span>
                     )}
                   </div>
                 </div>
@@ -534,11 +538,11 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
               </div>
             </div>
 
-            {/* CTA purchase link */}
+            {/* CTA purchase link linked to admin configs */}
             <div className="pt-6">
-              <Link href={leftChallenge.affiliate_url || leftFirm.logo_url || '/'} target="_blank" className="w-full block">
+              <Link href={leftChallenge.affiliate_url || leftFirm.affiliate_url || leftFirm.website_url || '/'} target="_blank" className="w-full block">
                 <AFXButton variant="primary" className="w-full bg-gradient-to-r from-accent-cyan to-accent-purple font-bold flex items-center justify-center gap-2 py-3.5 rounded-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.35)] hover:scale-[1.01]">
-                  <span>Get Funded Now</span>
+                  <span>{leftChallenge.cta_text || leftFirm.cta_text || 'Get Funded Now'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </AFXButton>
               </Link>
@@ -758,18 +762,18 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
                   </>
                 )}
 
-                {/* Supported Platforms */}
+                {/* Supported Platforms (ENHANCED: Larger Platform names) */}
                 <div className="flex justify-between items-center p-3.5 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
                   <span className="text-text-muted font-bold flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-accent-cyan" /> Platforms</span>
-                  <div className="flex flex-wrap gap-1 justify-end max-w-[200px]">
+                  <div className="flex flex-wrap gap-2 justify-end max-w-[260px]">
                     {rightFirm.platforms && rightFirm.platforms.length > 0 ? (
                       rightFirm.platforms.map((p: string) => (
-                        <span key={p} className="px-2 py-0.5 rounded bg-bg-base/50 border border-border-subtle/30 text-[9px] font-bold text-accent-cyan font-mono uppercase tracking-wide">
+                        <span key={p} className="px-3.5 py-1.5 rounded-xl bg-bg-base/60 border border-border-subtle/35 text-[11px] font-black text-accent-cyan font-mono uppercase tracking-widest shadow-inner">
                           {p}
                         </span>
                       ))
                     ) : (
-                      <span className="text-text-muted font-mono font-semibold">Standard</span>
+                      <span className="text-text-muted font-mono font-bold text-[11px] uppercase tracking-widest bg-bg-base/50 px-3 py-1 rounded-xl border border-border-subtle/30">Standard</span>
                     )}
                   </div>
                 </div>
@@ -782,11 +786,11 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
               </div>
             </div>
 
-            {/* CTA purchase link */}
+            {/* CTA purchase link linked to admin configs */}
             <div className="pt-6">
-              <Link href={rightChallenge.affiliate_url || rightFirm.logo_url || '/'} target="_blank" className="w-full block">
+              <Link href={rightChallenge.affiliate_url || rightFirm.affiliate_url || rightFirm.website_url || '/'} target="_blank" className="w-full block">
                 <AFXButton variant="primary" className="w-full bg-gradient-to-r from-accent-cyan to-accent-purple font-bold flex items-center justify-center gap-2 py-3.5 rounded-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(139,92,246,0.35)] hover:scale-[1.01]">
-                  <span>Get Funded Now</span>
+                  <span>{rightChallenge.cta_text || rightFirm.cta_text || 'Get Funded Now'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </AFXButton>
               </Link>
