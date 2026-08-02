@@ -241,11 +241,11 @@ export default function FirmsPage() {
         {/* Directory List Container - Using standard HTML table layout for perfect alignment */}
         <div className="border border-border-subtle bg-bg-surface/20 rounded-3xl p-1 overflow-hidden shadow-2xl relative">
           
-          <div className="overflow-x-auto sm:overflow-x-visible scrollbar-none">
+          <div className="overflow-x-auto scrollbar-none">
             <table className="w-full border-collapse text-left text-xs text-text-secondary table-fixed sm:table-auto">
               <thead>
                 <tr className="border-b border-border-subtle/30 bg-bg-surface/40 text-[10px] font-black uppercase tracking-wider text-text-muted select-none">
-                  <th className="px-2 sm:px-6 py-4 text-left font-black w-[45%] sm:w-auto">Firm</th>
+                  <th className="px-2 sm:px-6 py-4 text-left font-black w-[50%] sm:w-auto">Firm</th>
                   <th className="px-2 sm:px-6 py-4 text-center font-black w-[25%] sm:w-auto">Rank / Reviews</th>
                   <th className="px-2 sm:px-6 py-4 text-center font-black hidden sm:table-cell">Country</th>
                   <th className="px-2 sm:px-6 py-4 text-center font-black hidden lg:table-cell">Years in Operation</th>
@@ -253,7 +253,7 @@ export default function FirmsPage() {
                   <th className="px-2 sm:px-6 py-4 text-center font-black hidden md:table-cell">Platforms</th>
                   <th className="px-2 sm:px-6 py-4 text-center font-black hidden sm:table-cell">Max Allocations</th>
                   <th className="px-2 sm:px-6 py-4 text-center font-black hidden md:table-cell">Promo</th>
-                  <th className="px-2 sm:px-6 py-4 text-right font-black w-[30%] sm:w-auto">Actions</th>
+                  <th className="px-2 sm:px-6 py-4 text-right font-black w-[25%] sm:w-auto">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle/30">
