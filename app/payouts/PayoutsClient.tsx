@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 interface Payout {
   id: string
@@ -259,19 +260,12 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
                     <div className="flex items-center gap-3">
                       {(() => {
                         const firm = getFirm(payout.firm_id)
-                        const logoUrl = firm ? getCleanLogoUrl(firm.name, firm.logo_url) : ''
-                        return logoUrl ? (
-                          <div className="w-10 h-10 rounded-xl bg-bg-base border border-border-subtle flex items-center justify-center p-1.5 shrink-0">
-                            <img
-                              src={logoUrl}
-                              alt={firm?.name}
-                              className="w-full h-full object-contain"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-10 h-10 rounded-xl bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center shrink-0">
-                            <span className="text-accent-cyan font-bold text-sm">{getFirmName(payout.firm_id)[0]}</span>
-                          </div>
+                        return (
+                          <PropFirmLogo
+                            name={firm?.name || 'Prop Firm'}
+                            logoUrl={firm?.logo_url || null}
+                            className="w-10 h-10 rounded-xl shrink-0"
+                          />
                         )
                       })()}
                       <div>
@@ -393,12 +387,13 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
                     <div className="flex items-center gap-2">
                       {(() => {
                         const selectedFirm = firms.find((f) => f.id === submitForm.firm_id)
-                        const logoUrl = selectedFirm ? getCleanLogoUrl(selectedFirm.name, selectedFirm.logo_url) : ''
-                        return logoUrl ? (
-                          <div className="w-8 h-8 rounded-lg bg-bg-base border border-border-subtle flex items-center justify-center p-1 shrink-0">
-                            <img src={logoUrl} alt={selectedFirm?.name} className="w-full h-full object-contain" />
-                          </div>
-                        ) : null
+                        return (
+                          <PropFirmLogo
+                            name={selectedFirm?.name || 'Prop Firm'}
+                            logoUrl={selectedFirm?.logo_url || null}
+                            className="w-8 h-8 rounded-lg shrink-0"
+                          />
+                        )
                       })()}
                       <select value={submitForm.firm_id} onChange={(e) => setSubmitForm((p) => ({ ...p, firm_id: e.target.value }))}
                         className="flex-1 px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none">

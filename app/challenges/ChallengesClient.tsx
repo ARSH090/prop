@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Filter, Bookmark, Copy, ExternalLink, HelpCircle, Check, ArrowUpDown, Flame, Trophy, Heart, ChevronDown } from 'lucide-react'
+import { Search, Filter, Bookmark, Copy, ExternalLink, HelpCircle, Check, ArrowUpDown, Flame, Trophy, Heart, ChevronDown, Star } from 'lucide-react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
 import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
 import { ChallengeLink } from '@/components/ui/challenge-link'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 interface Challenge {
   id: string
@@ -369,17 +370,12 @@ export default function ChallengesClient({
               </div>
             ) : (
               visiblePromoOffers.map((item) => {
-                const logoUrl = getCleanLogoUrl(item.name, item.logo)
                 return (
                   <div
                     key={item.name}
                     className="group p-3 bg-bg-base border border-border-subtle hover:border-accent-cyan/40 transition-all rounded-2xl flex items-center gap-3 relative"
                   >
-                    <div className={`w-9 h-9 rounded-xl border border-border-subtle flex items-center justify-center p-1 shrink-0 group-hover:scale-105 duration-200 ${isDarkLogo(item.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
-                      <img src={logoUrl} alt={item.name} className="w-7 h-7 object-contain" onError={(e) => {
-                        (e.target as HTMLImageElement).src = getCleanLogoUrl(item.name, null)
-                      }} />
-                    </div>
+                    <PropFirmLogo name={item.name} logoUrl={item.logo} className="w-9 h-9 rounded-xl transition-all duration-300 group-hover:scale-110" />
                     <div className="min-w-0 flex-1">
                       <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
                       <p className="text-[9px] text-text-muted mt-0.5 font-bold truncate">★ {item.rating}</p>
@@ -413,7 +409,6 @@ export default function ChallengesClient({
               </div>
             ) : (
               dynamicFuturesFirms.map((item) => {
-                const logoUrl = getCleanLogoUrl(item.name, item.logo)
                 return (
                   <div
                     key={item.name}
@@ -428,11 +423,7 @@ export default function ChallengesClient({
                         <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
                       )}
                       
-                      <div className={`w-7 h-7 rounded-lg border border-border-subtle flex items-center justify-center p-1 shrink-0 group-hover:scale-105 duration-200 ${isDarkLogo(item.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
-                        <img src={logoUrl} alt={item.name} className="w-5 h-5 object-contain" onError={(e) => {
-                          (e.target as HTMLImageElement).src = getCleanLogoUrl(item.name, null)
-                        }} />
-                      </div>
+                      <PropFirmLogo name={item.name} logoUrl={item.logo} className="w-7 h-7 rounded-lg transition-all duration-300 group-hover:scale-110" />
 
                       <div className="min-w-0">
                         <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
@@ -710,16 +701,19 @@ export default function ChallengesClient({
                       <td className="px-3 py-3 align-middle relative">
                         {/* Hover left accent glow bar */}
                         <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-gradient-to-b from-accent-cyan to-accent-purple opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="flex items-center gap-3 pl-2">
+                        <div className="flex items-center gap-2 pl-1.5">
+                          {/* Star favorite toggle */}
+                          <button
+                            onClick={(e) => handleToggleBookmark(ch.firm_id, e)}
+                            className="p-1 rounded-full text-text-muted hover:text-amber-400 transition-all shrink-0 cursor-pointer"
+                            title={favoriteFirms.includes(ch.firm_id) ? "Remove from Bookmarks" : "Add to Bookmarks"}
+                          >
+                            <Star className={`w-4 h-4 transition-transform active:scale-75 ${favoriteFirms.includes(ch.firm_id) ? "fill-amber-400 text-amber-400" : "text-text-muted hover:text-text-secondary"}`} />
+                          </button>
+
                           {/* Logo with gold tier badge overlap */}
                           <div className="relative shrink-0 transition-all duration-300 group-hover:scale-110">
-                            <div className="w-10 h-10 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1.5 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-all">
-                              <img src={logoUrl} alt={firm?.name || 'Challenge'} className="w-full h-full object-contain" onError={(e) => {
-                                if (firm) {
-                                  (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
-                                }
-                              }} />
-                            </div>
+                            <PropFirmLogo name={firm?.name || 'Challenge'} logoUrl={ch.logo_url || firm?.logo_url || null} className="w-10 h-10 rounded-xl transition-all duration-300 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
                             {isGoldTier && (
                               <div className="absolute -bottom-1.5 -right-1.5 w-4.5 h-4.5 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full border border-bg-surface flex items-center justify-center shadow-md shadow-black/40" title="Gold Tier Verified">
                                 <span className="text-[10px] text-bg-surface font-black leading-none">★</span>

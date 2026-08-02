@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { DollarSign, X, TrendingUp } from 'lucide-react'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from './prop-firm-logo'
 
 interface PayoutNotification {
   id: string
@@ -73,7 +74,6 @@ export function NotificationToast({ livePayouts }: { livePayouts?: PayoutNotific
 
   if (!visible || !current) return null
 
-  const logoUrl = getCleanLogoUrl(current.firmName, current.firmLogo || null)
   const gradient = FIRM_COLORS[current.firmName] || 'from-cyan-500 to-blue-600'
 
   return (
@@ -88,17 +88,7 @@ export function NotificationToast({ livePayouts }: { livePayouts?: PayoutNotific
 
         <div className="flex items-center gap-3.5 pl-2">
           {/* Logo container showing the selected firm's logo */}
-          <div className="w-10 h-10 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1.5 shrink-0 shadow-md">
-            <img 
-              src={logoUrl} 
-              alt={current.firmName} 
-              className="w-7 h-7 object-contain" 
-              onError={(e) => {
-                // If it fails, fallback to general logo domain replacement
-                (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${current.firmName.toLowerCase().replace(/\s+/g, '-')}.png`
-              }}
-            />
-          </div>
+          <PropFirmLogo name={current.firmName} logoUrl={current.firmLogo} className="w-10 h-10 rounded-xl shrink-0 shadow-md" />
 
           {/* Content */}
           <div className="flex-1 min-w-0">

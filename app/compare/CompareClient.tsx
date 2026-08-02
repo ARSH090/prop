@@ -5,6 +5,7 @@ import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
 import { ArrowRight, Star, Award, TrendingUp, ShieldAlert, Sparkles, Activity, Landmark, Percent, Calendar, Layers } from 'lucide-react'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 import Link from 'next/link'
 
 interface Challenge {
@@ -318,13 +319,11 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
               {/* Header */}
               <div className="flex items-center justify-between pb-4.5 border-b border-border-subtle/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-bg-base/75 flex items-center justify-center p-3 border border-border-subtle/80 shrink-0 shadow-inner">
-                    <img
-                      src={getCleanLogoUrl(leftFirm.name, leftFirm.logo_url)}
-                      alt={leftFirm.name}
-                      className="max-h-full max-w-full object-contain filter brightness-110"
-                    />
-                  </div>
+                  <PropFirmLogo
+                    name={leftFirm.name}
+                    logoUrl={leftFirm.logo_url}
+                    className="w-16 h-16 rounded-2xl shrink-0 shadow-inner"
+                  />
                   <div>
                     <h3 className="text-xl font-extrabold text-text-primary tracking-tight">{leftFirm.name}</h3>
                     <div className="flex items-center gap-1.5 mt-0.5">
@@ -566,13 +565,11 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
               {/* Header */}
               <div className="flex items-center justify-between pb-4.5 border-b border-border-subtle/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-bg-base/75 flex items-center justify-center p-3 border border-border-subtle/80 shrink-0 shadow-inner">
-                    <img
-                      src={getCleanLogoUrl(rightFirm.name, rightFirm.logo_url)}
-                      alt={rightFirm.name}
-                      className="max-h-full max-w-full object-contain filter brightness-110"
-                    />
-                  </div>
+                  <PropFirmLogo
+                    name={rightFirm.name}
+                    logoUrl={rightFirm.logo_url}
+                    className="w-16 h-16 rounded-2xl shrink-0 shadow-inner"
+                  />
                   <div>
                     <h3 className="text-xl font-extrabold text-text-primary tracking-tight">{rightFirm.name}</h3>
                     <div className="flex items-center gap-1.5 mt-0.5">

@@ -30,6 +30,7 @@ export default function NewFirmPage() {
     description: '',
     is_featured: false,
     is_verified: true,
+    is_favorite: false,
     show_in_marquee: true,
     status: 'active',
   })
@@ -522,6 +523,17 @@ export default function NewFirmPage() {
                   className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
                 />
                 <span className="text-xs font-semibold text-text-primary">Show in Logo Marquee</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="is_favorite"
+                  checked={formData.is_favorite}
+                  onChange={handleChange}
+                  className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+                />
+                <span className="text-xs font-semibold text-text-primary">Favorite / Popular Firm</span>
               </label>
 
 

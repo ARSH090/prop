@@ -7,6 +7,7 @@ import { Filter, Search, CheckCircle, Tag, Globe, Heart, Trophy, Flame } from 'l
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
 import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 const COUNTRY_FLAGS: Record<string, string> = {
   CZ: '🇨🇿', US: '🇺🇸', IL: '🇮🇱', AE: '🇦🇪', GB: '🇬🇧',
@@ -326,11 +327,11 @@ export default function FirmsPage() {
 
                             {/* Logo with drop cyan glow scaling animation - clicking goes to firm detail */}
                             <FirmLink firm={firm} className="block">
-                              <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl border border-border-subtle flex items-center justify-center overflow-hidden shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] ${isDarkLogo(firm.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
-                                <img src={logoUrl} alt={firm.name} className="w-full h-full object-contain p-1 sm:p-1.5" onError={(e) => {
-                                  (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
-                                }} />
-                              </div>
+                              <PropFirmLogo
+                                name={firm.name}
+                                logoUrl={firm.logo_url}
+                                className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]"
+                              />
                             </FirmLink>
 
                             {/* Name and Heart toggle */}

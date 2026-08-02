@@ -5,6 +5,7 @@ import Link from 'next/link'
 
 import { FirmLink } from '../ui/firm-link'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from '../ui/prop-firm-logo'
 
 interface MarqueeFirm {
   id: string
@@ -40,24 +41,18 @@ export function LogoMarquee({ firms, title = 'Also Verified Prop Firms' }: LogoM
         
         <div className="animate-marquee flex gap-8 items-center py-2">
           {items.map((firm, idx) => {
-            const logoUrl = getCleanLogoUrl(firm.name, firm.marquee_logo_url || firm.logo_url)
             return (
               <FirmLink
                 key={`${firm.id}-${idx}`}
                 firm={firm}
                 className="flex-shrink-0 group block relative"
               >
-                <div className="h-16 w-32 bg-bg-base border border-border-default hover:border-accent-cyan/40 hover:shadow-[0_0_15px_rgba(34,211,238,0.15)] rounded-2xl flex items-center justify-center p-3 transition-all duration-300">
-                  <img
-                    src={logoUrl}
-                    alt={`${firm.name} logo`}
-                    className="max-h-full max-w-full object-contain filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
-                    onError={(e) => {
-                      // Fallback logo URL format
-                      (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
-                    }}
-                  />
-                </div>
+                <PropFirmLogo
+                  name={firm.name}
+                  logoUrl={firm.marquee_logo_url || firm.logo_url}
+                  className="h-16 w-32 rounded-2xl cursor-pointer hover:border-accent-cyan/40 hover:shadow-[0_0_15px_rgba(34,211,238,0.15)] transition-all duration-300"
+                  imgClassName="max-h-full max-w-full object-contain filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                />
               </FirmLink>
             )
           })}
