@@ -77,9 +77,9 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     async function loadSettings() {
       try {
-        const snap = await getDoc(doc(db, 'site_settings', 'event_popup'))
-        if (snap.exists()) {
-          const data = snap.data()
+        const res = await fetch('/api/admin/settings')
+        if (res.ok) {
+          const data = await res.json()
           setPopupTitle(data.title || '')
           setPopupDesc(data.description || '')
           setPopupDateRange(data.date_range || '')
@@ -102,19 +102,27 @@ export default function AdminSettingsPage() {
     setSavePopupSuccess('')
 
     try {
-      await setDoc(doc(db, 'site_settings', 'event_popup'), {
-        title: popupTitle,
-        description: popupDesc,
-        date_range: popupDateRange,
-        prize_pool: popupPrizePool,
-        banner_url: popupBannerUrl,
-        action_url: popupActionUrl,
-        action_label: popupActionLabel,
-        is_active: popupIsActive,
-        updated_at: new Date().toISOString()
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: popupTitle,
+          description: popupDesc,
+          date_range: popupDateRange,
+          prize_pool: popupPrizePool,
+          banner_url: popupBannerUrl,
+          action_url: popupActionUrl,
+          action_label: popupActionLabel,
+          is_active: popupIsActive,
+          updated_at: new Date().toISOString()
+        })
       })
-      setSavePopupSuccess('Event popup settings saved successfully!')
-      setTimeout(() => setSavePopupSuccess(''), 4000)
+      if (res.ok) {
+        setSavePopupSuccess('Event popup settings saved successfully!')
+        setTimeout(() => setSavePopupSuccess(''), 4000)
+      } else {
+        alert('Failed to save settings via API')
+      }
     } catch (err: any) {
       alert('Error saving popup settings: ' + err.message)
     } finally {

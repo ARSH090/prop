@@ -41,10 +41,10 @@ export async function PUT(
       updated.payout_date = Timestamp.fromDate(new Date(body.payout_date))
     }
 
-    await docRef.update({
+    await docRef.set({
       ...updated,
       updated_at: FieldValue.serverTimestamp(),
-    })
+    }, { merge: true })
 
     return NextResponse.json({ success: true })
   } catch (error) {
