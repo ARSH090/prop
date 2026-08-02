@@ -642,7 +642,7 @@ export default function ChallengesClient({
                             <div className="w-10 h-10 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1.5 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-all">
                               <img src={logoUrl} alt={firm?.name || 'Challenge'} className="w-full h-full object-contain" onError={(e) => {
                                 if (firm) {
-                                  (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                                  (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
                                 }
                               }} />
                             </div>

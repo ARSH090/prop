@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { AFXCard } from '@/components/ui/afx-card'
 import { Star, ArrowRight, TrendingUp, ExternalLink } from 'lucide-react'
+import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
 
 interface BestSeller {
   id: string
@@ -94,12 +95,15 @@ export function HomeBestSellers({
 
                 {/* Firm header */}
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-bg-base rounded-xl flex items-center justify-center border border-border-subtle overflow-hidden shrink-0">
-                    {firm.logo_url ? (
-                      <img src={firm.logo_url} alt={firm.name} className="w-10 h-10 object-contain" />
-                    ) : (
-                      <span className="text-accent-purple font-bold text-lg">{firm.name[0]}</span>
-                    )}
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border border-border-subtle overflow-hidden shrink-0 ${isDarkLogo(firm.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
+                    <img 
+                      src={getCleanLogoUrl(firm.name, firm.logo_url)} 
+                      alt={firm.name} 
+                      className="w-10 h-10 object-contain animate-fade-in" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
+                      }}
+                    />
                   </div>
                   <div>
                     <h3 className="font-bold text-text-primary group-hover:text-accent-purple transition-colors">{firm.name}</h3>

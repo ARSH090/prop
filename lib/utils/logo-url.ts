@@ -71,3 +71,22 @@ export const getCleanLogoUrl = (name: string, url: string | null | undefined): s
 
   return `https://storage.googleapis.com/prop-firm-match-production-logos/${slug}.png`
 }
+
+/**
+ * Identifies if a prop firm logo is known to have a dark background.
+ * This is used to style the image container's background to match the logo (e.g. dark blue/black instead of stark white).
+ */
+export const isDarkLogo = (name: string | null | undefined): boolean => {
+  if (!name) return false
+  const clean = name.toLowerCase()
+  return (
+    clean.includes('5%ers') ||
+    clean.includes('5ers') ||
+    clean.includes('the-5ers') ||
+    clean.includes('funding pips') ||
+    clean.includes('fundingpips') ||
+    clean.includes('take profit') ||
+    clean.includes('myfundedfutures') ||
+    clean.includes('mffu')
+  )
+}

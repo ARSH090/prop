@@ -6,7 +6,7 @@ import { FirmLink } from '@/components/ui/firm-link'
 import { Filter, Search, CheckCircle, Tag, Globe, Heart, Trophy, Flame } from 'lucide-react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
-import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
 
 const COUNTRY_FLAGS: Record<string, string> = {
   CZ: '🇨🇿', US: '🇺🇸', IL: '🇮🇱', AE: '🇦🇪', GB: '🇬🇧',
@@ -241,19 +241,19 @@ export default function FirmsPage() {
         {/* Directory List Container - Using standard HTML table layout for perfect alignment */}
         <div className="border border-border-subtle bg-bg-surface/20 rounded-3xl p-1 overflow-hidden shadow-2xl relative">
           
-          <div className="overflow-x-auto scrollbar-none">
-            <table className="w-full border-collapse text-left text-xs text-text-secondary">
+          <div className="overflow-x-auto sm:overflow-x-visible scrollbar-none">
+            <table className="w-full border-collapse text-left text-xs text-text-secondary table-fixed sm:table-auto">
               <thead>
                 <tr className="border-b border-border-subtle/30 bg-bg-surface/40 text-[10px] font-black uppercase tracking-wider text-text-muted select-none">
-                  <th className="px-6 py-4 text-left font-black w-[260px]">Firm</th>
-                  <th className="px-6 py-4 text-center font-black w-[110px]">Rank / Reviews</th>
-                  <th className="px-6 py-4 text-center font-black w-[120px] hidden sm:table-cell">Country</th>
-                  <th className="px-6 py-4 text-center font-black w-[120px] hidden lg:table-cell">Years in Operation</th>
-                  <th className="px-6 py-4 text-center font-black w-[160px] hidden lg:table-cell">Assets</th>
-                  <th className="px-6 py-4 text-center font-black w-[110px] hidden md:table-cell">Platforms</th>
-                  <th className="px-6 py-4 text-center font-black w-[120px] hidden sm:table-cell">Max Allocations</th>
-                  <th className="px-6 py-4 text-center font-black w-[110px] hidden md:table-cell">Promo</th>
-                  <th className="px-6 py-4 text-right font-black w-[90px]">Actions</th>
+                  <th className="px-2 sm:px-6 py-4 text-left font-black w-[45%] sm:w-auto">Firm</th>
+                  <th className="px-2 sm:px-6 py-4 text-center font-black w-[25%] sm:w-auto">Rank / Reviews</th>
+                  <th className="px-2 sm:px-6 py-4 text-center font-black hidden sm:table-cell">Country</th>
+                  <th className="px-2 sm:px-6 py-4 text-center font-black hidden lg:table-cell">Years in Operation</th>
+                  <th className="px-2 sm:px-6 py-4 text-center font-black hidden lg:table-cell">Assets</th>
+                  <th className="px-2 sm:px-6 py-4 text-center font-black hidden md:table-cell">Platforms</th>
+                  <th className="px-2 sm:px-6 py-4 text-center font-black hidden sm:table-cell">Max Allocations</th>
+                  <th className="px-2 sm:px-6 py-4 text-center font-black hidden md:table-cell">Promo</th>
+                  <th className="px-2 sm:px-6 py-4 text-right font-black w-[30%] sm:w-auto">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle/30">
@@ -307,18 +307,18 @@ export default function FirmsPage() {
                         className="group hover:bg-bg-surface/20 transition-all duration-300"
                       >
                         {/* 1. FIRM COLUMN (Rank + Logo + Name + Likes) */}
-                        <td className="px-6 py-5 align-middle">
-                          <div className="flex items-center gap-4">
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 align-middle">
+                          <div className="flex items-center gap-2 sm:gap-4">
                             {/* Rank Badge */}
-                            <div className="w-6 flex items-center justify-center shrink-0">
+                            <div className="w-5 sm:w-6 flex items-center justify-center shrink-0">
                               {rank === 1 ? (
-                                <Trophy className="w-5 h-5 text-amber-400" />
+                                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
                               ) : rank === 2 ? (
-                                <Trophy className="w-5 h-5 text-slate-300" />
+                                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-slate-300" />
                               ) : rank === 3 ? (
-                                <Trophy className="w-5 h-5 text-amber-600" />
+                                <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
                               ) : (
-                                <span className="w-5 h-5 rounded-full bg-bg-base border border-border-subtle flex items-center justify-center text-[10px] font-bold text-text-muted">
+                                <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-bg-base border border-border-subtle flex items-center justify-center text-[9px] sm:text-[10px] font-bold text-text-muted">
                                   {rank}
                                 </span>
                               )}
@@ -326,29 +326,28 @@ export default function FirmsPage() {
 
                             {/* Logo with drop cyan glow scaling animation - clicking goes to firm detail */}
                             <FirmLink firm={firm} className="block">
-                              <div className="w-12 h-12 rounded-xl border border-border-subtle bg-white flex items-center justify-center overflow-hidden shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]">
-                                <img src={logoUrl} alt={firm.name} className="w-full h-full object-contain p-1.5" onError={(e) => {
-                                  // Fallback if image fails to load
-                                  (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${firm.name.toLowerCase().replace(/\s+/g, '-')}.png`
+                              <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-xl border border-border-subtle flex items-center justify-center overflow-hidden shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] ${isDarkLogo(firm.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
+                                <img src={logoUrl} alt={firm.name} className="w-full h-full object-contain p-1 sm:p-1.5" onError={(e) => {
+                                  (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
                                 }} />
                               </div>
                             </FirmLink>
 
                             {/* Name and Heart toggle */}
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1 sm:flex-initial">
                               <div className="flex items-center gap-1.5">
-                                <FirmLink firm={firm} className="text-sm font-bold text-text-primary group-hover:text-accent-cyan transition-colors truncate block">
+                                <FirmLink firm={firm} className="text-xs sm:text-sm font-bold text-text-primary group-hover:text-accent-cyan transition-colors truncate block max-w-[120px] sm:max-w-none">
                                   {firm.name}
                                 </FirmLink>
-                                {firm.is_verified && <CheckCircle className="w-3.5 h-3.5 text-accent-green flex-shrink-0" />}
+                                {firm.is_verified && <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-accent-green flex-shrink-0" />}
                               </div>
                               
                               {/* Heart Likes Button Toggle */}
                               <button
                                 onClick={(e) => toggleFavorite(firm.id, e)}
-                                className="flex items-center gap-1 mt-1 text-[10px] text-text-muted hover:text-red-500 transition-colors focus:outline-none"
+                                className="flex items-center gap-1 mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] text-text-muted hover:text-red-500 transition-colors focus:outline-none"
                               >
-                                <Heart className={`w-3.5 h-3.5 transition-transform group-hover:scale-105 ${
+                                <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover:scale-105 ${
                                   isFav ? 'fill-red-500 text-red-500' : 'text-text-muted hover:fill-red-500/20'
                                 }`} />
                                 <span className="font-mono">{likesCount}</span>
@@ -358,20 +357,20 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 2. RANK / REVIEWS COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle">
-                          <div className="inline-flex flex-col items-center gap-1">
-                            <div className="px-2.5 py-0.5 rounded-lg bg-accent-purple/20 border border-accent-purple/30 text-accent-purple text-xs font-bold">
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle">
+                          <div className="inline-flex flex-col items-center gap-0.5 sm:gap-1">
+                            <div className="px-1.5 sm:px-2.5 py-0.5 rounded-lg bg-accent-purple/20 border border-accent-purple/30 text-accent-purple text-[10px] sm:text-xs font-bold">
                               {firm.rating.toFixed(1)}
                             </div>
-                            <div className="flex text-amber-400 text-[10px]">★★★★★</div>
-                            <div className="text-[10px] text-text-muted font-bold truncate">
-                              {firm.review_count} reviews
+                            <div className="flex text-amber-400 text-[8px] sm:text-[10px]">★★★★★</div>
+                            <div className="text-[8px] sm:text-[10px] text-text-muted font-bold truncate max-w-[70px] sm:max-w-none">
+                              {firm.review_count} revs
                             </div>
                           </div>
                         </td>
 
                         {/* 3. COUNTRY COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle text-xs font-bold text-text-secondary hidden sm:table-cell">
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle text-xs font-bold text-text-secondary hidden sm:table-cell">
                           <div className="inline-flex items-center gap-1.5">
                             <span className="text-base">{flag}</span>
                             <span>{COUNTRY_NAMES[firm.country || ''] || firm.country || 'United States'}</span>
@@ -379,7 +378,7 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 4. YEARS IN OPERATION COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle hidden lg:table-cell">
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden lg:table-cell">
                           <div className="inline-flex items-center justify-center">
                             <div className="w-10 h-10 rounded-full border-2 border-accent-cyan/30 flex items-center justify-center text-xs font-bold text-text-primary bg-bg-base/30 relative">
                               <span className="absolute inset-0.5 rounded-full border border-dashed border-accent-cyan/50 animate-pulse" />
@@ -389,7 +388,7 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 5. ASSETS COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle hidden lg:table-cell">
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden lg:table-cell">
                           <div className="flex flex-wrap gap-1 justify-center max-w-[180px] mx-auto">
                             {firm.category?.slice(0, 3).map((cat) => (
                               <span
@@ -403,7 +402,7 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 6. PLATFORMS COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle hidden md:table-cell">
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden md:table-cell">
                           <div className="flex items-center justify-center gap-1">
                             {firm.platforms?.slice(0, 3).map((plat) => (
                               <div
@@ -418,7 +417,7 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 7. MAX ALLOCATIONS COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle hidden sm:table-cell">
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden sm:table-cell">
                           <div className="inline-flex flex-col items-center">
                             <span className="text-xs font-bold text-text-primary">{maxK}</span>
                             
@@ -433,7 +432,7 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 8. PROMO COLUMN */}
-                        <td className="px-6 py-5 text-center align-middle hidden md:table-cell">
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden md:table-cell">
                           {dealInfo ? (
                             <div className="inline-flex flex-col items-center gap-0.5 bg-accent-yellow/10 border border-accent-yellow/30 px-3 py-1 rounded-xl">
                               <span className="text-[10px] font-black text-accent-yellow">{dealInfo.discount}</span>
@@ -447,10 +446,10 @@ export default function FirmsPage() {
                         </td>
 
                         {/* 9. ACTIONS COLUMN */}
-                        <td className="px-6 py-5 text-right align-middle">
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-right align-middle">
                           <FirmLink
                             firm={firm}
-                            className="px-4 py-1.5 rounded-full border border-border-subtle text-xs font-bold text-text-primary hover:border-accent-cyan hover:bg-accent-cyan/10 transition-all inline-block text-center"
+                            className="px-3 py-1.5 sm:px-4 sm:py-1.5 rounded-full border border-border-subtle text-[10px] sm:text-xs font-bold text-text-primary hover:border-accent-cyan hover:bg-accent-cyan/10 transition-all inline-block text-center"
                           >
                             Firm
                           </FirmLink>

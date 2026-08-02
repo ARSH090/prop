@@ -6,6 +6,7 @@ import { Star, Lock, Eye, Trash2 } from 'lucide-react'
 import { RatingBadge } from './rating-badge'
 import Link from 'next/link'
 import { FirmLink } from './firm-link'
+import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
 
 export function WatchlistWidget() {
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -155,12 +156,15 @@ export function WatchlistWidget() {
                 className="p-3 bg-bg-base/40 border border-border-default rounded-2xl flex items-center justify-between gap-3 hover:border-accent-cyan/20 transition-all group animate-fade-in"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-bg-base border border-border-default flex items-center justify-center overflow-hidden shrink-0">
-                    {firm.logo_url ? (
-                      <img src={firm.logo_url} alt={firm.name} className="w-6 h-6 object-contain" />
-                    ) : (
-                      <span className="text-[10px] font-bold text-accent-cyan">{firm.name[0]}</span>
-                    )}
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden border border-border-default shrink-0 ${isDarkLogo(firm.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
+                    <img 
+                      src={getCleanLogoUrl(firm.name, firm.logo_url)} 
+                      alt={firm.name} 
+                      className="w-6 h-6 object-contain" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
+                      }}
+                    />
                   </div>
                   <div className="min-w-0">
                     <p className="font-extrabold text-xs text-text-primary truncate">{firm.name}</p>

@@ -6,6 +6,7 @@ import { AFXBadge } from '@/components/ui/afx-badge'
 import { AFXButton } from '@/components/ui/afx-button'
 import { RatingBadge } from '@/components/ui/rating-badge'
 import { Star, ExternalLink } from 'lucide-react'
+import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
 
 interface Firm {
   id: string
@@ -94,18 +95,15 @@ export function FeaturedFirms({ firms, title, subtext }: FeaturedFirmsProps) {
                   {/* Header */}
                   <div className="flex justify-between items-start">
                     <div className="flex gap-4 items-center">
-                      <div className="w-12 h-12 rounded-xl bg-bg-surface flex items-center justify-center overflow-hidden border border-border-default group-hover:border-accent-cyan/30 transition-colors">
-                        {firm.logo_url ? (
-                          <img
-                            src={firm.logo_url}
-                            alt={`${firm.name} Logo`}
-                            className="w-10 h-10 object-contain"
-                          />
-                        ) : (
-                          <span className="text-xl font-bold font-mono text-accent-cyan">
-                            {firm.name[0]}
-                          </span>
-                        )}
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden border border-border-default group-hover:border-accent-cyan/30 transition-colors ${isDarkLogo(firm.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
+                        <img
+                          src={getCleanLogoUrl(firm.name, firm.logo_url)}
+                          alt={`${firm.name} Logo`}
+                          className="w-10 h-10 object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
+                          }}
+                        />
                       </div>
                       <div>
                         <h3 className="font-bold text-text-primary group-hover:text-accent-cyan transition-colors">

@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { AFXCard } from '@/components/ui/afx-card'
 import { Award, ArrowRight, ExternalLink } from 'lucide-react'
+import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
 
 interface Challenge {
   id: string
@@ -103,12 +104,15 @@ export function HomeChallenges({
                   {rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : rank}
                 </div>
 
-                <div className="w-10 h-10 bg-bg-base rounded-xl flex items-center justify-center border border-border-subtle overflow-hidden shrink-0">
-                  {firm.logo_url ? (
-                    <img src={firm.logo_url} alt={firm.name} className="w-8 h-8 object-contain" />
-                  ) : (
-                    <span className="text-accent-cyan font-bold text-sm">{firm.name[0]}</span>
-                  )}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-border-subtle overflow-hidden shrink-0 ${isDarkLogo(firm.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
+                  <img 
+                    src={getCleanLogoUrl(firm.name, firm.logo_url)} 
+                    alt={firm.name} 
+                    className="w-8 h-8 object-contain" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
+                    }}
+                  />
                 </div>
 
                 <div className="flex-1 min-w-0">
