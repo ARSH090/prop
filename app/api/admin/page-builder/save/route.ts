@@ -2,6 +2,7 @@ import { db } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { FieldValue } from 'firebase-admin/firestore'
+import { clearServerCache } from '@/lib/firebase/server'
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,6 +27,9 @@ export async function POST(request: NextRequest) {
     }
 
     await batch.commit()
+
+    // Clear server memory cache so revalidation pulls fresh Firestore data
+    clearServerCache()
 
     // Trigger instant ISR cache revalidation
     revalidatePath('/')

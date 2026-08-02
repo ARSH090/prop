@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
 import { Plus, Trash2, ArrowUp, ArrowDown, Save, Eye } from 'lucide-react'
@@ -32,11 +33,29 @@ const pageList = [
 ] as const
 
 export default function PageBuilder() {
+  return (
+    <Suspense fallback={<div className="text-center py-20 text-text-secondary">Loading page builder...</div>}>
+      <PageBuilderContent />
+    </Suspense>
+  )
+}
+
+function PageBuilderContent() {
+  const searchParams = useSearchParams()
+  const pageParam = searchParams.get('page')
+
   const [selectedPage, setSelectedPage] = useState<string>('home')
   const [items, setItems] = useState<ContentItem[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+
+  // Sync selectedPage state when URL query page changes (e.g. from sidebar clicks)
+  useEffect(() => {
+    if (pageParam && pageList.some((p) => p.id === pageParam)) {
+      setSelectedPage(pageParam)
+    }
+  }, [pageParam])
 
   // Fetch content on mount and page switch
   useEffect(() => {
@@ -513,7 +532,7 @@ function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (lis
                     <img
                       src={node.logo_url}
                       alt="Globe Preview"
-                      className="max-h-[60%] max-w-[60%] object-contain filter brightness-110"
+                      className="w-[82%] h-[82%] rounded-full object-contain filter brightness-110"
                     />
                   ) : (
                     <span

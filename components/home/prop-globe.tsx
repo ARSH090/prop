@@ -315,7 +315,7 @@ export function PropGlobe({ globeFirms = [] }: PropGlobeProps) {
             <img 
               src={logoUrl} 
               alt={firm.name} 
-              className="max-h-[60%] max-w-[60%] object-contain filter brightness-110 drop-shadow-[0_0_6px_rgba(255,255,255,0.4)] animate-fade-in"
+              className="w-[82%] h-[82%] rounded-full object-contain filter brightness-110 drop-shadow-[0_0_6px_rgba(255,255,255,0.4)] animate-fade-in"
               onError={(e) => {
                 const parent = (e.target as HTMLImageElement).parentElement
                 if (parent) {
@@ -344,7 +344,7 @@ export function PropGlobe({ globeFirms = [] }: PropGlobeProps) {
         top: slot.top,
         animDelay: slot.animDelay,
         animDuration: slot.animDuration,
-        href: `/firms/${firm.slug}`,
+        href: firm.href || (firm.slug ? `/firms/${firm.slug}` : slot.defaultHref),
         pathD: slot.pathD,
         renderLogo
       }

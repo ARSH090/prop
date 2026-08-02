@@ -175,7 +175,7 @@ export default async function FirmOverviewPage({ params }: { params: Promise<{ s
           {firm.commissions_text ? (
             <div
               className="prose prose-invert max-w-none text-text-secondary text-sm prose-sm"
-              dangerouslySetInnerHTML={{ __html: firm.commissions_text }}
+              dangerouslySetInnerHTML={{ __html: firm.commissions_text || '' }}
             />
           ) : (
             <>
@@ -198,7 +198,7 @@ export default async function FirmOverviewPage({ params }: { params: Promise<{ s
           </h2>
           <div
             className="prose prose-invert max-w-none text-text-secondary text-sm prose-sm"
-            dangerouslySetInnerHTML={{ __html: firm.consistency_rules_content }}
+            dangerouslySetInnerHTML={{ __html: firm.consistency_rules_content || '' }}
           />
         </section>
 
@@ -209,7 +209,7 @@ export default async function FirmOverviewPage({ params }: { params: Promise<{ s
           </h2>
           <div
             className="prose prose-invert max-w-none text-text-secondary text-sm prose-sm"
-            dangerouslySetInnerHTML={{ __html: firm.firm_rules_content }}
+            dangerouslySetInnerHTML={{ __html: firm.firm_rules_content || '' }}
           />
         </section>
 
@@ -271,7 +271,7 @@ export default async function FirmOverviewPage({ params }: { params: Promise<{ s
 
               <div
                 className="text-xs text-text-secondary leading-relaxed bg-bg-base/40 p-3 rounded-xl border border-border-subtle/30"
-                dangerouslySetInnerHTML={{ __html: prog.trading_days_rule_content }}
+                dangerouslySetInnerHTML={{ __html: prog.trading_days_rule_content || '' }}
               />
 
               {prog.tiers && prog.tiers.length > 0 && (
