@@ -19,6 +19,7 @@ export default function EditDealPage() {
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const [firms, setFirms] = useState<Firm[]>([])
   const [formData, setFormData] = useState({
     code: '',
@@ -27,6 +28,7 @@ export default function EditDealPage() {
     description: '',
     firm_id: '',
     is_featured: false,
+    logo_url: '',
     expires_at: '',
     status: 'active',
   })
@@ -59,6 +61,7 @@ export default function EditDealPage() {
             description: dealData.description || '',
             firm_id: dealData.firm_id || '',
             is_featured: !!dealData.is_featured,
+            logo_url: dealData.logo_url || '',
             expires_at: dateVal,
             status: dealData.status || 'active',
           })
@@ -192,6 +195,77 @@ export default function EditDealPage() {
               required
               className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-text-secondary">Custom Deal Logo (Optional override)</label>
+            <div className="flex gap-4 items-start">
+              {formData.logo_url && (
+                <div className="relative w-16 h-16 rounded-xl bg-bg-base border border-border-subtle overflow-hidden flex items-center justify-center p-2 group">
+                  <img 
+                    src={formData.logo_url} 
+                    alt="Logo preview" 
+                    className="w-full h-full object-contain"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, logo_url: '' }))}
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-red-400 font-bold text-xs transition-opacity"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+              <div className="flex-1 space-y-2">
+                <input
+                  type="text"
+                  name="logo_url"
+                  value={formData.logo_url}
+                  onChange={handleChange}
+                  placeholder="https://... or upload below"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+                />
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold text-text-primary bg-bg-base hover:bg-bg-base/80 border border-border-subtle transition-all">
+                    <span>Upload Local Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        
+                        const uploaderData = new FormData()
+                        uploaderData.append('file', file)
+                        
+                        try {
+                          setIsUploading(true)
+                          const res = await fetch('/api/admin/upload', {
+                            method: 'POST',
+                            body: uploaderData,
+                          })
+                          const result = await res.json()
+                          if (result.success && result.url) {
+                            setFormData(prev => ({ ...prev, logo_url: result.url }))
+                          } else {
+                            alert(result.error || 'Upload failed')
+                          }
+                        } catch (err) {
+                          console.error('Upload error:', err)
+                          alert('An error occurred during file upload')
+                        } finally {
+                          setIsUploading(false)
+                        }
+                      }}
+                    />
+                  </label>
+                  {isUploading && (
+                    <span className="text-xs text-accent-cyan font-mono animate-pulse">Uploading...</span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">

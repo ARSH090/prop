@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Search, Filter, Bookmark, Copy, ExternalLink, HelpCircle, Check, ArrowUpDown, Flame, Trophy, Heart, ChevronDown } from 'lucide-react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
-import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
 import { ChallengeLink } from '@/components/ui/challenge-link'
 
 interface Challenge {
@@ -46,6 +46,12 @@ interface Deal {
   id: string
   code: string
   discount_label: string
+  firm_id: string
+  logo_url?: string | null
+  status?: string
+  title?: string
+  description?: string
+  is_featured?: boolean
 }
 
 interface ChallengesClientProps {
@@ -73,20 +79,7 @@ const GOLD_TIER_FIRMS = [
   'aqua funded'
 ]
 
-const forexOffersMock = [
-  { name: 'The5ers', rating: '4.7', discount: '10% OFF', code: 'MATCH', logo: null },
-  { name: 'FundingPips', rating: '4.2', discount: '20% OFF', code: 'MATCH', logo: null },
-  { name: 'Trade The Pool', rating: 'Less than 20 reviews', discount: '10% OFF', code: 'MATCH', logo: null },
-  { name: 'Goat Funded Trader', rating: '4.7', discount: '45% OFF', code: 'MATCH45', logo: null },
-  { name: 'E8 Markets', rating: '4.8', discount: '25% OFF', code: 'MATCH', logo: null },
-  { name: 'Hola Prime', rating: '4.2', discount: '20% OFF', code: 'MATCH20', logo: null }
-]
 
-const futuresFirmsMock = [
-  { rank: 1, name: 'Lucid Trading', rating: '4.6', discount: '30% OFF', code: 'MATCH', logo: null },
-  { rank: 2, name: 'My Funded Futures', rating: '4.5', discount: '50% OFF', code: 'MATCH', logo: null },
-  { rank: 3, name: 'Tradeify', rating: '4.7', discount: '40% OFF', code: 'MATCH', logo: null }
-]
 
 export default function ChallengesClient({
   initialChallenges,
@@ -94,6 +87,68 @@ export default function ChallengesClient({
   deals,
 }: ChallengesClientProps) {
   const [favoriteFirms, setFavoriteFirms] = useState<string[]>([])
+
+  // Dynamically build active Forex offers from actual Firestore deals and firms
+  const dynamicForexOffers = React.useMemo(() => {
+    return deals
+      .filter((d) => d.status === 'active')
+      .map((d) => {
+        const firm = firms.find((f) => f.id === d.firm_id)
+        if (!firm) return null
+        return {
+          name: firm.name,
+          rating: firm.rating ? firm.rating.toFixed(1) : '4.5',
+          discount: d.discount_label || 'Special Promo',
+          code: d.code,
+          logo: d.logo_url || firm.logo_url,
+          firmSlug: firm.slug,
+          isFeatured: !!d.is_featured,
+        }
+      })
+      .filter(Boolean) as any[]
+  }, [deals, firms])
+
+  // Dynamically build active Futures firms from actual Firestore
+  const dynamicFuturesFirms = React.useMemo(() => {
+    return firms
+      .filter((f) => {
+        const cats = f.category?.map(c => c.toLowerCase()) || []
+        return cats.includes('futures')
+      })
+      .map((firm, idx) => {
+        const deal = deals.find((d) => d.firm_id === firm.id && d.status === 'active')
+        return {
+          rank: idx + 1,
+          name: firm.name,
+          rating: firm.rating ? firm.rating.toFixed(1) : '4.5',
+          discount: deal?.discount_label || 'Promo Active',
+          code: deal?.code || 'MATCH',
+          logo: firm.logo_url,
+          firmSlug: firm.slug
+        }
+      })
+      .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+      .slice(0, 3)
+  }, [firms, deals])
+
+  // Auto-swipe page carousel state for Forex Offers
+  const [activePromoPage, setActivePromoPage] = useState(0)
+  const promoItemsPerPage = 3
+  const totalPromoPages = Math.max(1, Math.ceil(dynamicForexOffers.length / promoItemsPerPage))
+
+  useEffect(() => {
+    if (totalPromoPages <= 1) return
+    const timer = setInterval(() => {
+      setActivePromoPage((prev) => (prev + 1) % totalPromoPages)
+    }, 4000) // Advances every 4 seconds
+    return () => clearInterval(timer)
+  }, [totalPromoPages])
+
+  const visiblePromoOffers = React.useMemo(() => {
+    if (dynamicForexOffers.length === 0) return []
+    const startIdx = activePromoPage * promoItemsPerPage
+    return dynamicForexOffers.slice(startIdx, startIdx + promoItemsPerPage)
+  }, [dynamicForexOffers, activePromoPage])
 
   // Dynamically extract unique sizes from the full initial challenges list
   const uniqueSizes = Array.from(
@@ -293,41 +348,54 @@ export default function ChallengesClient({
               Exclusive July Forex Offers 🩸
             </h2>
             <div className="flex gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-cyan" />
-              <span className="w-1.5 h-1.5 rounded-full bg-border-subtle" />
-              <span className="w-1.5 h-1.5 rounded-full bg-border-subtle" />
+              {Array.from({ length: totalPromoPages }).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActivePromoPage(idx)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 focus:outline-none ${
+                    idx === activePromoPage ? 'bg-accent-cyan scale-125' : 'bg-border-subtle hover:bg-text-secondary'
+                  }`}
+                  title={`Go to page ${idx + 1}`}
+                />
+              ))}
             </div>
           </div>
 
           {/* Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {forexOffersMock.map((item) => {
-              const logoUrl = getCleanLogoUrl(item.name, item.logo)
-              return (
-                <div
-                  key={item.name}
-                  className="group p-3 bg-bg-base border border-border-subtle hover:border-accent-cyan/40 transition-all rounded-2xl flex items-center gap-3 relative"
-                >
-                  <div className="w-9 h-9 rounded-xl border border-border-subtle bg-white flex items-center justify-center p-1 shrink-0 group-hover:scale-105 duration-200">
-                    <img src={logoUrl} alt={item.name} className="w-7 h-7 object-contain" onError={(e) => {
-                      (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${item.name.toLowerCase().replace(/\s+/g, '-')}.png`
-                    }} />
+          <div key={activePromoPage} className="grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-in">
+            {visiblePromoOffers.length === 0 ? (
+              <div className="col-span-3 text-center py-6 text-xs text-text-muted">
+                No active Forex deals. Admin can configure deals in the admin panel.
+              </div>
+            ) : (
+              visiblePromoOffers.map((item) => {
+                const logoUrl = getCleanLogoUrl(item.name, item.logo)
+                return (
+                  <div
+                    key={item.name}
+                    className="group p-3 bg-bg-base border border-border-subtle hover:border-accent-cyan/40 transition-all rounded-2xl flex items-center gap-3 relative"
+                  >
+                    <div className={`w-9 h-9 rounded-xl border border-border-subtle flex items-center justify-center p-1 shrink-0 group-hover:scale-105 duration-200 ${isDarkLogo(item.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
+                      <img src={logoUrl} alt={item.name} className="w-7 h-7 object-contain" onError={(e) => {
+                        (e.target as HTMLImageElement).src = getCleanLogoUrl(item.name, null)
+                      }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
+                      <p className="text-[9px] text-text-muted mt-0.5 font-bold truncate">★ {item.rating}</p>
+                    </div>
+                    
+                    {/* Discount Code Badging */}
+                    <div className="text-right shrink-0">
+                      <span className="block text-[10px] font-black text-[#EC4899]">{item.discount}</span>
+                      <span className="inline-block text-[8px] font-mono text-text-secondary bg-border-subtle/50 px-1 py-0.5 rounded font-black tracking-wider uppercase">
+                        {item.code}
+                      </span>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
-                    <p className="text-[9px] text-text-muted mt-0.5 font-bold truncate">★ {item.rating}</p>
-                  </div>
-                  
-                  {/* Discount Code Badging */}
-                  <div className="text-right shrink-0">
-                    <span className="block text-[10px] font-black text-[#EC4899]">{item.discount}</span>
-                    <span className="inline-block text-[8px] font-mono text-text-secondary bg-border-subtle/50 px-1 py-0.5 rounded font-black tracking-wider uppercase">
-                      {item.code}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
         </div>
 
@@ -339,43 +407,49 @@ export default function ChallengesClient({
           </h2>
 
           <div className="space-y-2">
-            {futuresFirmsMock.map((item) => {
-              const logoUrl = getCleanLogoUrl(item.name, item.logo)
-              return (
-                <div
-                  key={item.name}
-                  className="group p-2.5 bg-bg-base border border-border-subtle hover:border-accent-purple/40 transition-all rounded-2xl flex items-center justify-between gap-3"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {item.rank === 1 ? (
-                      <Trophy className="w-4 h-4 text-amber-400 shrink-0" />
-                    ) : item.rank === 2 ? (
-                      <Trophy className="w-4 h-4 text-slate-300 shrink-0" />
-                    ) : (
-                      <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
-                    )}
-                    
-                    <div className="w-7 h-7 rounded-lg bg-white border border-border-subtle flex items-center justify-center p-1 shrink-0 group-hover:scale-105 duration-200">
-                      <img src={logoUrl} alt={item.name} className="w-5 h-5 object-contain" onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://storage.googleapis.com/prop-firm-match-production-logos/${item.name.toLowerCase().replace(/\s+/g, '-')}.png`
-                      }} />
+            {dynamicFuturesFirms.length === 0 ? (
+              <div className="text-center py-6 text-xs text-text-muted">
+                No active Futures firms. Add 'futures' category to firms in the admin panel.
+              </div>
+            ) : (
+              dynamicFuturesFirms.map((item) => {
+                const logoUrl = getCleanLogoUrl(item.name, item.logo)
+                return (
+                  <div
+                    key={item.name}
+                    className="group p-2.5 bg-bg-base border border-border-subtle hover:border-accent-purple/40 transition-all rounded-2xl flex items-center justify-between gap-3 animate-fade-in"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {item.rank === 1 ? (
+                        <Trophy className="w-4 h-4 text-amber-400 shrink-0" />
+                      ) : item.rank === 2 ? (
+                        <Trophy className="w-4 h-4 text-slate-300 shrink-0" />
+                      ) : (
+                        <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
+                      )}
+                      
+                      <div className={`w-7 h-7 rounded-lg border border-border-subtle flex items-center justify-center p-1 shrink-0 group-hover:scale-105 duration-200 ${isDarkLogo(item.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
+                        <img src={logoUrl} alt={item.name} className="w-5 h-5 object-contain" onError={(e) => {
+                          (e.target as HTMLImageElement).src = getCleanLogoUrl(item.name, null)
+                        }} />
+                      </div>
+
+                      <div className="min-w-0">
+                        <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
+                        <p className="text-[8px] text-text-muted mt-0.5 font-bold">★ {item.rating}</p>
+                      </div>
                     </div>
 
-                    <div className="min-w-0">
-                      <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
-                      <p className="text-[8px] text-text-muted mt-0.5 font-bold">★ {item.rating}</p>
+                    <div className="text-right shrink-0">
+                      <span className="block text-[10px] font-black text-accent-cyan">{item.discount}</span>
+                      <span className="inline-block text-[8px] font-mono text-text-secondary bg-border-subtle/50 px-1 py-0.5 rounded font-black tracking-wider uppercase">
+                        {item.code}
+                      </span>
                     </div>
                   </div>
-
-                  <div className="text-right shrink-0">
-                    <span className="block text-[10px] font-black text-accent-cyan">{item.discount}</span>
-                    <span className="inline-block text-[8px] font-mono text-text-secondary bg-border-subtle/50 px-1 py-0.5 rounded font-black tracking-wider uppercase">
-                      {item.code}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
         </div>
 

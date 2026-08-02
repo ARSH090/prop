@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
       description: description || '',
       firm_id,
       is_featured: !!is_featured,
+      logo_url: body.logo_url || null,
       starts_at: FieldValue.serverTimestamp(),
       expires_at: expires_at ? Timestamp.fromDate(new Date(expires_at)) : null,
       status: status || 'active',
