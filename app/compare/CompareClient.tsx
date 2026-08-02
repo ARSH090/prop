@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
-import { ArrowRight, Star, Award, TrendingUp, ShieldAlert, Sparkles, Activity, Landmark, Percent, Calendar, ShieldCheck, Flame, Layers } from 'lucide-react'
+import { ArrowRight, Star, Award, TrendingUp, ShieldAlert, Sparkles, Activity, Landmark, Percent, Calendar, Layers } from 'lucide-react'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 import Link from 'next/link'
 
@@ -44,6 +44,7 @@ interface Firm {
   review_count: number
   category?: string[]
   type: string
+  platforms?: string[]
 }
 
 interface CompareClientProps {
@@ -248,7 +249,7 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
               ) : (
                 leftChallenges.map((c) => (
                   <option key={c.id} value={c.id}>
-                    ${(c.account_size).toLocaleString()} Package (${c.price} {c.currency || 'USD'})
+                    ${(c.account_size).toLocaleString()} Challenge (${c.price} {c.currency || 'USD'})
                   </option>
                 ))
               )}
@@ -292,7 +293,7 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
               ) : (
                 rightChallenges.map((c) => (
                   <option key={c.id} value={c.id}>
-                    ${(c.account_size).toLocaleString()} Package (${c.price} {c.currency || 'USD'})
+                    ${(c.account_size).toLocaleString()} Challenge (${c.price} {c.currency || 'USD'})
                   </option>
                 ))
               )}
@@ -418,6 +419,12 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
                       <span className="text-text-muted font-bold flex items-center gap-1.5"><Landmark className="w-3.5 h-3.5 text-accent-cyan" /> Activation Fee</span>
                       <span className="font-semibold text-text-primary font-mono">{leftChallenge.activation_fee || 'None'}</span>
                     </div>
+
+                    {/* Payout cycle */}
+                    <div className="flex justify-between items-center p-3 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
+                      <span className="text-text-muted font-bold flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-accent-cyan" /> Payout Frequency</span>
+                      <span className="font-semibold text-text-primary font-mono">{leftChallenge.payout_freq || '14 Days (Standard)'}</span>
+                    </div>
                   </>
                 ) : (
                   /* Forex Layout specs */
@@ -502,6 +509,22 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
                     </div>
                   </>
                 )}
+
+                {/* Supported Platforms */}
+                <div className="flex justify-between items-center p-3.5 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
+                  <span className="text-text-muted font-bold flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-accent-cyan" /> Platforms</span>
+                  <div className="flex flex-wrap gap-1 justify-end max-w-[200px]">
+                    {leftFirm.platforms && leftFirm.platforms.length > 0 ? (
+                      leftFirm.platforms.map((p: string) => (
+                        <span key={p} className="px-2 py-0.5 rounded bg-bg-base/50 border border-border-subtle/30 text-[9px] font-bold text-accent-cyan font-mono uppercase tracking-wide">
+                          {p}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-text-muted font-mono font-semibold">Standard</span>
+                    )}
+                  </div>
+                </div>
 
                 {/* Ratio */}
                 <div className="flex justify-between items-center p-3.5 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
@@ -644,6 +667,12 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
                       <span className="text-text-muted font-bold flex items-center gap-1.5"><Landmark className="w-3.5 h-3.5 text-accent-cyan" /> Activation Fee</span>
                       <span className="font-semibold text-text-primary font-mono">{rightChallenge.activation_fee || 'None'}</span>
                     </div>
+
+                    {/* Payout cycle */}
+                    <div className="flex justify-between items-center p-3 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
+                      <span className="text-text-muted font-bold flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-accent-cyan" /> Payout Frequency</span>
+                      <span className="font-semibold text-text-primary font-mono">{rightChallenge.payout_freq || '14 Days (Standard)'}</span>
+                    </div>
                   </>
                 ) : (
                   /* Forex Layout specs */
@@ -729,6 +758,22 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
                   </>
                 )}
 
+                {/* Supported Platforms */}
+                <div className="flex justify-between items-center p-3.5 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
+                  <span className="text-text-muted font-bold flex items-center gap-1.5"><Layers className="w-3.5 h-3.5 text-accent-cyan" /> Platforms</span>
+                  <div className="flex flex-wrap gap-1 justify-end max-w-[200px]">
+                    {rightFirm.platforms && rightFirm.platforms.length > 0 ? (
+                      rightFirm.platforms.map((p: string) => (
+                        <span key={p} className="px-2 py-0.5 rounded bg-bg-base/50 border border-border-subtle/30 text-[9px] font-bold text-accent-cyan font-mono uppercase tracking-wide">
+                          {p}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-text-muted font-mono font-semibold">Standard</span>
+                    )}
+                  </div>
+                </div>
+
                 {/* Ratio */}
                 <div className="flex justify-between items-center p-3.5 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
                   <span className="text-text-muted font-bold flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-accent-cyan" /> Reward/Risk Ratio (PT/DD)</span>
@@ -749,7 +794,7 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
           </AFXCard>
         ) : (
           <div className="border-2 border-dashed border-border-subtle/40 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[450px] bg-bg-surface/10">
-            <span className="text-4xl mb-3">👉</span>
+            <span className="text-4xl mb-3">👈</span>
             <p className="text-sm font-bold text-text-secondary">Select a program on the right</p>
             <p className="text-xs text-text-muted mt-1">Choose a firm and challenge size to populate specifications.</p>
           </div>
