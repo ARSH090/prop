@@ -35,6 +35,7 @@ export default function EditFirmPage() {
     is_verified: true,
     is_favorite: false,
     show_in_marquee: true,
+    circle_crop_logo: false,
     status: 'active',
     consistency_rules_content: '',
     firm_rules_content: '',
@@ -99,6 +100,7 @@ export default function EditFirmPage() {
             is_verified: !!data.is_verified,
             is_favorite: !!data.is_favorite,
             show_in_marquee: data.show_in_marquee !== false,
+            circle_crop_logo: !!data.circle_crop_logo,
             status: data.status || 'active',
             consistency_rules_content: data.consistency_rules_content || '',
             firm_rules_content: data.firm_rules_content || '',
@@ -517,6 +519,19 @@ export default function EditFirmPage() {
                       {isUploading && (
                         <span className="text-xs text-accent-cyan font-mono animate-pulse">Uploading...</span>
                       )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 bg-bg-base/35 p-2 rounded-lg border border-border-subtle/50">
+                      <input
+                        type="checkbox"
+                        id="circle_crop_logo"
+                        name="circle_crop_logo"
+                        checked={formData.circle_crop_logo}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, circle_crop_logo: e.target.checked }))}
+                        className="accent-accent-cyan cursor-pointer w-4 h-4"
+                      />
+                      <label htmlFor="circle_crop_logo" className="text-xs font-semibold text-text-secondary cursor-pointer select-none">
+                        Circle Crop Logo (Cuts off corners of square logos to fit a circle)
+                      </label>
                     </div>
                   </div>
                 </div>

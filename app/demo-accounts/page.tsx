@@ -6,6 +6,7 @@ import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
 import { Laptop } from 'lucide-react'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 export const metadata = {
   title: 'Free Prop Demo Accounts - ANURAJ FX',
@@ -42,20 +43,12 @@ export default async function DemoAccountsPage() {
               >
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-bg-base rounded-xl flex items-center justify-center p-2 border border-border-subtle">
-                      {(() => {
-                        const logoUrl = getCleanLogoUrl(firm.name, firm.logo_url)
-                        return logoUrl ? (
-                          <img
-                            src={logoUrl}
-                            alt={firm.name}
-                            className="w-8 h-8 object-contain"
-                          />
-                        ) : (
-                          <span className="text-lg font-bold text-accent-cyan">{firm.name[0]}</span>
-                        )
-                      })()}
-                    </div>
+                    <PropFirmLogo
+                      name={firm.name}
+                      logoUrl={firm.logo_url}
+                      circleCrop={firm.circle_crop_logo}
+                      className="w-10 h-10 rounded-xl"
+                    />
                     <span className="font-bold text-text-primary text-base">{firm.name}</span>
                   </div>
 

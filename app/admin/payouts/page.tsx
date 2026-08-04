@@ -244,7 +244,7 @@ export default function AdminPayoutsPage() {
                           {getFirmName(p.firm_id)}
                         </td>
                         <td className="px-6 py-4 text-center font-mono text-accent-green font-bold">
-                          ${p.amount.toLocaleString('en-US')}
+                          ${(p.amount ?? 0).toLocaleString('en-US')}
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="flex items-center justify-center gap-2">

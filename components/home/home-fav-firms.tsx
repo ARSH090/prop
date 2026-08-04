@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { AFXCard } from '@/components/ui/afx-card'
 import { Heart, ArrowRight, Star } from 'lucide-react'
 import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 interface FavFirm {
   id: string
@@ -15,6 +16,7 @@ interface FavFirm {
   review_count?: number
   description?: string
   is_featured?: boolean
+  circle_crop_logo?: boolean
 }
 
 interface HomeFavFirmsProps {
@@ -80,16 +82,12 @@ export function HomeFavFirms({
               >
                 <AFXCard className="bg-bg-surface border border-border-subtle p-5 hover:border-pink-400/30 hover:shadow-[0_0_20px_rgba(236,72,153,0.1)] transition-all duration-300 group h-full">
                   <div className="flex items-start gap-4">
-                    <div className={`w-14 h-14 rounded-2xl border border-border-subtle flex items-center justify-center overflow-hidden shrink-0 group-hover:border-pink-400/30 transition-colors ${darkLogo ? 'bg-[#0b121f]' : 'bg-white'}`}>
-                      <img 
-                        src={logoUrl} 
-                        alt={firm.name} 
-                        className="w-12 h-12 object-contain" 
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
-                        }}
-                      />
-                    </div>
+                    <PropFirmLogo
+                      name={firm.name}
+                      logoUrl={firm.logo_url}
+                      circleCrop={firm.circle_crop_logo}
+                      className="w-14 h-14 rounded-2xl group-hover:border-pink-400/30 transition-colors"
+                    />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-text-primary group-hover:text-pink-400 transition-colors truncate">{firm.name}</h3>
                     {firm.rating && (

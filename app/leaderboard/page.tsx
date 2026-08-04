@@ -27,18 +27,16 @@ export default async function LeaderboardPage({ params }: { params?: Promise<{ c
   const headline = siteContent.headline || 'Prop Firm Payouts Tracker'
   const subtext = siteContent.subtext || 'Compare payout times, payout totals, and payout history across prop firms. View firm-level payout trends and individual trader rankings.'
 
-  const activeFirms = firms.filter((f: any) => {
-    if (f.status !== 'active') return false
-    const cats = f.category || []
-    return cats.map((c: string) => c.toLowerCase()).includes(category.toLowerCase())
-  })
-  
-  const enrichedFirms = activeFirms.map((firm) => {
+  // Pass ALL active firms to client so it can filter by category there
+  const allActiveFirms = firms.filter((f: any) => f.status === 'active')
+
+  const enrichedFirms = allActiveFirms.map((firm) => {
     const activeDeal = deals.find((d) => d.firm_id === firm.id && d.status === 'active')
     return { ...firm, activeDeal }
   })
 
-  const verifiedPayouts = payouts.filter((p: any) => p.is_verified && activeFirms.some((f) => f.id === p.firm_id))
+  // Show all verified payouts — client component handles category/period filtering
+  const verifiedPayouts = payouts.filter((p: any) => p.is_verified)
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">

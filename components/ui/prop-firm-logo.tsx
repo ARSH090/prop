@@ -8,13 +8,15 @@ interface PropFirmLogoProps {
   logoUrl?: string | null
   className?: string
   imgClassName?: string
+  circleCrop?: boolean
 }
 
 export function PropFirmLogo({
   name,
   logoUrl: propLogoUrl,
   className = 'w-10 h-10 rounded-xl',
-  imgClassName = 'w-full h-full object-contain',
+  imgClassName = 'max-w-full max-h-full object-contain',
+  circleCrop = true,
 }: PropFirmLogoProps) {
   const [imgSrc, setImgSrc] = useState<string | null>(null)
   const [hasError, setHasError] = useState(false)
@@ -39,10 +41,24 @@ export function PropFirmLogo({
   const isDark = isDarkLogo(name)
   const containerBg = isDark ? 'bg-[#0b121f] border-accent-purple/20' : 'bg-white border-border-subtle'
 
+  // Force circle crop for all views across the platform
+  const forceCircleCrop = true
+
+  const computedClassName = forceCircleCrop
+    ? className.replace(/rounded-(xl|lg|md|sm|2xl|3xl)/g, '').trim() + ' rounded-full p-0'
+    : className;
+
+  const computedImgClassName = forceCircleCrop
+    ? 'w-full h-full object-cover rounded-full'
+    : imgClassName;
+
   if (hasError || !imgSrc) {
+    const fallbackClassName = forceCircleCrop
+      ? className.replace(/rounded-(xl|lg|md|sm|2xl|3xl)/g, '').trim() + ' rounded-full p-0'
+      : className;
     return (
       <div
-        className={`${className} border flex items-center justify-center font-bold tracking-wider text-xs select-none shrink-0 bg-gradient-to-br from-accent-cyan/15 to-accent-purple/15 text-accent-cyan border-accent-cyan/20`}
+        className={`${fallbackClassName} border flex items-center justify-center font-bold tracking-wider text-xs select-none shrink-0 bg-gradient-to-br from-accent-cyan/15 to-accent-purple/15 text-accent-cyan border-accent-cyan/20`}
         title={name}
       >
         {getInitials(name)}
@@ -51,11 +67,11 @@ export function PropFirmLogo({
   }
 
   return (
-    <div className={`${className} border flex items-center justify-center p-1.5 shrink-0 overflow-hidden ${containerBg}`}>
+    <div className={`${computedClassName} border flex items-center justify-center shrink-0 overflow-hidden ${containerBg} ${forceCircleCrop ? '' : 'p-1.5'}`}>
       <img
         src={imgSrc}
         alt={`${name} Logo`}
-        className={imgClassName}
+        className={computedImgClassName}
         onError={() => setHasError(true)}
       />
     </div>

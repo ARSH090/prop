@@ -36,6 +36,7 @@ interface Firm {
   description: string
   website_url: string | null
   years_active?: number
+  circle_crop_logo?: boolean
 }
 
 export default function FirmsPage() {
@@ -330,6 +331,7 @@ export default function FirmsPage() {
                               <PropFirmLogo
                                 name={firm.name}
                                 logoUrl={firm.logo_url}
+                                circleCrop={firm.circle_crop_logo}
                                 className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]"
                               />
                             </FirmLink>

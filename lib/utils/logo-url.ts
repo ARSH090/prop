@@ -77,16 +77,11 @@ export const getCleanLogoUrl = (name: string, url: string | null | undefined): s
  * This is used to style the image container's background to match the logo (e.g. dark blue/black instead of stark white).
  */
 export const isDarkLogo = (name: string | null | undefined): boolean => {
-  if (!name) return false
+  if (!name) return true
   const clean = name.toLowerCase()
-  return (
-    clean.includes('5%ers') ||
-    clean.includes('5ers') ||
-    clean.includes('the-5ers') ||
-    clean.includes('funding pips') ||
-    clean.includes('fundingpips') ||
-    clean.includes('take profit') ||
-    clean.includes('myfundedfutures') ||
-    clean.includes('mffu')
-  )
+  // Zerodha uses a light logo that requires a white background
+  if (clean.includes('zerodha')) {
+    return false
+  }
+  return true // Default to dark background for all other prop firms/brokers
 }

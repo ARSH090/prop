@@ -6,6 +6,7 @@ import { Footer } from '@/components/footer'
 import { AFXCard } from '@/components/ui/afx-card'
 import { HelpCircle, Calendar, ShieldCheck, ListFilter } from 'lucide-react'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 export default function RulesPage() {
   const [activeTab, setActiveTab] = useState<'key-rules' | 'changes' | 'policies'>('key-rules')
@@ -120,10 +121,11 @@ export default function RulesPage() {
                         className="hover:bg-bg-base/20 transition-all font-medium"
                       >
                         <td className="px-6 py-4 font-bold text-text-primary flex items-center gap-2">
-                          <img
-                            src={getCleanLogoUrl(firm.name, firm.logo_url)}
-                            alt={firm.name}
-                            className="w-6 h-6 object-contain"
+                          <PropFirmLogo
+                            name={firm.name}
+                            logoUrl={firm.logo_url}
+                            circleCrop={firm.circle_crop_logo}
+                            className="w-6 h-6 rounded-md border-0 p-0"
                           />
                           <span>{firm.name}</span>
                         </td>
@@ -230,10 +232,11 @@ export default function RulesPage() {
                         className="hover:bg-bg-base/20 transition-all font-medium"
                       >
                         <td className="px-6 py-4 font-bold text-text-primary flex items-center gap-2">
-                          <img
-                            src={getCleanLogoUrl(firm.name, firm.logo_url)}
-                            alt={firm.name}
-                            className="w-6 h-6 object-contain"
+                          <PropFirmLogo
+                            name={firm.name}
+                            logoUrl={firm.logo_url}
+                            circleCrop={firm.circle_crop_logo}
+                            className="w-6 h-6 rounded-md border-0 p-0"
                           />
                           <span>{firm.name}</span>
                         </td>

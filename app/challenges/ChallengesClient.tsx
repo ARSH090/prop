@@ -713,7 +713,7 @@ export default function ChallengesClient({
 
                           {/* Logo with gold tier badge overlap */}
                           <div className="relative shrink-0 transition-all duration-300 group-hover:scale-110">
-                            <PropFirmLogo name={firm?.name || 'Challenge'} logoUrl={ch.logo_url || firm?.logo_url || null} className="w-10 h-10 rounded-xl transition-all duration-300 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
+                            <PropFirmLogo name={firm?.name || 'Challenge'} logoUrl={ch.logo_url || firm?.logo_url || null} circleCrop={firm?.circle_crop_logo} className="w-10 h-10 rounded-xl transition-all duration-300 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
                             {isGoldTier && (
                               <div className="absolute -bottom-1.5 -right-1.5 w-4.5 h-4.5 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full border border-bg-surface flex items-center justify-center shadow-md shadow-black/40" title="Gold Tier Verified">
                                 <span className="text-[10px] text-bg-surface font-black leading-none">★</span>

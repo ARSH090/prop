@@ -286,7 +286,7 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
                     <p className="text-text-muted text-[10px] uppercase font-bold tracking-widest font-mono mb-1">Payout Amount</p>
                     <p className="text-2xl font-extrabold text-accent-green font-mono flex items-center justify-center">
                       <DollarSign className="w-5 h-5 text-accent-green" />
-                      {payout.amount.toLocaleString('en-US')}
+                      {(payout.amount ?? 0).toLocaleString('en-US')}
                     </p>
                   </div>
 

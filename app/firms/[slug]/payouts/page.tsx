@@ -52,7 +52,7 @@ export default async function FirmPayoutsPage({ params }: { params: Promise<{ sl
                 <span className="text-[10px] text-text-muted font-bold block">{p.trader_display_name || 'Anonymous Trader'}</span>
                 <div className="flex items-baseline gap-0.5">
                   <DollarSign className="w-4 h-4 text-emerald-400 self-center" />
-                  <span className="text-lg font-black text-text-primary font-mono">{p.amount.toLocaleString()}</span>
+                  <span className="text-lg font-black text-text-primary font-mono">{(p.amount ?? 0).toLocaleString()}</span>
                   <span className="text-[10px] font-bold text-text-muted ml-1 uppercase">{p.currency || 'USD'}</span>
                 </div>
               </div>

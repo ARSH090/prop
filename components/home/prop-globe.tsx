@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { FirmLink } from '@/components/ui/firm-link'
-import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
 
 interface SlotConfig {
   id: string
@@ -315,7 +315,7 @@ export function PropGlobe({ globeFirms = [] }: PropGlobeProps) {
             <img 
               src={logoUrl} 
               alt={firm.name} 
-              className="w-[82%] h-[82%] rounded-full object-contain filter brightness-110 drop-shadow-[0_0_6px_rgba(255,255,255,0.4)] animate-fade-in"
+              className="w-full h-full object-cover rounded-full animate-fade-in"
               onError={(e) => {
                 const parent = (e.target as HTMLImageElement).parentElement
                 if (parent) {

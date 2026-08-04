@@ -12,6 +12,7 @@ import { AFXButton } from '@/components/ui/afx-button'
 import { Bookmark, Star, ExternalLink, Trash2 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 interface Firm {
   id: string
@@ -21,6 +22,7 @@ interface Firm {
   rating: number
   review_count: number
   description: string
+  circle_crop_logo?: boolean
 }
 
 export default function FavoritesPage() {
@@ -105,22 +107,12 @@ export default function FavoritesPage() {
               >
                 <div>
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 bg-bg-base rounded-xl flex items-center justify-center p-2 border border-border-subtle">
-                      {(() => {
-                        const logoUrl = getCleanLogoUrl(firm.name, firm.logo_url)
-                        return logoUrl ? (
-                          <img
-                            src={logoUrl}
-                            alt={firm.name}
-                            className="w-10 h-10 object-contain"
-                          />
-                        ) : (
-                          <span className="text-xl font-extrabold font-mono text-accent-cyan">
-                            {firm.name[0]}
-                          </span>
-                        )
-                      })()}
-                    </div>
+                    <PropFirmLogo
+                      name={firm.name}
+                      logoUrl={firm.logo_url}
+                      circleCrop={firm.circle_crop_logo}
+                      className="w-12 h-12 rounded-xl"
+                    />
 
                     <button
                       onClick={() => handleRemoveFavorite(firm.id)}

@@ -344,10 +344,6 @@ export default async function FirmOverviewPage({ params }: { params: Promise<{ s
                   src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
                   alt={COUNTRY_NAMES[code] || code}
                   className="w-6 h-4 object-cover rounded shadow-sm border border-border-subtle/50"
-                  onError={(e) => {
-                    // Fallback to text box if flag fails
-                    (e.target as HTMLImageElement).style.display = 'none'
-                  }}
                 />
                 <span className="text-xs font-bold text-text-secondary font-sans truncate">
                   {COUNTRY_NAMES[code] || code}

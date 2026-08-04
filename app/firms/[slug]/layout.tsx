@@ -8,6 +8,7 @@ import { RatingBadge } from '@/components/ui/rating-badge'
 import { getFirms } from '@/lib/firebase/server'
 import { FirmTabs } from '@/components/ui/firm-tabs'
 import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 export const revalidate = 10
 
@@ -78,18 +79,13 @@ export default async function FirmDetailLayout({
           {/* Firm Header */}
           <div className="bg-bg-surface border border-border-subtle mb-8 p-8 rounded-3xl relative overflow-hidden">
             <div className="flex flex-col md:flex-row items-start gap-8 relative z-10">
-              {/* Logo */}
               <div className="flex-shrink-0">
-                <div className={`w-24 h-24 border border-border-subtle rounded-2xl flex items-center justify-center p-2.5 ${isDarkLogo(firm.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
-                  <img
-                    src={logoUrl}
-                    alt={firm.name}
-                    className="w-full h-full object-contain rounded"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
-                    }}
-                  />
-                </div>
+                <PropFirmLogo
+                  name={firm.name}
+                  logoUrl={firm.logo_url}
+                  circleCrop={firm.circle_crop_logo}
+                  className="w-24 h-24 rounded-2xl"
+                />
               </div>
 
               {/* Info */}
