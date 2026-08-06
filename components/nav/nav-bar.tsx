@@ -26,9 +26,8 @@ import {
   Search,
   Bell,
 } from 'lucide-react'
-import { auth, db } from '@/lib/firebase/client'
+import { auth } from '@/lib/firebase/client'
 import { signOut } from 'firebase/auth'
-import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore'
 
 interface NavLink {
   label: string
@@ -118,29 +117,46 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
 
-  useEffect(() => {
-    const q = query(
-      collection(db, 'notifications'),
-      orderBy('created_at', 'desc'),
-      limit(10)
-    )
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const list: any[] = []
-      snapshot.forEach((doc) => {
-        const data = doc.data()
-        list.push({
-          id: doc.id,
-          title: data.title || 'Notification',
-          message: data.message || '',
-          time: data.created_at ? formatTimeAgo(data.created_at) : 'Just now',
-          read: data.read_by?.includes(currentUser?.uid) || false
+  const loadNotifications = async () => {
+    try {
+      const res = await fetch('/api/notifications')
+      if (res.ok) {
+        const data = await res.json()
+        const list = data.data || []
+        
+        let readIds: string[] = []
+        if (typeof window !== 'undefined') {
+          try {
+            readIds = JSON.parse(localStorage.getItem('read_notification_ids') || '[]')
+          } catch (e) {
+            console.error(e)
+          }
+        }
+
+        const formatted = list.map((n: any) => {
+          let dateObj = new Date()
+          if (n.created_at) {
+            dateObj = n.created_at.seconds ? new Date(n.created_at.seconds * 1000) : new Date(n.created_at)
+          }
+          return {
+            id: n.id,
+            title: n.title || 'Notification',
+            message: n.message || '',
+            time: formatTimeAgo(dateObj),
+            read: readIds.includes(n.id)
+          }
         })
-      })
-      setNotifications(list)
-    }, (error) => {
-      console.error("Realtime notifications subscription failed:", error)
-    })
-    return unsubscribe
+        setNotifications(formatted)
+      }
+    } catch (err) {
+      console.error('Error loading notifications:', err)
+    }
+  }
+
+  useEffect(() => {
+    loadNotifications()
+    const interval = setInterval(loadNotifications, 30000)
+    return () => clearInterval(interval)
   }, [currentUser])
 
   const toolsCloseTimer = useRef<NodeJS.Timeout | null>(null)
@@ -160,22 +176,16 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
     }, 300)
   }
 
-  const markAllRead = async () => {
-    if (!currentUser) return
-    try {
-      const promises = notifications.map((n) => {
-        if (!n.read) {
-          const docRef = doc(db, 'notifications', n.id)
-          return updateDoc(docRef, {
-            read_by: arrayUnion(currentUser.uid),
-          })
-        }
-        return Promise.resolve()
-      })
-      await Promise.all(promises)
-    } catch (err) {
-      console.error('Error marking notifications as read:', err)
+  const markAllRead = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        const ids = notifications.map(n => n.id)
+        localStorage.setItem('read_notification_ids', JSON.stringify(ids))
+      } catch (err) {
+        console.error(err)
+      }
     }
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
   }
 
   const clearAllNotifications = () => {
