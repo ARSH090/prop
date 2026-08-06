@@ -34,7 +34,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, slug, excerpt, content_md, cover_image_url, published, tags } = body
+    const { title, slug, excerpt, content_md, cover_image_url, published, tags, category } = body
 
     if (!title || !slug) {
       return NextResponse.json({ error: 'Title and slug are required' }, { status: 400 })
@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
       content_md: content_md || '',
       cover_image_url: cover_image_url || '',
       tags: tags || [],
+      category: category || 'announcement',
       author_id: 'admin',
       published: !!published,
       published_at: published ? FieldValue.serverTimestamp() : null,

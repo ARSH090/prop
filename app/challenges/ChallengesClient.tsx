@@ -41,6 +41,7 @@ interface Firm {
   review_count: number
   affiliate_url: string
   category?: string[]
+  circle_crop_logo?: boolean
 }
 
 interface Deal {
@@ -86,6 +87,7 @@ export default function ChallengesClient({
   initialChallenges,
   firms,
   deals,
+  category = 'forex',
 }: ChallengesClientProps) {
   const [favoriteFirms, setFavoriteFirms] = useState<string[]>([])
 
@@ -489,16 +491,15 @@ export default function ChallengesClient({
           {/* Quick Dropdown: Assets */}
           <div className="relative shrink-0 group">
             <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="appearance-none bg-bg-base border border-border-subtle rounded-full pl-4 pr-9 py-2.5 text-xs font-black text-text-secondary cursor-pointer hover:border-accent-cyan/80 group-hover:scale-[1.03] transition-all outline-none shadow-sm"
+              value={category}
+              disabled
+              className="appearance-none bg-bg-base/70 border border-border-subtle rounded-full pl-4 pr-9 py-2.5 text-xs font-black text-text-muted cursor-not-allowed outline-none shadow-sm"
             >
-              <option value="all">Assets: All</option>
-              <option value="forex">Assets: FX</option>
-              <option value="futures">Assets: Futures</option>
-              <option value="crypto">Assets: Crypto</option>
+              {category === 'forex' && <option value="forex">Assets: FX</option>}
+              {category === 'futures' && <option value="futures">Assets: Futures</option>}
+              {category === 'crypto' && <option value="crypto">Assets: Crypto</option>}
             </select>
-            <ChevronDown className="absolute right-3.5 top-3.5 w-3 h-3 text-text-muted pointer-events-none group-hover:text-accent-cyan transition-colors" />
+            <ChevronDown className="absolute right-3.5 top-3.5 w-3 h-3 text-text-muted pointer-events-none" />
           </div>
 
           {/* Quick Dropdown: Size */}
@@ -662,10 +663,7 @@ export default function ChallengesClient({
                   <th className="px-3 py-3 text-center font-black w-[85px]">Daily Loss</th>
                   <th className="px-3 py-3 text-center font-black w-[85px]">Max Loss</th>
                   <th className="px-3 py-3 text-center font-black w-[100px] hidden lg:table-cell">Max Loss Type</th>
-                  <th className="px-3 py-3 text-center font-black w-[75px] hidden xl:table-cell">PT:DD</th>
                   <th className="px-3 py-3 text-center font-black w-[100px]">Profit Split</th>
-                  <th className="px-3 py-3 text-center font-black w-[100px] hidden lg:table-cell">Payout Freq.</th>
-                  <th className="px-3 py-3 text-center font-black w-[90px] hidden xl:table-cell">Loyalty Pts</th>
                   <th className="px-3 py-3 text-center font-black w-[100px]">Price</th>
                   <th className="px-3 py-3 text-right font-black w-[95px]">Action</th>
                 </tr>
@@ -773,28 +771,10 @@ export default function ChallengesClient({
                         Static
                       </td>
 
-                      {/* 8. PT:DD column */}
-                      <td className="px-3 py-3 text-center align-middle text-[15px] font-bold text-text-secondary font-mono hidden xl:table-cell">
-                        {ch.pt_dd_ratio || '1:1'}
-                      </td>
-
                       {/* 9. Profit Split column with bars */}
                       <td className="px-3 py-3 text-center align-middle">
                         <div className="inline-flex justify-center">
                           <ProfitSplitBar pct={ch.profit_split_pct} />
-                        </div>
-                      </td>
-
-                      {/* 10. Payout Freq column */}
-                      <td className="px-3 py-3 text-center align-middle text-sm font-bold text-text-secondary truncate hidden lg:table-cell" title={ch.payout_freq}>
-                        {ch.payout_freq}
-                      </td>
-
-                      {/* 11. Loyalty Points column */}
-                      <td className="px-3 py-3 text-center align-middle text-[17px] font-black text-accent-purple hidden xl:table-cell">
-                        <div className="inline-flex items-center gap-1">
-                          <span>💎</span>
-                          <span className="font-mono">{ch.loyalty_points || '180'}</span>
                         </div>
                       </td>
 

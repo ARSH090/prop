@@ -80,6 +80,9 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
         <article className="bg-bg-surface border border-border-subtle p-8 mb-12 rounded-3xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-accent-blue/5 to-accent-purple/5 pointer-events-none" />
           <div className="relative space-y-4">
+            <span className="px-3 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/25 text-[10px] font-bold text-accent-cyan uppercase tracking-widest font-mono">
+              The Forex Diary
+            </span>
             <h1 className="text-4xl md:text-5xl font-extrabold text-text-primary leading-tight">
               {post.title}
             </h1>

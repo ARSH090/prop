@@ -26,8 +26,9 @@ import {
   Search,
   Bell,
 } from 'lucide-react'
-import { auth } from '@/lib/firebase/client'
+import { auth, db } from '@/lib/firebase/client'
 import { signOut } from 'firebase/auth'
+import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore'
 
 interface NavLink {
   label: string
@@ -39,7 +40,6 @@ interface NavBarProps {
 }
 
 const toolsLinks = [
-  { label: 'Rules Comparison', href: '/rules', icon: BookOpen },
   { label: 'Broker Spreads', href: '/spreads', icon: ArrowUpDown },
   { label: 'Payout Proofs', href: '/payouts', icon: DollarSign },
   { label: 'Payout Leaderboard', href: '/leaderboard', icon: Trophy },
@@ -49,13 +49,13 @@ const toolsLinks = [
 
 const subNavLinks = [
   { label: 'Home', href: '/' },
-  { label: 'Events', href: '/events' },
-  { label: 'Community', href: '/community' },
-  { label: 'Deals', href: '/deals' },
+  { label: 'Offers', href: '/deals' },
   { label: 'Challenges', href: '/challenges' },
   { label: 'Best Sellers', href: '/best-sellers' },
   { label: 'Reviews', href: '/reviews' },
   { label: 'Favorite Firms', href: '/favorites' },
+  { label: 'Prop Firm Rules', href: '/rules' },
+  { label: 'Spreads', href: '/spreads' },
 ]
 
 const mobileMenuCategories = [
@@ -73,13 +73,13 @@ const mobileMenuCategories = [
     title: 'DEALS & OFFERS',
     links: [
       { label: 'Discount Codes', href: '/deals', icon: Percent },
-      { label: 'Favorites', href: '/favorites', icon: Star },
+      { label: 'Favorite Firms', href: '/favorites', icon: Star },
+      { label: 'Loyalty Rewards', href: '/loyalty', icon: Zap },
     ],
   },
   {
     title: 'TOOLS',
     links: [
-      { label: 'Rules Comparison', href: '/rules', icon: BookOpen },
       { label: 'Broker Spreads', href: '/spreads', icon: ArrowUpDown },
       { label: 'Payout Proofs', href: '/payouts', icon: DollarSign },
       { label: 'Payout Leaderboard', href: '/leaderboard', icon: Trophy },
@@ -97,17 +97,52 @@ const mobileMenuCategories = [
   },
 ]
 
+const formatTimeAgo = (timestamp: any) => {
+  if (!timestamp) return 'Just now'
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000)
+  if (seconds < 60) return 'Just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
 export function NavBar({ links = subNavLinks }: NavBarProps) {
   const [toolsOpen, setToolsOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const [notifications, setNotifications] = useState([
-    { id: '1', title: 'New Discount Deal', message: 'FTMO is offering 10% OFF on all evaluations today.', time: '5m ago', read: false },
-    { id: '2', title: 'Payout Approved', message: 'Trader "Anuraj" received a $4,500 payout proof verified.', time: '2h ago', read: false },
-    { id: '3', title: 'Upcoming Tournament', message: 'ANURAJ FX Q3 2026 registration is now open.', time: '1d ago', read: true }
-  ])
+  const [notifications, setNotifications] = useState<any[]>([])
+
+  useEffect(() => {
+    const q = query(
+      collection(db, 'notifications'),
+      orderBy('created_at', 'desc'),
+      limit(10)
+    )
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list: any[] = []
+      snapshot.forEach((doc) => {
+        const data = doc.data()
+        list.push({
+          id: doc.id,
+          title: data.title || 'Notification',
+          message: data.message || '',
+          time: data.created_at ? formatTimeAgo(data.created_at) : 'Just now',
+          read: data.read_by?.includes(currentUser?.uid) || false
+        })
+      })
+      setNotifications(list)
+    }, (error) => {
+      console.error("Realtime notifications subscription failed:", error)
+    })
+    return unsubscribe
+  }, [currentUser])
+
   const toolsCloseTimer = useRef<NodeJS.Timeout | null>(null)
   const userMenuCloseTimer = useRef<NodeJS.Timeout | null>(null)
   const notifCloseTimer = useRef<NodeJS.Timeout | null>(null)
@@ -125,8 +160,22 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
     }, 300)
   }
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  const markAllRead = async () => {
+    if (!currentUser) return
+    try {
+      const promises = notifications.map((n) => {
+        if (!n.read) {
+          const docRef = doc(db, 'notifications', n.id)
+          return updateDoc(docRef, {
+            read_by: arrayUnion(currentUser.uid),
+          })
+        }
+        return Promise.resolve()
+      })
+      await Promise.all(promises)
+    } catch (err) {
+      console.error('Error marking notifications as read:', err)
+    }
   }
 
   const clearAllNotifications = () => {
@@ -303,7 +352,15 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <Star className="w-3.5 h-3.5" />
-                        My Favorites
+                        Favorite Firms
+                      </Link>
+                      <Link
+                        href="/loyalty"
+                        className="flex items-center gap-3 px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Zap className="w-3.5 h-3.5 text-accent-cyan" />
+                        Loyalty Dashboard
                       </Link>
                       <Link
                         href="/payouts"

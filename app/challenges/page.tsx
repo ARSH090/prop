@@ -5,8 +5,23 @@ import { getChallenges, getFirms, getDeals } from '@/lib/firebase/server'
 import ChallengesClient from './ChallengesClient'
 
 export const metadata = {
-  title: 'Compare the Best Prop Trading Firms of 2026 - EMPIRIAL',
-  description: 'Trusted platform to compare prop trading firms using verified data and insights, including reviews, rules, and rankings.',
+  title: 'Compare the Best Prop Trading Challenges of 2026 - ANURAJ FX',
+  description: 'Trusted platform to compare prop trading evaluation challenges using verified data and insights, including size, targets, loss limits, and pricing.',
+  keywords: ['prop challenges', 'compare prop challenges', 'best prop evaluation 2026', 'FTMO challenge', 'Funding Pips challenge price'],
+  openGraph: {
+    title: 'Compare the Best Prop Trading Challenges of 2026 - ANURAJ FX',
+    description: 'Trusted platform to compare prop trading evaluation challenges using verified data and insights, including size, targets, loss limits, and pricing.',
+    url: 'https://anurajfx.com/challenges',
+    siteName: 'ANURAJ FX',
+    images: [{ url: 'https://anurajfx.com/og-image.png' }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Compare the Best Prop Trading Challenges of 2026 - ANURAJ FX',
+    description: 'Trusted platform to compare prop trading evaluation challenges using verified data and insights, including size, targets, loss limits, and pricing.',
+    images: ['https://anurajfx.com/og-image.png'],
+  }
 }
 
 export const dynamic = 'force-dynamic'
@@ -69,6 +84,7 @@ export default async function ChallengesPage({ params }: { params?: Promise<{ ca
           initialChallenges={activeChallenges}
           firms={activeFirms}
           deals={activeDeals}
+          category={category}
         />
       </main>
       <Footer />

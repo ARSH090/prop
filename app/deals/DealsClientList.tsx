@@ -12,6 +12,7 @@ interface Deal {
   description: string
   is_featured: boolean
   expires_at: any
+  deal_type?: string
   firms?: {
     name: string
     slug: string
@@ -23,8 +24,16 @@ interface DealsClientListProps {
   initialDeals: Deal[]
 }
 
+const DEAL_TABS = [
+  { id: 'all', label: 'All Offers' },
+  { id: 'challenge', label: 'Challenge Deals' },
+  { id: 'cash_back', label: 'Cash Back Deals' },
+  { id: 'extra_account', label: 'Extra Account Deals' },
+] as const
+
 export default function DealsClientList({ initialDeals }: DealsClientListProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'all' | 'challenge' | 'cash_back' | 'extra_account'>('all')
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code)
@@ -47,6 +56,11 @@ export default function DealsClientList({ initialDeals }: DealsClientListProps) 
     return days > 0 ? days : 0
   }
 
+  const filteredDeals = initialDeals.filter((deal) => {
+    if (activeTab === 'all') return true
+    return deal.deal_type === activeTab
+  })
+
   if (initialDeals.length === 0) {
     return (
       <div className="border border-border-subtle bg-bg-surface/50 p-12 text-center rounded-3xl">
@@ -57,9 +71,31 @@ export default function DealsClientList({ initialDeals }: DealsClientListProps) 
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* 4 Tabs Filter Bar */}
+      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 border-b border-border-subtle/50 pb-px">
+        {DEAL_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2.5 text-xs font-mono font-bold border-b-2 transition-all cursor-pointer ${
+              activeTab === tab.id
+                ? 'border-accent-cyan text-text-primary'
+                : 'border-transparent text-text-muted hover:text-text-primary'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-6">
-        {initialDeals.map((deal) => {
+        {filteredDeals.length === 0 ? (
+          <div className="border border-border-subtle bg-bg-surface/30 p-12 text-center rounded-2xl">
+            <p className="text-text-secondary text-sm font-semibold">No active promo codes in this category.</p>
+          </div>
+        ) : (
+          filteredDeals.map((deal) => {
           const daysLeft = daysRemaining(deal.expires_at)
           const isExpiring = daysLeft <= 3
 
@@ -151,7 +187,8 @@ export default function DealsClientList({ initialDeals }: DealsClientListProps) 
               </div>
             </div>
           )
-        })}
+        })
+      )}
       </div>
 
       {/* Info Section */}

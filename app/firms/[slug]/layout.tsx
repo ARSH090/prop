@@ -29,16 +29,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     if (!firm) return { title: 'Firm Not Found' }
 
     return {
-      title: `${firm.name} - Prop Firm Details | ANURAJ FX`,
-      description: firm.description,
+      title: `${firm.name} - Prop Firm Reviews & Rules | ANURAJ FX`,
+      description: firm.description || `View ${firm.name} challenge options, rules, and audited payouts.`,
+      keywords: [firm.name, `${firm.name} review`, `${firm.name} rules`, `${firm.name} coupon`],
       openGraph: {
-        title: `${firm.name} - Prop Firm Details | ANURAJ FX`,
-        description: firm.description,
+        title: `${firm.name} - Prop Firm Reviews & Rules | ANURAJ FX`,
+        description: firm.description || `View ${firm.name} challenge options, rules, and audited payouts.`,
         url: `https://anurajfx.com/firms/${firm.slug}`,
         siteName: 'ANURAJ FX',
         images: [{ url: firm.logo_url || 'https://anurajfx.com/og-image.png' }],
         type: 'website',
       },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${firm.name} - Prop Firm Reviews & Rules | ANURAJ FX`,
+        description: firm.description || `View ${firm.name} challenge options, rules, and audited payouts.`,
+        images: [firm.logo_url || 'https://anurajfx.com/og-image.png'],
+      }
     }
   } catch (err) {
     return { title: 'ANURAJ FX' }

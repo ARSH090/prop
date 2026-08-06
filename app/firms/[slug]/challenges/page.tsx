@@ -53,7 +53,6 @@ export default async function FirmChallengesPage({ params }: { params: Promise<{
                     <th className="py-3.5 px-3">Max Contracts (Minis/Micros)</th>
                     <th className="py-3.5 px-3">Profit Target</th>
                     <th className="py-3.5 px-3">Max Loss (Type)</th>
-                    <th className="py-3.5 px-3">Ratio (PT:DD)</th>
                     <th className="py-3.5 px-3">Max Payout</th>
                     <th className="py-3.5 px-3">Consistency Eval</th>
                   </>
@@ -61,7 +60,6 @@ export default async function FirmChallengesPage({ params }: { params: Promise<{
                   <>
                     <th className="py-3.5 px-3">Profit Target (P1/P2)</th>
                     <th className="py-3.5 px-3">Daily / Max Loss</th>
-                    <th className="py-3.5 px-3">Payout Frequency</th>
                   </>
                 )}
                 <th className="py-3.5 px-3">Profit Split</th>
@@ -93,7 +91,6 @@ export default async function FirmChallengesPage({ params }: { params: Promise<{
                         <span className="font-bold">${(ch.max_loss || 0).toLocaleString()}</span>
                         <span className="text-[10px] text-text-muted ml-1.5 uppercase font-sans">({ch.max_loss_type?.replace('_', ' ') || 'Trailing'})</span>
                       </td>
-                      <td className="py-4 px-3 font-bold text-accent-cyan">{ch.pt_dd_ratio || '1:1'}</td>
                       <td className="py-4 px-3">${(ch.max_payout_amount || 15000).toLocaleString()}</td>
                       <td className="py-4 px-3">{ch.consistency_eval_percent || 40}%</td>
                     </>
@@ -106,7 +103,6 @@ export default async function FirmChallengesPage({ params }: { params: Promise<{
                       <td className="py-4 px-3">
                         {ch.daily_loss_pct}% / {ch.max_loss_pct}%
                       </td>
-                      <td className="py-4 px-3 text-text-secondary">{ch.payout_freq || 'Bi-weekly'}</td>
                     </>
                   )}
 

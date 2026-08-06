@@ -102,15 +102,26 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
     return unsub
   }, [])
 
+  const [searchQuery, setSearchQuery] = useState('')
+  const [verifiedOnly, setVerifiedOnly] = useState(false)
+
   // Filters
   const filtered = useMemo(() => {
     return initialPayouts.filter((p) => {
       const firmOk = filterFirm === 'all' || p.firm_id === filterFirm
       const regionOk = filterRegion === 'All Regions' || p.region === filterRegion
       const conceptOk = filterConcept === 'All Concepts' || p.concept === filterConcept
-      return firmOk && regionOk && conceptOk
+      
+      const verifiedOk = !verifiedOnly || p.is_verified === true
+
+      const cleanQuery = searchQuery.trim().toLowerCase()
+      const searchMatch = !cleanQuery || 
+        p.trader_display_name.toLowerCase().includes(cleanQuery) || 
+        getFirmName(p.firm_id).toLowerCase().includes(cleanQuery)
+
+      return firmOk && regionOk && conceptOk && verifiedOk && searchMatch
     })
-  }, [initialPayouts, filterFirm, filterRegion, filterConcept])
+  }, [initialPayouts, filterFirm, filterRegion, filterConcept, verifiedOnly, searchQuery])
 
   // Best performing regions
   const regionStats = useMemo(() => {
@@ -188,35 +199,55 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
       )}
 
       {/* Filters Row */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-4 bg-bg-surface/30 p-4 border border-border-subtle rounded-2xl">
         <div className="flex items-center gap-2 text-xs text-text-muted">
           <Filter className="w-4 h-4" />
           <span className="font-semibold uppercase tracking-wider">Filters:</span>
         </div>
 
+        {/* Search by Trader or Firm */}
+        <input
+          type="text"
+          placeholder="Search trader or firm..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="px-3.5 py-2 text-xs bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:border-accent-cyan focus:outline-none w-44 font-semibold"
+        />
+
         {/* Firm filter */}
         <select value={filterFirm} onChange={(e) => setFilterFirm(e.target.value)}
-          className="px-3 py-2 text-xs bg-bg-surface border border-border-subtle rounded-xl text-text-primary focus:border-accent-cyan focus:outline-none">
+          className="px-3 py-2 text-xs bg-bg-surface border border-border-subtle rounded-xl text-text-primary focus:border-accent-cyan focus:outline-none font-semibold">
           <option value="all">All Firms</option>
           {firms.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
         </select>
 
         {/* Region filter */}
         <select value={filterRegion} onChange={(e) => setFilterRegion(e.target.value)}
-          className="px-3 py-2 text-xs bg-bg-surface border border-border-subtle rounded-xl text-text-primary focus:border-accent-cyan focus:outline-none">
+          className="px-3 py-2 text-xs bg-bg-surface border border-border-subtle rounded-xl text-text-primary focus:border-accent-cyan focus:outline-none font-semibold">
           {REGIONS.map((r) => <option key={r}>{r}</option>)}
         </select>
 
         {/* Concept filter */}
         <select value={filterConcept} onChange={(e) => setFilterConcept(e.target.value)}
-          className="px-3 py-2 text-xs bg-bg-surface border border-border-subtle rounded-xl text-text-primary focus:border-accent-cyan focus:outline-none">
+          className="px-3 py-2 text-xs bg-bg-surface border border-border-subtle rounded-xl text-text-primary focus:border-accent-cyan focus:outline-none font-semibold">
           {CONCEPTS.map((c) => <option key={c}>{c}</option>)}
         </select>
 
+        {/* Verified Only Checkbox */}
+        <label className="flex items-center gap-2 text-xs font-bold text-text-secondary hover:text-text-primary cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={verifiedOnly}
+            onChange={(e) => setVerifiedOnly(e.target.checked)}
+            className="accent-accent-cyan w-4 h-4 rounded border-border-subtle"
+          />
+          <span>Verified Only</span>
+        </label>
+
         {/* Reset */}
-        {(filterFirm !== 'all' || filterRegion !== 'All Regions' || filterConcept !== 'All Concepts') && (
-          <button onClick={() => { setFilterFirm('all'); setFilterRegion('All Regions'); setFilterConcept('All Concepts') }}
-            className="text-xs text-text-muted hover:text-text-primary underline">
+        {(filterFirm !== 'all' || filterRegion !== 'All Regions' || filterConcept !== 'All Concepts' || searchQuery || verifiedOnly) && (
+          <button onClick={() => { setFilterFirm('all'); setFilterRegion('All Regions'); setFilterConcept('All Concepts'); setSearchQuery(''); setVerifiedOnly(false) }}
+            className="text-xs text-text-muted hover:text-text-primary underline font-bold">
             Reset
           </button>
         )}
@@ -226,13 +257,13 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
           {currentUser ? (
             <button
               onClick={() => setShowSubmitModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-accent-cyan to-accent-purple text-bg-base hover:opacity-90 transition-all shadow-md shadow-cyan-500/20"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-accent-cyan to-accent-purple text-bg-base hover:opacity-90 transition-all shadow-md shadow-cyan-500/20 cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
               Submit Your Proof
             </button>
           ) : (
-            <a href="/auth/sign-in"
+            <a href="/auth/login?redirect=/payouts"
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border border-border-subtle text-text-muted hover:text-accent-cyan hover:border-accent-cyan/40 transition-all">
               Sign in to Submit
             </a>
@@ -275,10 +306,15 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
                         </p>
                       </div>
                     </div>
-                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-accent-green/10 text-accent-green border border-accent-green/20 text-[9px] font-bold uppercase tracking-wider font-mono">
-                      <CheckCircle className="w-3 h-3" />
-                      Verified
-                    </span>
+                    {payout.is_verified ? (
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent-green/15 text-accent-green border border-accent-green/35 text-[9px] font-black uppercase tracking-widest font-mono shadow-[0_0_10px_rgba(34,197,94,0.15)] shrink-0">
+                        ✓ VERIFIED
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-bg-base text-text-muted border border-border-subtle text-[9px] font-bold uppercase tracking-widest font-mono shrink-0">
+                        PENDING AUDIT
+                      </span>
+                    )}
                   </div>
 
                   {/* Amount */}

@@ -17,6 +17,7 @@ interface Post {
   published: boolean
   published_at: string
   tags?: string[]
+  category?: string
 }
 
 interface BlogEditorProps {
@@ -35,6 +36,7 @@ function BlogEditor({ post, onSave, onCancel, isSaving }: BlogEditorProps) {
     cover_image_url: post?.cover_image_url || '',
     published: post?.published ?? false,
     tags: post?.tags?.join(', ') || '',
+    category: post?.category || 'announcement',
   })
   const [previewMode, setPreviewMode] = useState(false)
 
@@ -201,9 +203,26 @@ function BlogEditor({ post, onSave, onCancel, isSaving }: BlogEditorProps) {
                   name="tags"
                   value={form.tags}
                   onChange={handleChange}
-                  placeholder="prop-trading, india, review"
+                  placeholder="e.g. trading, ftmo, news"
                   className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
                 />
+              </div>
+
+              {/* Category */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Diary Category *</label>
+                <select
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                >
+                  <option value="announcement">Announcement</option>
+                  <option value="news">News</option>
+                  <option value="review">Review</option>
+                  <option value="guide">Guide</option>
+                </select>
               </div>
 
               {/* Status */}

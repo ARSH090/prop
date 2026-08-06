@@ -528,12 +528,6 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
                     )}
                   </div>
                 </div>
-
-                {/* Ratio */}
-                <div className="flex justify-between items-center p-3.5 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
-                  <span className="text-text-muted font-bold flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-accent-cyan" /> Reward/Risk Ratio (PT/DD)</span>
-                  <span className="font-black text-text-primary font-mono">{leftChallenge.pt_dd_ratio || '1:1'}</span>
-                </div>
               </div>
             </div>
 
@@ -773,12 +767,6 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
                       <span className="text-text-muted font-mono font-bold text-[11px] uppercase tracking-widest bg-bg-base/50 px-3 py-1 rounded-xl border border-border-subtle/30">Standard</span>
                     )}
                   </div>
-                </div>
-
-                {/* Ratio */}
-                <div className="flex justify-between items-center p-3.5 rounded-xl bg-bg-base/20 border border-border-subtle/10 text-xs">
-                  <span className="text-text-muted font-bold flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-accent-cyan" /> Reward/Risk Ratio (PT/DD)</span>
-                  <span className="font-black text-text-primary font-mono">{rightChallenge.pt_dd_ratio || '1:1'}</span>
                 </div>
               </div>
             </div>

@@ -70,14 +70,15 @@ export function CursorGlow() {
   return (
     <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden">
       <div
-        className="absolute rounded-full blur-3xl ease-out pointer-events-none transition-[left,top,opacity,width,height] duration-[500ms]"
+        className="absolute rounded-full blur-3xl pointer-events-none transition-[opacity,width,height] duration-300"
         style={{
           width: `${currentSize}px`,
           height: `${currentSize}px`,
           background: 'radial-gradient(circle, #22D3EE 0%, transparent 70%)',
           opacity: currentOpacity,
-          left: `${position.x - currentSize / 2}px`,
-          top: `${position.y - currentSize / 2}px`,
+          transform: `translate3d(${position.x - currentSize / 2}px, ${position.y - currentSize / 2}px, 0)`,
+          left: 0,
+          top: 0,
         }}
       />
     </div>

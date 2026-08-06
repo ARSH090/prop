@@ -24,6 +24,7 @@ import {
   Mail,
   Calendar,
   Globe,
+  Zap,
 } from 'lucide-react'
 
 const navigation = [
@@ -39,6 +40,7 @@ const navigation = [
   { name: 'Payout Proofs', href: '/admin/payouts', icon: DollarSign },
   { name: 'Events', href: '/admin/events', icon: Calendar },
   { name: 'Contact Messages', href: '/admin/messages', icon: Mail },
+  { name: 'Loyalty Program', href: '/admin/loyalty', icon: Zap },
   { name: 'Media Library', href: '/admin/media', icon: Image },
   { name: 'Globe Logos', href: '/admin/page-builder?page=globe', icon: Globe },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
@@ -63,9 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         try {
           const profileDoc = await getDoc(doc(db, 'profiles', user.uid))
-          const isUserAdmin = 
-            (profileDoc.exists() && profileDoc.data()?.role === 'admin') || 
-            process.env.NODE_ENV === 'development'
+          const isUserAdmin = profileDoc.exists() && profileDoc.data()?.role === 'admin'
           
           if (isUserAdmin) {
             setIsAdmin(true)

@@ -57,6 +57,22 @@ export async function POST(request: NextRequest) {
       created_at: FieldValue.serverTimestamp(),
     })
 
+    try {
+      const firmSnap = await db.collection('firms').doc(firm_id).get()
+      const firmName = firmSnap.exists ? (firmSnap.data()?.name || 'Prop Firm') : 'Prop Firm'
+      const nameStr = trader_display_name || trader_alias || 'Trader'
+      const amountVal = Number(amount || payout_amount || 0)
+
+      await db.collection('notifications').doc(`notif-payout-${docId}`).set({
+        title: 'Payout Approved',
+        message: `Trader "${nameStr}" received a $${amountVal.toLocaleString()} payout proof verified from ${firmName}!`,
+        created_at: FieldValue.serverTimestamp(),
+        read_by: [],
+      })
+    } catch (err) {
+      console.error('Error generating payout notification:', err)
+    }
+
     return NextResponse.json({ success: true, id: docId })
   } catch (error) {
     console.error('Error creating admin payout:', error)

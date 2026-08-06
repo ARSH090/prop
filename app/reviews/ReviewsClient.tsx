@@ -20,6 +20,10 @@ interface Review {
 interface Firm {
   id: string
   name: string
+  slug?: string
+  rating?: number
+  review_count?: number
+  logo_url?: string | null
 }
 
 interface ReviewsClientProps {
@@ -36,6 +40,8 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
   // Filter params
   const [filterFirm, setFilterFirm] = useState('all')
   const [filterRating, setFilterRating] = useState('all')
+  const [sortBy, setSortBy] = useState<'most_reviewed' | 'highest_rated' | 'lowest_rated'>('most_reviewed')
+  const [minReviews, setMinReviews] = useState<number>(0)
 
   // Review Form state
   const [showForm, setShowForm] = useState(false)
@@ -133,6 +139,19 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
     return firms.find((f) => f.id === firmId)?.name || 'Unknown Firm'
   }
 
+  // Filter and sort firms list
+  const filteredFirms = firms
+    .filter((f) => (f.review_count || 0) >= minReviews)
+    .sort((a, b) => {
+      if (sortBy === 'most_reviewed') {
+        return (b.review_count || 0) - (a.review_count || 0)
+      } else if (sortBy === 'highest_rated') {
+        return (b.rating || 0) - (a.rating || 0)
+      } else {
+        return (a.rating || 0) - (b.rating || 0)
+      }
+    })
+
   return (
     <div className="grid md:grid-cols-3 gap-8">
       {/* Sidebar Controls */}
@@ -173,6 +192,39 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
                 <option value="2">2 Stars</option>
                 <option value="1">1 Star</option>
               </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-text-muted uppercase">Sort Firms By</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="w-full px-3 py-2 bg-bg-base border border-border-subtle rounded-lg text-text-primary"
+              >
+                <option value="most_reviewed">Most Reviewed</option>
+                <option value="highest_rated">Highest Rated</option>
+                <option value="lowest_rated">Lowest Rated</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-text-muted uppercase">Min Reviews Threshold</label>
+              <div className="flex flex-wrap gap-1.5">
+                {[0, 100, 500, 1000].map((count) => (
+                  <button
+                    key={count}
+                    type="button"
+                    onClick={() => setMinReviews(count)}
+                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer ${
+                      minReviews === count
+                        ? 'bg-accent-cyan/15 border-accent-cyan/35 text-accent-cyan'
+                        : 'bg-bg-base border-border-subtle text-text-muted hover:text-text-secondary'
+                    }`}
+                  >
+                    {count === 0 ? 'All' : `${count}+`}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </AFXCard>
@@ -241,7 +293,44 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
       </div>
 
       {/* Main Reviews Panel */}
-      <div className="md:col-span-2 space-y-6">
+      <div className="md:col-span-2 space-y-8">
+        {/* Firm Directory Cards Grid */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-mono font-bold text-text-muted uppercase tracking-widest">
+            Firms Directory ({filteredFirms.length})
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {filteredFirms.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilterFirm(filterFirm === f.id ? 'all' : f.id)}
+                className={`p-4 rounded-2xl border text-left flex flex-col justify-between h-28 transition-all duration-300 relative group cursor-pointer ${
+                  filterFirm === f.id
+                    ? 'bg-accent-cyan/15 border-accent-cyan/40 shadow-[0_0_20px_rgba(34,211,238,0.2)]'
+                    : 'bg-bg-surface border-border-subtle hover:border-accent-cyan/20 hover:-translate-y-0.5'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-black text-xs text-text-primary group-hover:text-accent-cyan transition-colors line-clamp-1">
+                      {f.name}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-accent-yellow shrink-0">
+                      {(f.rating || 4.5).toFixed(1)} ★
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-text-secondary font-mono mt-1">
+                    {(f.review_count || 0).toLocaleString()} reviews
+                  </p>
+                </div>
+                <span className="text-[9px] font-black text-accent-cyan uppercase tracking-widest font-mono group-hover:underline self-end">
+                  {filterFirm === f.id ? 'Selected ✓' : 'Reviews &rarr;'}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Write form popup/drawer */}
         {showForm && (
           <AFXCard className="bg-bg-surface border border-border-subtle p-6 space-y-4 animate-fade-in">

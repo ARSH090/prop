@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { code, title, discount_label, description, firm_id, is_featured, expires_at, status } = body
+    const { code, title, discount_label, description, firm_id, is_featured, expires_at, status, deal_type } = body
 
     if (!code) {
       return NextResponse.json({ error: 'Promo code is required' }, { status: 400 })
@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
       firm_id,
       is_featured: !!is_featured,
       logo_url: body.logo_url || null,
+      deal_type: deal_type || 'general',
       starts_at: FieldValue.serverTimestamp(),
       expires_at: expires_at ? Timestamp.fromDate(new Date(expires_at)) : null,
       status: status || 'active',

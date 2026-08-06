@@ -31,6 +31,7 @@ export default function EditDealPage() {
     logo_url: '',
     expires_at: '',
     status: 'active',
+    deal_type: 'general',
   })
 
   // Load firms and details
@@ -64,6 +65,7 @@ export default function EditDealPage() {
             logo_url: dealData.logo_url || '',
             expires_at: dateVal,
             status: dealData.status || 'active',
+            deal_type: dealData.deal_type || 'general',
           })
         }
       } catch (err) {
@@ -173,6 +175,24 @@ export default function EditDealPage() {
               </select>
             </div>
 
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-text-secondary">Deal Type Tab Category</label>
+              <select
+                name="deal_type"
+                value={formData.deal_type}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+              >
+                <option value="general">General Offer</option>
+                <option value="challenge">Challenge Deal</option>
+                <option value="cash_back">Cash Back Deal</option>
+                <option value="extra_account">Extra Account Deal</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-secondary">Expiration Date</label>
               <input

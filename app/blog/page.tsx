@@ -1,46 +1,85 @@
 import React from 'react'
 import Link from 'next/link'
-import { Calendar, ArrowRight } from 'lucide-react'
+import { Calendar, ArrowRight, BookOpen } from 'lucide-react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
 import { getBlogs } from '@/lib/firebase/server'
 import { AFXCard } from '@/components/ui/afx-card'
 
 export const metadata = {
-  title: 'Trading Insights & Guides - ANURAJ FX',
+  title: 'The Forex Diary — Find Prop Firms That Actually Pay | ANURAJ FX',
+  description: 'Announcements, updates, news, and guidelines regarding proprietary trading firms payouts and validations.',
 }
 
-export default async function BlogPage() {
+const BLOG_CATEGORIES = [
+  { id: 'all', label: 'All Posts', href: '/blog' },
+  { id: 'announcement', label: 'Announcements', href: '/blog?category=announcement' },
+  { id: 'news', label: 'News', href: '/blog?category=news' },
+  { id: 'review', label: 'Reviews', href: '/blog?category=review' },
+  { id: 'guide', label: 'Guides', href: '/blog?category=guide' },
+] as const
+
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ category?: string }>
+}) {
+  const resolvedParams = searchParams ? await searchParams : null
+  const activeCategory = resolvedParams?.category || 'all'
+
   const posts = await getBlogs()
   const publishedPosts = posts.filter((post) => post.published)
+
+  const filteredPosts = activeCategory === 'all'
+    ? publishedPosts
+    : publishedPosts.filter((post) => post.category?.toLowerCase() === activeCategory)
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">
       <NavBar />
 
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-12">
-          <h1 className="text-4xl font-extrabold text-text-primary mb-4 afx-gradient-heading">
-            Trading Insights & Guides
+        <div className="mb-8">
+          <span className="px-3 py-1 rounded-full bg-accent-cyan/10 border border-accent-cyan/25 text-[10px] font-bold text-accent-cyan uppercase tracking-widest font-mono mb-4 inline-block">
+            Official Blog
+          </span>
+          <h1 className="text-4xl md:text-5xl font-black text-text-primary mb-4 afx-gradient-heading flex items-center gap-3">
+            <BookOpen className="w-8 h-8 text-accent-cyan shrink-0" />
+            The Forex Diary
           </h1>
-          <p className="text-text-secondary text-lg">
-            Expert articles on prop trading, brokers, market analysis, and trading strategies for Indian traders.
+          <p className="text-text-secondary text-base max-w-2xl leading-relaxed">
+            Find Prop Firms That Actually Pay. Get verified announcements, platform news, trader guides, and reviews.
           </p>
         </div>
 
-        {publishedPosts.length > 0 ? (
+        {/* Category Navigation Bar */}
+        <div className="flex flex-wrap gap-2 border-b border-border-subtle/50 pb-3 mb-10">
+          {BLOG_CATEGORIES.map((cat) => (
+            <Link
+              key={cat.id}
+              href={cat.href}
+              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all border ${
+                activeCategory === cat.id
+                  ? 'bg-accent-cyan/15 border-accent-cyan/40 text-accent-cyan neon-border-cyan'
+                  : 'bg-bg-surface border-border-subtle text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              {cat.label}
+            </Link>
+          ))}
+        </div>        {filteredPosts.length > 0 ? (
           <>
             {/* Featured Post */}
-            {publishedPosts[0] && (
-              <Link href={`/blog/${publishedPosts[0].slug}`}>
+            {filteredPosts[0] && (
+              <Link href={`/blog/${filteredPosts[0].slug}`}>
                 <div className="bg-bg-surface border border-border-subtle hover:border-accent-cyan/40 p-8 mb-12 cursor-pointer transition-all rounded-3xl relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-accent-blue/5 to-accent-purple/5 pointer-events-none" />
                   <div className="grid md:grid-cols-2 gap-8 items-center relative z-10">
-                    {publishedPosts[0].cover_image_url && (
+                    {filteredPosts[0].cover_image_url && (
                       <div className="hidden md:block overflow-hidden rounded-2xl border border-border-subtle">
                         <img
-                          src={publishedPosts[0].cover_image_url}
-                          alt={publishedPosts[0].title}
+                          src={filteredPosts[0].cover_image_url}
+                          alt={filteredPosts[0].title}
                           className="w-full h-64 object-cover hover:scale-102 transition-transform duration-500"
                         />
                       </div>
@@ -50,26 +89,26 @@ export default async function BlogPage() {
                         Featured
                       </span>
                       <h2 className="text-3xl font-extrabold text-text-primary leading-tight">
-                        {publishedPosts[0].title}
+                        {filteredPosts[0].title}
                       </h2>
                       <p className="text-text-secondary text-sm leading-relaxed">
-                        {publishedPosts[0].excerpt}
+                        {filteredPosts[0].excerpt}
                       </p>
-
+ 
                       <div className="flex items-center gap-4 pt-4 border-t border-border-subtle text-xs text-text-muted font-mono">
                         <span>Anuraj FX Editorial</span>
-                        {publishedPosts[0].published_at && (
+                        {filteredPosts[0].published_at && (
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
                             {new Date(
-                              publishedPosts[0].published_at.seconds
-                                ? publishedPosts[0].published_at.seconds * 1000
-                                : publishedPosts[0].published_at
+                              filteredPosts[0].published_at.seconds
+                                ? filteredPosts[0].published_at.seconds * 1000
+                                : filteredPosts[0].published_at
                             ).toLocaleDateString('en-US')}
                           </div>
                         )}
                       </div>
-
+ 
                       <div className="flex items-center gap-2 text-accent-cyan font-bold text-sm pt-2 group">
                         Read Article
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -79,10 +118,10 @@ export default async function BlogPage() {
                 </div>
               </Link>
             )}
-
+ 
             {/* Rest of Posts */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {publishedPosts.slice(1).map((post) => {
+              {filteredPosts.slice(1).map((post) => {
                 const dateStr = post.published_at
                   ? new Date(
                       post.published_at.seconds ? post.published_at.seconds * 1000 : post.published_at
