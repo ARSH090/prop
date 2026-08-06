@@ -207,15 +207,15 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
               </select>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 w-full">
               <label className="text-[10px] font-bold text-text-muted uppercase">Min Reviews Threshold</label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#221B35] whitespace-nowrap select-none">
                 {[0, 100, 500, 1000].map((count) => (
                   <button
                     key={count}
                     type="button"
                     onClick={() => setMinReviews(count)}
-                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer ${
+                    className={`px-3.5 py-1.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
                       minReviews === count
                         ? 'bg-accent-cyan/15 border-accent-cyan/35 text-accent-cyan'
                         : 'bg-bg-base border-border-subtle text-text-muted hover:text-text-secondary'
