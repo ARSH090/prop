@@ -273,3 +273,28 @@
 .animate-float {
   animation: float 4s ease-in-out infinite;
 }
+
+/* Custom scrollbar utility rules */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #221B35 transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #221B35;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #22D3EE;
+}

@@ -209,7 +209,7 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
 
             <div className="space-y-1.5 w-full">
               <label className="text-[10px] font-bold text-text-muted uppercase">Min Reviews Threshold</label>
-              <div className="flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#221B35] whitespace-nowrap select-none">
+              <div className="flex gap-1.5 overflow-x-scroll pb-1.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#221B35] whitespace-nowrap select-none">
                 {[0, 100, 500, 1000].map((count) => (
                   <button
                     key={count}
