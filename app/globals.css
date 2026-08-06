@@ -281,8 +281,12 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-  height: 6px;
-  width: 6px;
+  height: 10px;
+  width: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-button {
+  display: none;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
@@ -293,6 +297,7 @@
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: #22D3EE;
   border-radius: 9999px;
+  border: 2.5px solid #120F22;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
