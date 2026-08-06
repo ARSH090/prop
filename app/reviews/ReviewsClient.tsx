@@ -207,23 +207,30 @@ export default function ReviewsClient({ firms }: ReviewsClientProps) {
               </select>
             </div>
 
-            <div className="space-y-1.5 w-full">
-              <label className="text-[10px] font-bold text-text-muted uppercase">Min Reviews Threshold</label>
-              <div className="flex gap-1.5 overflow-x-scroll pb-1.5 scrollbar-thin whitespace-nowrap select-none">
-                {[0, 10, 50, 100, 250, 500, 750, 1000].map((count) => (
-                  <button
-                    key={count}
-                    type="button"
-                    onClick={() => setMinReviews(count)}
-                    className={`px-3.5 py-1.5 rounded-lg text-[10px] font-mono font-bold border transition-all cursor-pointer shrink-0 ${
-                      minReviews === count
-                        ? 'bg-accent-cyan/15 border-accent-cyan/35 text-accent-cyan'
-                        : 'bg-bg-base border-border-subtle text-text-muted hover:text-text-secondary'
-                    }`}
-                  >
-                    {count === 0 ? 'All' : `${count}+`}
-                  </button>
-                ))}
+            <div className="space-y-3 w-full">
+              <div className="flex justify-between items-center text-[10px] font-bold text-text-muted uppercase">
+                <span>Min Reviews Threshold</span>
+                <span className="text-[11px] font-black text-accent-cyan font-mono bg-accent-cyan/10 px-2 py-0.5 rounded-lg border border-accent-cyan/20">
+                  {minReviews === 0 ? 'All' : `${minReviews}+`}
+                </span>
+              </div>
+              <div className="relative pt-1">
+                <input
+                  type="range"
+                  min="0"
+                  max="1000"
+                  step="50"
+                  value={minReviews}
+                  onChange={(e) => setMinReviews(Number(e.target.value))}
+                  className="w-full h-1.5 bg-[#120F22] rounded-full appearance-none cursor-pointer afx-range-slider"
+                />
+                <div className="flex justify-between text-[8px] font-bold text-text-muted mt-1 select-none font-mono">
+                  <span>ALL</span>
+                  <span>250+</span>
+                  <span>500+</span>
+                  <span>750+</span>
+                  <span>1000+</span>
+                </div>
               </div>
             </div>
           </div>
