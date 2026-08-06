@@ -277,7 +277,7 @@
 /* Custom scrollbar utility rules */
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: #221B35 transparent;
+  scrollbar-color: #22D3EE #120F22;
 }
 
 .scrollbar-thin::-webkit-scrollbar {
@@ -286,15 +286,15 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
+  background: #120F22;
+  border-radius: 9999px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #221B35;
+  background: #22D3EE;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #22D3EE;
+  background: #8B5CF6;
 }
