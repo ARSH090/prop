@@ -84,7 +84,7 @@ export function PropFirmLogo({
   }
 
   return (
-    <div className={`${computedClassName} border flex items-center justify-center shrink-0 overflow-hidden ${containerBg} ${forceCircleCrop ? '' : 'p-1.5'} ${frameClass}`}>
+    <div className={`${computedClassName} ${transparentBg ? '' : 'border'} flex items-center justify-center shrink-0 overflow-hidden ${containerBg} ${forceCircleCrop ? '' : 'p-1.5'} ${frameClass}`}>
       <img
         src={imgSrc}
         alt={`${name} Logo`}

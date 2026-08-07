@@ -42,24 +42,23 @@ export function LogoMarquee({ firms, title = 'Direct Verified Partners & Trusted
         <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#05070D] to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#05070D] to-transparent z-10 pointer-events-none" />
         
-        <div className="animate-marquee flex gap-8 items-center py-4">
+        <div className="animate-marquee flex gap-12 items-center py-4">
           {items.map((firm, idx) => {
             return (
               <FirmLink
                 key={`${firm.id}-${idx}`}
                 firm={firm}
-                className="flex-shrink-0 group block relative transition-transform duration-300 hover:scale-105"
+                className="flex-shrink-0 group block transition-transform duration-300 hover:scale-110"
               >
-                <div className="relative p-0.5 rounded-2xl bg-transparent border border-[#271E3A] group-hover:border-accent-cyan/50 shadow-md transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.15)] flex items-center justify-center">
-                  <PropFirmLogo
-                    name={firm.name}
-                    logoUrl={firm.marquee_logo_url || firm.logo_url}
-                    frame={firm.logo_frame}
-                    circleCrop={false}
-                    transparentBg={true}
-                    className="h-14 w-28 rounded-xl object-contain p-2"
-                  />
-                </div>
+                <PropFirmLogo
+                  name={firm.name}
+                  logoUrl={firm.marquee_logo_url || firm.logo_url}
+                  frame={firm.logo_frame}
+                  circleCrop={false}
+                  transparentBg={true}
+                  className="h-12 w-28 object-contain"
+                  imgClassName="max-h-full max-w-full object-contain filter grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300 mix-blend-screen"
+                />
               </FirmLink>
             )
           })}
