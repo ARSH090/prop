@@ -50,11 +50,13 @@ export function LogoMarquee({ firms, title = 'Direct Verified Partners & Trusted
                 firm={firm}
                 className="flex-shrink-0 group block relative transition-transform duration-300 hover:scale-105"
               >
-                <div className="relative p-0.5 rounded-2xl bg-[#120F1D] border border-[#271E3A] group-hover:border-accent-cyan/50 shadow-md transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.15)] flex items-center justify-center">
+                <div className="relative p-0.5 rounded-2xl bg-transparent border border-[#271E3A] group-hover:border-accent-cyan/50 shadow-md transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.15)] flex items-center justify-center">
                   <PropFirmLogo
                     name={firm.name}
                     logoUrl={firm.marquee_logo_url || firm.logo_url}
                     frame={firm.logo_frame}
+                    circleCrop={false}
+                    transparentBg={true}
                     className="h-14 w-28 rounded-xl object-contain p-2"
                   />
                 </div>

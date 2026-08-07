@@ -10,6 +10,7 @@ interface PropFirmLogoProps {
   imgClassName?: string
   circleCrop?: boolean
   frame?: string | null
+  transparentBg?: boolean
 }
 
 export function PropFirmLogo({
@@ -19,6 +20,7 @@ export function PropFirmLogo({
   imgClassName = 'max-w-full max-h-full object-contain',
   circleCrop = true,
   frame = 'none',
+  transparentBg = false,
 }: PropFirmLogoProps) {
   const [imgSrc, setImgSrc] = useState<string | null>(null)
   const [hasError, setHasError] = useState(false)
@@ -41,10 +43,11 @@ export function PropFirmLogo({
   }
 
   const isDark = isDarkLogo(name)
-  const containerBg = isDark ? 'bg-[#0b121f] border-accent-purple/20' : 'bg-white border-border-subtle'
+  const containerBg = transparentBg 
+    ? 'bg-transparent border-transparent' 
+    : (isDark ? 'bg-[#0b121f] border-accent-purple/20' : 'bg-white border-border-subtle')
 
-  // Force circle crop for all views across the platform
-  const forceCircleCrop = true
+  const forceCircleCrop = circleCrop
 
   const computedClassName = forceCircleCrop
     ? className.replace(/rounded-(xl|lg|md|sm|2xl|3xl)/g, '').trim() + ' rounded-full p-0'
