@@ -81,7 +81,6 @@ export default function LoyaltyPage() {
       } else {
         setCurrentUser(null)
         setLoading(false)
-        router.push('/auth/login?redirect=/loyalty')
       }
     })
     return unsub

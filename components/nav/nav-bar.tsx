@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 import { signOut } from 'firebase/auth'
+import { LoginPopup } from '@/components/ui/login-popup'
 
 interface NavLink {
   label: string
@@ -55,7 +56,7 @@ const subNavLinks = [
   { label: 'Reviews', href: '/reviews' },
   { label: 'Favorite Firms', href: '/favorites' },
   { label: 'Prop Firm Rules', href: '/rules' },
-  { label: 'Community', href: '/community' },
+  { label: 'Spreads', href: '/spreads' },
 ]
 
 const mobileMenuCategories = [
@@ -230,7 +231,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
   const getSubNavLinkHref = (href: string) => {
     if (activeCategory === 'forex') return href
     if (href === '/') return `/${activeCategory}`
-    const isGlobalRoute = ['/favorites', '/rules', '/spreads', '/payouts', '/community'].includes(href)
+    const isGlobalRoute = ['/favorites', '/rules', '/spreads', '/payouts'].includes(href)
     if (isGlobalRoute) return href
     return `/${activeCategory}${href}`
   }
@@ -665,6 +666,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
           </Link>
         </div>
       </div>
+      <LoginPopup />
     </>
   )
 }

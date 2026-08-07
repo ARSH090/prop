@@ -219,13 +219,6 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
         subtext={homeContent.fav_firms_subtext}
         ctaText={homeContent.fav_firms_cta}
       />
-
-      {/* 8. VERIFIED FIRMS LOGO MARQUEE */}
-      <LogoMarquee
-        firms={verifiedMarqueeFirms}
-        title={homeContent.verified_firms_title || 'Also Verified Prop Firms'}
-      />
-
       {/* 9. TRUST STATS */}
       <TrustStats stats={trustStats} />
 

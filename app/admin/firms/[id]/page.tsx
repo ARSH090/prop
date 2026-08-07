@@ -73,6 +73,22 @@ export default function EditFirmPage() {
     notes: ''
   })
 
+  // Unified firm rules state
+  const [firmRulesData, setFirmRulesData] = useState({
+    max_daily_loss: '',
+    max_drawdown: '',
+    drawdown_type: 'static',
+    consistency_rule: '',
+    min_trading_days: 0,
+    profit_target_phase1: '',
+    profit_target_phase2: '',
+    ea_allowed: false,
+    copy_trading_allowed: false,
+    news_trading_allowed: false,
+  })
+  const [firmRulesHistory, setFirmRulesHistory] = useState<any[]>([])
+  const [savingRules, setSavingRules] = useState(false)
+
   // Load existing firm data
   useEffect(() => {
     async function loadFirm() {
@@ -142,6 +158,44 @@ export default function EditFirmPage() {
       }
     }
 
+    async function loadUnifiedRules() {
+      try {
+        const rulesRes = await fetch(`/api/admin/rules?firm_id=${id}`)
+        if (rulesRes.ok) {
+          const rulesJson = await rulesRes.json()
+          if (rulesJson.data) {
+            setFirmRulesData({
+              max_daily_loss: rulesJson.data.max_daily_loss || '',
+              max_drawdown: rulesJson.data.max_drawdown || '',
+              drawdown_type: rulesJson.data.drawdown_type || 'static',
+              consistency_rule: rulesJson.data.consistency_rule || '',
+              min_trading_days: Number(rulesJson.data.min_trading_days) || 0,
+              profit_target_phase1: rulesJson.data.profit_target_phase1 || '',
+              profit_target_phase2: rulesJson.data.profit_target_phase2 || '',
+              ea_allowed: !!rulesJson.data.ea_allowed,
+              copy_trading_allowed: !!rulesJson.data.copy_trading_allowed,
+              news_trading_allowed: !!rulesJson.data.news_trading_allowed,
+            })
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    async function loadUnifiedRulesHistory() {
+      try {
+        const historyRes = await fetch(`/api/rules/history`)
+        if (historyRes.ok) {
+          const historyJson = await historyRes.json()
+          const allHistory = historyJson.data || []
+          setFirmRulesHistory(allHistory.filter((h: any) => h.firm_id === id))
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
     async function loadSpecs() {
       try {
         const res = await fetch(`/api/admin/firms/${id}/contract-specs`)
@@ -157,6 +211,8 @@ export default function EditFirmPage() {
     if (id) {
       loadFirm()
       loadRulesHistory()
+      loadUnifiedRules()
+      loadUnifiedRulesHistory()
       loadSpecs()
     }
   }, [id])
@@ -172,35 +228,34 @@ export default function EditFirmPage() {
   }
 
   // Part A: Rules Versioning Handler
-  const handleAddRule = async (e: React.FormEvent) => {
+  const handleSaveUnifiedRules = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newRule.rule_value) return
-
+    setSavingRules(true)
     try {
       const res = await fetch('/api/admin/rules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firm_id: id,
-          ...newRule
+          ...firmRulesData,
         })
       })
       if (res.ok) {
-        alert('Rule updated successfully!')
-        const historyRes = await fetch('/api/admin/rules')
+        alert('Rules updated — now live on Key Rules, Rule Changes, and EA/Copy Trading pages')
+        const historyRes = await fetch('/api/rules/history')
         if (historyRes.ok) {
-          const data = await historyRes.json()
-          setRulesHistory((data.data || []).filter((r: any) => r.firm_id === id))
+          const historyJson = await historyRes.json()
+          const allHistory = historyJson.data || []
+          setFirmRulesHistory(allHistory.filter((h: any) => h.firm_id === id))
         }
-        setRules(prev => ({
-          ...prev,
-          [newRule.rule_key]: newRule.rule_value
-        }))
-        setNewRule(prev => ({ ...prev, rule_value: '' }))
+      } else {
+        alert('Failed to update rules')
       }
     } catch (err) {
       console.error(err)
-      alert('Error updating rule')
+      alert('Error updating rules')
+    } finally {
+      setSavingRules(false)
     }
   }
 
@@ -866,101 +921,204 @@ export default function EditFirmPage() {
 
       {/* Rules versioning history tab */}
       {activeTab === 'rules' && (
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-6">
-            <AFXCard className="bg-bg-surface border-border-subtle p-6 space-y-6">
-              <h3 className="text-lg font-bold text-text-primary border-b border-border-subtle/50 pb-2">
-                Rules Versioning Log / Changelog Feed
-              </h3>
-              {rulesHistory.length === 0 ? (
-                <div className="text-center py-8 text-text-secondary text-sm">
-                  No rule changes recorded for this firm yet.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {rulesHistory.map((item: any) => (
-                    <div key={item.id} className="p-4 bg-bg-base border border-border-subtle rounded-xl space-y-2">
-                      <div className="flex justify-between items-start">
-                        <span className="text-xs font-bold px-2 py-1 rounded bg-bg-surface border border-border-subtle text-accent-cyan font-mono uppercase">
-                          {item.rule_key.replace(/_/g, ' ')}
-                        </span>
-                        <span className="text-xs text-text-muted font-mono">{item.effective_date}</span>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm">
-                        {item.previous_value !== null && (
-                          <>
-                            <span className="text-red-400 line-through font-semibold">{item.previous_value}</span>
-                            <span className="text-text-muted">➔</span>
-                          </>
-                        )}
-                        <span className="text-green-400 font-extrabold">{item.rule_value}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </AFXCard>
-          </div>
+        <form onSubmit={handleSaveUnifiedRules} className="space-y-6 max-w-4xl mx-auto">
+          <AFXCard className="bg-bg-surface border-border-subtle p-6 space-y-6">
+            <div>
+              <h3 className="text-lg font-bold text-text-primary">Unified Prop Firm Rules Configuration</h3>
+              <p className="text-xs text-text-muted mt-1">Configure active evaluation rules. Saving updates Key Rules, Rule Changes, and Automation pages instantly.</p>
+            </div>
 
-          <div className="space-y-6">
-            <AFXCard className="bg-bg-surface border-border-subtle p-6 space-y-4">
-              <h3 className="text-lg font-bold text-text-primary border-b border-border-subtle/50 pb-2">
-                Log Rule Update
-              </h3>
-              <form onSubmit={handleAddRule} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-text-secondary">Rule Key</label>
+            {/* Group 1: Risk & Trading Rules */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-accent-cyan uppercase tracking-wider border-b border-border-subtle/50 pb-2">
+                Risk & Trading Rules
+              </h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Max Daily Loss</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 5%"
+                    value={firmRulesData.max_daily_loss}
+                    onChange={(e) => setFirmRulesData(prev => ({ ...prev, max_daily_loss: e.target.value }))}
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Max Drawdown</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 10%"
+                    value={firmRulesData.max_drawdown}
+                    onChange={(e) => setFirmRulesData(prev => ({ ...prev, max_drawdown: e.target.value }))}
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Drawdown Type</label>
                   <select
-                    value={newRule.rule_key}
-                    onChange={(e) => setNewRule(prev => ({ ...prev, rule_key: e.target.value }))}
-                    className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan"
+                    value={firmRulesData.drawdown_type}
+                    onChange={(e) => setFirmRulesData(prev => ({ ...prev, drawdown_type: e.target.value }))}
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
                   >
-                    <option value="max_daily_loss">Max Daily Loss</option>
-                    <option value="max_drawdown">Max Drawdown</option>
-                    <option value="drawdown_type">Drawdown Type</option>
-                    <option value="consistency_rule_percent">Consistency Rule %</option>
-                    <option value="min_trading_days">Min Trading Days</option>
-                    <option value="profit_target_phase1">Profit Target Phase 1</option>
-                    <option value="profit_target_phase2">Profit Target Phase 2</option>
-                    <option value="ea_allowed">EAs Allowed</option>
-                    <option value="copy_trading_allowed">Copy Trading Allowed</option>
-                    <option value="news_trading_allowed">News Trading Allowed</option>
+                    <option value="static">Static Drawdown</option>
+                    <option value="trailing">Trailing Drawdown</option>
+                    <option value="eod_trailing">End of Day (EOD) Trailing</option>
                   </select>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-text-secondary">New Value</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Consistency Rule Description</label>
                   <input
                     type="text"
-                    value={newRule.rule_value}
-                    onChange={(e) => setNewRule(prev => ({ ...prev, rule_value: e.target.value }))}
-                    placeholder="e.g. 5% Trailing or Yes"
-                    required
-                    className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan"
+                    placeholder="e.g. 30% max single day profit rule"
+                    value={firmRulesData.consistency_rule}
+                    onChange={(e) => setFirmRulesData(prev => ({ ...prev, consistency_rule: e.target.value }))}
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-text-secondary">Effective Date</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Minimum Trading Days</label>
                   <input
-                    type="date"
-                    value={newRule.effective_date}
-                    onChange={(e) => setNewRule(prev => ({ ...prev, effective_date: e.target.value }))}
-                    className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
+                    type="number"
+                    placeholder="e.g. 5"
+                    value={firmRulesData.min_trading_days || ''}
+                    onChange={(e) => setFirmRulesData(prev => ({ ...prev, min_trading_days: Number(e.target.value) || 0 }))}
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
                   />
                 </div>
 
-                <AFXButton
-                  type="submit"
-                  variant="primary"
-                  className="w-full bg-gradient-to-r from-accent-cyan to-accent-purple font-bold py-2.5 rounded-xl"
-                >
-                  Apply & Log Update
-                </AFXButton>
-              </form>
-            </AFXCard>
-          </div>
-        </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Profit Target (Phase 1)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 8%"
+                    value={firmRulesData.profit_target_phase1}
+                    onChange={(e) => setFirmRulesData(prev => ({ ...prev, profit_target_phase1: e.target.value }))}
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-semibold text-text-secondary">Profit Target (Phase 2 - Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 5% (Leave blank if single-phase)"
+                    value={firmRulesData.profit_target_phase2 || ''}
+                    onChange={(e) => setFirmRulesData(prev => ({ ...prev, profit_target_phase2: e.target.value }))}
+                    className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Group 2: Automation & Policy */}
+            <div className="space-y-4 pt-4 border-t border-border-subtle/50">
+              <h4 className="text-xs font-bold text-accent-purple uppercase tracking-wider border-b border-border-subtle/50 pb-2">
+                Automation & Policy
+              </h4>
+              <div className="grid sm:grid-cols-3 gap-6">
+                
+                {/* EA Switch */}
+                <div className="flex items-center justify-between p-4 bg-bg-base/40 rounded-2xl border border-border-subtle">
+                  <div>
+                    <p className="text-xs font-bold text-white">EA Allowed</p>
+                    <p className="text-[10px] text-text-muted">Expert Advisor bots</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFirmRulesData(prev => ({ ...prev, ea_allowed: !prev.ea_allowed }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      firmRulesData.ea_allowed ? 'bg-accent-cyan' : 'bg-bg-base border-border-subtle'
+                    }`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      firmRulesData.ea_allowed ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Copy Trading Switch */}
+                <div className="flex items-center justify-between p-4 bg-bg-base/40 rounded-2xl border border-border-subtle">
+                  <div>
+                    <p className="text-xs font-bold text-white">Copy Trading</p>
+                    <p className="text-[10px] text-text-muted">Account mirroring</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFirmRulesData(prev => ({ ...prev, copy_trading_allowed: !prev.copy_trading_allowed }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      firmRulesData.copy_trading_allowed ? 'bg-accent-cyan' : 'bg-bg-base border-border-subtle'
+                    }`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      firmRulesData.copy_trading_allowed ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* News Trading Switch */}
+                <div className="flex items-center justify-between p-4 bg-bg-base/40 rounded-2xl border border-border-subtle">
+                  <div>
+                    <p className="text-xs font-bold text-white">News Trading</p>
+                    <p className="text-[10px] text-text-muted">Trading during events</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFirmRulesData(prev => ({ ...prev, news_trading_allowed: !prev.news_trading_allowed }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      firmRulesData.news_trading_allowed ? 'bg-accent-cyan' : 'bg-bg-base border-border-subtle'
+                    }`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      firmRulesData.news_trading_allowed ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+            <AFXButton
+              type="submit"
+              disabled={savingRules}
+              variant="primary"
+              className="w-full bg-gradient-to-r from-accent-cyan to-accent-purple font-black py-3 rounded-2xl flex items-center justify-center gap-2"
+            >
+              {savingRules ? 'Saving Configuration...' : 'Save Rules Configuration'}
+            </AFXButton>
+          </AFXCard>
+
+          {/* Collapsed Rules Changelog History Accordion */}
+          <details className="group border border-border-subtle bg-bg-surface rounded-3xl overflow-hidden shadow-lg transition-all duration-300">
+            <summary className="flex items-center justify-between p-5 font-bold text-sm text-text-primary cursor-pointer hover:bg-bg-base/20 select-none">
+              <span>View Rule Change History (Last 5 Changes)</span>
+              <span className="text-xs text-text-muted transition-transform group-open:rotate-180">▼</span>
+            </summary>
+            <div className="p-5 border-t border-border-subtle/50 space-y-3 bg-[#0C0916]">
+              {firmRulesHistory.length === 0 ? (
+                <p className="text-xs text-text-muted font-mono">No previous modifications logged in history.</p>
+              ) : (
+                firmRulesHistory.slice(0, 5).map((log) => (
+                  <div key={log.id} className="p-3 bg-bg-base border border-border-subtle rounded-xl flex items-center justify-between text-xs font-mono">
+                    <div>
+                      <span className="font-bold text-accent-cyan uppercase">{String(log.rule_field).replace(/_/g, ' ')}</span>
+                      <p className="text-[10px] text-text-muted mt-0.5">
+                        Changed from <span className="text-red-400 line-through">{log.old_value}</span> to <span className="text-green-400 font-bold">{log.new_value}</span>
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-text-muted">
+                      {new Date(log.changed_at).toLocaleDateString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </details>
+        </form>
       )}
 
       {/* Contract Specs tab */}

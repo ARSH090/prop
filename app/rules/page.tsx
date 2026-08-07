@@ -1,21 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
 import { AFXCard } from '@/components/ui/afx-card'
-import { 
-  ShieldCheck, 
-  Search, 
-  HelpCircle, 
-  Calendar, 
-  SlidersHorizontal,
-  CheckCircle2, 
-  XCircle, 
-  Info,
-  ChevronDown
-} from 'lucide-react'
+import { Search, ChevronDown, ArrowUpDown, Check, X, SlidersHorizontal } from 'lucide-react'
 import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
+import { RulesSubNav } from '@/components/ui/rules-subnav'
+import Link from 'next/link'
 
 interface Firm {
   id: string
@@ -23,34 +15,42 @@ interface Firm {
   logo_url: string
   circle_crop_logo?: boolean
   category?: string[]
-  rules?: {
-    steps?: string
-    profit_target?: string
-    drawdown_type?: string
-    daily_loss?: string
-    max_loss?: string
-    consistency_rule_percent?: string
-    min_trading_days?: string
-    ea_allowed?: string
-    copy_trading_allowed?: string
-    news_trading_allowed?: string
-  }
+  logo_frame?: string
   platforms?: string[]
 }
 
+interface FirmRule {
+  id: string
+  firm_id: string
+  max_daily_loss: string
+  max_drawdown: string
+  drawdown_type: string
+  consistency_rule: string
+  min_trading_days: number
+  profit_target_phase1: string
+  profit_target_phase2?: string
+  ea_allowed: boolean
+  copy_trading_allowed: boolean
+  news_trading_allowed: boolean
+}
+
+type SortField = 'name' | 'max_daily_loss' | 'max_drawdown' | 'min_trading_days' | 'profit_target_phase1'
+type SortOrder = 'asc' | 'desc'
+
 export default function RulesPage() {
-  const [activeCategory, setActiveCategory] = useState<'forex' | 'futures' | 'crypto'>('forex')
-  const [activeTab, setActiveTab] = useState<'rules-matrix' | 'updates-feed'>('rules-matrix')
   const [firms, setFirms] = useState<Firm[]>([])
-  const [changelog, setChangelog] = useState<any[]>([])
+  const [dbRules, setDbRules] = useState<FirmRule[]>([])
   const [loading, setLoading] = useState(true)
 
   // Filters State
+  const [activeCategory, setActiveCategory] = useState<'forex' | 'futures' | 'crypto'>('forex')
   const [searchQuery, setSearchQuery] = useState('')
-  const [filterDrawdown, setFilterDrawdown] = useState('all')
-  const [onlyNoConsistency, setOnlyNoConsistency] = useState(false)
-  const [onlyEAsAllowed, setOnlyEAsAllowed] = useState(false)
-  const [onlyNewsAllowed, setOnlyNewsAllowed] = useState(false)
+  const [drawdownFilter, setDrawdownFilter] = useState('all')
+  const [minTradingDaysLimit, setMinTradingDaysLimit] = useState(30)
+
+  // Sorting State
+  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
 
   useEffect(() => {
     async function loadData() {
@@ -63,7 +63,7 @@ export default function RulesPage() {
           const firmsData = await firmsRes.json()
           const rulesData = await rulesRes.json()
           setFirms(firmsData.firms || [])
-          setChangelog(rulesData.data || [])
+          setDbRules(rulesData.data || [])
         }
       } catch (err) {
         console.error('Error loading rules comparison data:', err)
@@ -74,384 +74,325 @@ export default function RulesPage() {
     loadData()
   }, [])
 
-  // Filter firms by active categories & filter options
-  const filteredFirms = React.useMemo(() => {
-    return firms.filter((firm) => {
-      // 1. Category check
-      const cats = firm.category?.map(c => c.toLowerCase()) || []
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortOrder('asc')
+    }
+  }
+
+  const processedData = useMemo(() => {
+    // Merge firms with their active rules
+    const merged = firms.map(firm => {
+      // Find rules in active db list
+      const rules = dbRules.find(r => r.firm_id === firm.id) || {
+        max_daily_loss: '5%',
+        max_drawdown: '10%',
+        drawdown_type: 'static',
+        consistency_rule: 'None',
+        min_trading_days: 0,
+        profit_target_phase1: '10%',
+        profit_target_phase2: '5',
+        ea_allowed: true,
+        copy_trading_allowed: true,
+        news_trading_allowed: true
+      }
+
+      return {
+        ...firm,
+        rules
+      }
+    })
+
+    // Filter
+    let filtered = merged.filter(item => {
+      // Category filter
+      const cats = item.category?.map(c => c.toLowerCase()) || []
       if (!cats.includes(activeCategory)) return false
 
-      // 2. Search check
-      if (searchQuery && !firm.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return false
-      }
+      // Search filter
+      if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false
 
-      const r = firm.rules || {}
+      // Drawdown Type filter
+      if (drawdownFilter !== 'all' && item.rules.drawdown_type !== drawdownFilter) return false
 
-      // 3. Drawdown Type check
-      if (filterDrawdown !== 'all') {
-        const ddType = r.drawdown_type?.toLowerCase() || ''
-        if (filterDrawdown === 'static' && !ddType.includes('static')) return false
-        if (filterDrawdown === 'trailing' && !ddType.includes('trailing')) return false
-        if (filterDrawdown === 'eod' && !ddType.includes('eod') && !ddType.includes('end of day')) return false
-      }
-
-      // 4. No Consistency Rule check
-      if (onlyNoConsistency) {
-        const hasCons = r.consistency_rule_percent?.toLowerCase() || 'no'
-        if (hasCons !== 'no' && hasCons !== 'none' && !hasCons.includes('0%')) return false
-      }
-
-      // 5. EAs Allowed check
-      if (onlyEAsAllowed) {
-        const ea = r.ea_allowed?.toLowerCase() || 'yes'
-        if (ea === 'no') return false
-      }
-
-      // 6. News Trading check
-      if (onlyNewsAllowed) {
-        const news = r.news_trading_allowed?.toLowerCase() || 'yes'
-        if (news === 'no') return false
-      }
+      // Min trading days limit slider
+      if (item.rules.min_trading_days > minTradingDaysLimit) return false
 
       return true
     })
-  }, [firms, activeCategory, searchQuery, filterDrawdown, onlyNoConsistency, onlyEAsAllowed, onlyNewsAllowed])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#05070D] text-text-primary">
-        <NavBar />
-        <main className="max-w-7xl mx-auto px-4 py-24 text-center text-text-secondary text-sm">
-          <div className="w-8 h-8 border-4 border-accent-cyan border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          Loading rules comparison dashboard...
-        </main>
-        <Footer />
-      </div>
-    )
-  }
+    // Sort
+    filtered.sort((a, b) => {
+      let valA: any = ''
+      let valB: any = ''
+
+      if (sortField === 'name') {
+        valA = a.name.toLowerCase()
+        valB = b.name.toLowerCase()
+      } else {
+        const rulesA = a.rules as any
+        const rulesB = b.rules as any
+        valA = rulesA[sortField] !== undefined ? rulesA[sortField] : ''
+        valB = rulesB[sortField] !== undefined ? rulesB[sortField] : ''
+      }
+
+      if (typeof valA === 'string') {
+        return sortOrder === 'asc' 
+          ? valA.localeCompare(valB) 
+          : valB.localeCompare(valA)
+      } else {
+        return sortOrder === 'asc' 
+          ? (valA > valB ? 1 : -1) 
+          : (valB > valA ? 1 : -1)
+      }
+    })
+
+    return filtered
+  }, [firms, dbRules, activeCategory, searchQuery, drawdownFilter, minTradingDaysLimit, sortField, sortOrder])
 
   return (
-    <div className="min-h-screen bg-[#05070D] text-text-primary">
-      <NavBar />
+    <div className="min-h-screen bg-[#05070D] text-text-primary flex flex-col justify-between">
+      <div>
+        <NavBar />
 
-      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-8">
-        
-        {/* Header Title Section */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white afx-gradient-heading">
-            Prop Firm Rules Comparison
-          </h1>
-          <p className="text-text-secondary text-sm md:text-base leading-relaxed">
-            Factual, side-by-side specifications of evaluation drawdowns, daily limits, consistency constraints, and platform support guidelines.
-          </p>
-        </div>
+        <main className="max-w-7xl mx-auto px-4 py-12 space-y-8">
+          {/* Header Title Section */}
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent-cyan/10 border border-accent-cyan/20 text-accent-cyan">
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-widest font-mono">Real-time Specifications</span>
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white afx-gradient-heading">
+              Prop Firm Rules Matrix
+            </h1>
+            <p className="text-text-secondary text-sm md:text-base leading-relaxed">
+              Verify payout metrics, step parameters, day counts, and platform limits side-by-side.
+            </p>
+          </div>
 
-        {/* Dynamic Category Switcher (Forex, Futures, Crypto Rules) */}
-        <div className="flex justify-center border-b border-border-subtle/30 pb-px gap-3">
-          {[
-            { id: 'forex', label: 'Forex Rules' },
-            { id: 'futures', label: 'Futures Rules' },
-            { id: 'crypto', label: 'Crypto Rules' },
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                setActiveCategory(cat.id as any)
-                setActiveTab('rules-matrix')
-              }}
-              className={`px-5 py-3 text-xs md:text-sm font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-                activeCategory === cat.id
-                  ? 'border-accent-cyan text-accent-cyan font-black'
-                  : 'border-transparent text-text-muted hover:text-text-primary'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
+          {/* Shared Sub Navigation */}
+          <RulesSubNav />
 
-        {/* Subnav tab switcher: Matrix vs Feed */}
-        <div className="flex bg-[#0D0B18] border border-border-subtle/50 p-1 rounded-2xl max-w-md mx-auto">
-          <button
-            onClick={() => setActiveTab('rules-matrix')}
-            className={`flex-1 text-center py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-              activeTab === 'rules-matrix'
-                ? 'bg-[#1C1630] text-accent-cyan border border-border-subtle/50 shadow-md shadow-cyan-950/20'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Rules Matrix Table
-          </button>
-          <button
-            onClick={() => setActiveTab('updates-feed')}
-            className={`flex-1 text-center py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
-              activeTab === 'updates-feed'
-                ? 'bg-[#1C1630] text-accent-cyan border border-border-subtle/50 shadow-md shadow-cyan-950/20'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Rules Updates Feed
-          </button>
-        </div>
-
-        {activeTab === 'rules-matrix' ? (
-          <div className="space-y-6">
-            
-            {/* Filter toolbar grid */}
-            <div className="bg-[#0D0B18]/70 border border-[#221B35] rounded-3xl p-5 backdrop-blur-sm shadow-xl flex flex-wrap items-center justify-between gap-5">
-              
-              <div className="flex flex-wrap items-center gap-3.5">
-                {/* Search */}
-                <div className="relative w-52 shrink-0">
+          {/* Filters Bar */}
+          <div className="bg-[#0D0B18]/70 border border-[#221B35] rounded-3xl p-6 backdrop-blur-sm shadow-xl space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              {/* Left group */}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Search query */}
+                <div className="relative w-56">
                   <Search className="absolute left-3.5 top-2.5 w-3.5 h-3.5 text-text-muted" />
                   <input
                     type="text"
-                    placeholder="Search firms..."
+                    placeholder="Search by name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-[#120F22] border border-border-subtle/80 rounded-full py-1.5 pl-9 pr-4 text-[11px] text-white focus:outline-none focus:border-accent-cyan transition-colors"
                   />
                 </div>
 
-                {/* Drawdown Filter */}
-                <div className="relative shrink-0">
+                {/* Drawdown Type selector */}
+                <div className="relative">
                   <select
-                    value={filterDrawdown}
-                    onChange={(e) => setFilterDrawdown(e.target.value)}
+                    value={drawdownFilter}
+                    onChange={(e) => setDrawdownFilter(e.target.value)}
                     className="appearance-none bg-[#120F22] border border-border-subtle/80 rounded-full pl-4 pr-9 py-1.5 text-[11px] font-black text-text-secondary cursor-pointer hover:border-accent-cyan/80 transition-all outline-none"
                   >
                     <option value="all">Drawdown: All</option>
-                    <option value="static">Static</option>
-                    <option value="trailing">Trailing</option>
-                    <option value="eod">End of Day (EOD)</option>
+                    <option value="static">Static Drawdown</option>
+                    <option value="trailing">Trailing Drawdown</option>
+                    <option value="eod_trailing">End of Day (EOD) Trailing</option>
                   </select>
                   <ChevronDown className="absolute right-3 top-2.5 w-3 h-3 text-text-muted pointer-events-none" />
                 </div>
               </div>
 
-              {/* Toggle Badges */}
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => setOnlyNoConsistency(!onlyNoConsistency)}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase border transition-all cursor-pointer ${
-                    onlyNoConsistency
-                      ? 'bg-accent-cyan/15 border-accent-cyan/45 text-accent-cyan shadow-sm'
-                      : 'bg-[#120F22] border-border-subtle/80 text-text-secondary hover:text-white'
-                  }`}
-                >
-                  No Consistency Rule
-                </button>
-                <button
-                  onClick={() => setOnlyEAsAllowed(!onlyEAsAllowed)}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase border transition-all cursor-pointer ${
-                    onlyEAsAllowed
-                      ? 'bg-accent-cyan/15 border-accent-cyan/45 text-accent-cyan shadow-sm'
-                      : 'bg-[#120F22] border-border-subtle/80 text-text-secondary hover:text-white'
-                  }`}
-                >
-                  EAs Allowed
-                </button>
-                <button
-                  onClick={() => setOnlyNewsAllowed(!onlyNewsAllowed)}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-wider uppercase border transition-all cursor-pointer ${
-                    onlyNewsAllowed
-                      ? 'bg-accent-cyan/15 border-accent-cyan/45 text-accent-cyan shadow-sm'
-                      : 'bg-[#120F22] border-border-subtle/80 text-text-secondary hover:text-white'
-                  }`}
-                >
-                  News Allowed
-                </button>
+              {/* Category selector */}
+              <div className="flex bg-[#120F22] border border-border-subtle/85 p-0.5 rounded-full">
+                {[
+                  { id: 'forex', label: 'Forex' },
+                  { id: 'futures', label: 'Futures' },
+                  { id: 'crypto', label: 'Crypto' }
+                ].map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => setActiveCategory(c.id as any)}
+                    className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                      activeCategory === c.id
+                        ? 'bg-accent-cyan text-bg-base'
+                        : 'text-text-secondary hover:text-white'
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
               </div>
-
             </div>
 
-            {/* Core Side-by-Side sticky rules table */}
-            {filteredFirms.length > 0 ? (
-              <div className="border border-[#221B35] bg-[#0A0714]/80 rounded-3xl overflow-hidden shadow-2xl relative">
-                <div className="overflow-x-auto scrollbar-thin">
-                  <table className="w-full border-collapse text-left text-xs min-w-[1000px]">
-                    <thead>
-                      <tr className="border-b border-[#221B35] bg-[#0D0B18]/90 text-[10px] font-black uppercase tracking-widest text-text-muted select-none">
-                        <th className="px-4 py-4 text-left font-black w-[200px] sticky left-0 bg-[#0D0B18] z-10 border-r border-[#221B35]">Prop Firm</th>
-                        <th className="px-3 py-4 text-center font-black">Profit Target</th>
-                        <th className="px-3 py-4 text-center font-black">Daily Loss</th>
-                        <th className="px-3 py-4 text-center font-black">Max Loss</th>
-                        <th className="px-3 py-4 text-center font-black">Drawdown Type</th>
-                        <th className="px-3 py-4 text-center font-black">Consistency Rule</th>
-                        <th className="px-3 py-4 text-center font-black">EAs Allowed</th>
-                        <th className="px-3 py-4 text-center font-black">Copy Trading</th>
-                        <th className="px-3 py-4 text-center font-black">News Trading</th>
-                        <th className="px-4 py-4 text-left font-black w-[150px]">Platforms</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#221B35] text-text-secondary font-medium">
-                      {filteredFirms.map((firm) => {
-                        const r = firm.rules || {}
-                        const platformsList = firm.platforms ? firm.platforms.join(', ') : 'MT4, MT5'
-
-                        const isEaAllowed = r.ea_allowed?.toLowerCase() !== 'no'
-                        const isCopyAllowed = r.copy_trading_allowed?.toLowerCase() !== 'no'
-                        const isNewsAllowed = r.news_trading_allowed?.toLowerCase() !== 'no'
-                        const isNoConsistency = r.consistency_rule_percent?.toLowerCase() === 'no' || r.consistency_rule_percent?.toLowerCase() === 'none'
-
-                        return (
-                          <tr key={firm.id} className="hover:bg-[#150F28]/35 transition-colors">
-                            {/* Sticky Left Column showing Prop Firm name */}
-                            <td className="px-4 py-3.5 align-middle sticky left-0 bg-[#0A0714] z-10 font-black text-white flex items-center gap-2.5 border-r border-[#221B35]">
-                              <PropFirmLogo
-                                name={firm.name}
-                                logoUrl={firm.logo_url}
-                                circleCrop={firm.circle_crop_logo}
-                                frame={(firm as any).logo_frame}
-                                className="w-7 h-7 rounded-lg shrink-0 border border-border-subtle/10"
-                              />
-                              <span className="truncate">{firm.name}</span>
-                            </td>
-
-                            {/* Profit Target */}
-                            <td className="px-3 py-3.5 text-center align-middle font-mono font-bold text-emerald-400 text-[13px]">
-                              {r.profit_target || '10%'}
-                            </td>
-
-                            {/* Daily Loss */}
-                            <td className="px-3 py-3.5 text-center align-middle font-mono font-bold text-rose-500/90 text-[13px]">
-                              {r.daily_loss || '3%'}
-                            </td>
-
-                            {/* Max Loss */}
-                            <td className="px-3 py-3.5 text-center align-middle font-mono font-bold text-rose-500/90 text-[13px]">
-                              {r.max_loss || '5%'}
-                            </td>
-
-                            {/* Drawdown Type */}
-                            <td className="px-3 py-3.5 text-center align-middle font-mono uppercase text-[10px] tracking-wide text-accent-purple font-bold">
-                              {r.drawdown_type || 'static'}
-                            </td>
-
-                            {/* Consistency Rule */}
-                            <td className="px-3 py-3.5 text-center align-middle">
-                              <span className={`inline-flex px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                                isNoConsistency
-                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              }`}>
-                                {r.consistency_rule_percent || 'No'}
-                              </span>
-                            </td>
-
-                            {/* EAs Allowed */}
-                            <td className="px-3 py-3.5 text-center align-middle">
-                              {isEaAllowed ? (
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" />
-                              ) : (
-                                <XCircle className="w-4 h-4 text-rose-500/80 mx-auto" />
-                              )}
-                            </td>
-
-                            {/* Copy Trading */}
-                            <td className="px-3 py-3.5 text-center align-middle">
-                              {isCopyAllowed ? (
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" />
-                              ) : (
-                                <XCircle className="w-4 h-4 text-rose-500/80 mx-auto" />
-                              )}
-                            </td>
-
-                            {/* News Trading */}
-                            <td className="px-3 py-3.5 text-center align-middle">
-                              {isNewsAllowed ? (
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" />
-                              ) : (
-                                <XCircle className="w-4 h-4 text-rose-500/80 mx-auto" />
-                              )}
-                            </td>
-
-                            {/* Platforms */}
-                            <td className="px-4 py-3.5 text-left align-middle font-mono text-[10px] text-text-primary truncate">
-                              {platformsList}
-                            </td>
-
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+            {/* Min Trading Days range slider */}
+            <div className="pt-4 border-t border-border-subtle/30 flex items-center justify-between gap-6 max-w-xl">
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-text-secondary tracking-wider font-mono">Max Min Trading Days Required</span>
+                <p className="text-xs text-text-muted leading-none">Filters out programs requiring more than {minTradingDaysLimit} days.</p>
               </div>
-            ) : (
-              <div className="border border-border-subtle bg-bg-surface/50 p-12 text-center rounded-3xl">
-                <p className="text-text-secondary text-sm font-semibold">No prop firm rules match active filter parameters.</p>
+              <div className="flex items-center gap-3 shrink-0">
+                <input
+                  type="range"
+                  min="0"
+                  max="30"
+                  value={minTradingDaysLimit}
+                  onChange={(e) => setMinTradingDaysLimit(Number(e.target.value))}
+                  className="w-32 accent-accent-cyan cursor-pointer"
+                />
+                <span className="text-xs font-mono font-black text-white bg-bg-base px-2.5 py-1 rounded border border-border-subtle w-14 text-center">
+                  {minTradingDaysLimit}d
+                </span>
               </div>
-            )}
-
+            </div>
           </div>
-        ) : (
-          /* Recent Rule Updates Feed Timeline */
-          <AFXCard className="border border-[#221B35] bg-[#0A0714]/80 p-6 space-y-6">
-            <div className="flex items-center gap-3 border-b border-border-subtle/50 pb-3">
-              <Calendar className="w-5 h-5 text-accent-cyan" />
-              <h3 className="text-base font-black text-text-primary uppercase tracking-widest font-mono">Rule Change Log Feed</h3>
+
+          {/* Matrix table card */}
+          {loading ? (
+            <div className="text-center py-12 text-text-muted text-xs">
+              <div className="w-8 h-8 border-4 border-accent-cyan border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              Loading comparison data...
             </div>
-            
-            {changelog.length === 0 ? (
-              <div className="text-center py-10 text-text-secondary text-xs">
-                No recent rules modifications logged. Policy terms are currently stable.
-              </div>
-            ) : (
-              <div className="relative border-l border-border-subtle/30 ml-4 pl-6 space-y-6">
-                {changelog.map((log) => {
-                  const firm = firms.find((f) => f.id === log.firm_id)
-                  const changeDate = log.effective_date || 'Recent'
-                  
-                  return (
-                    <div key={log.id} className="relative group">
-                      {/* Interactive dot indicator */}
-                      <span className="absolute -left-[30px] top-1.5 w-2 h-2 rounded-full bg-accent-cyan ring-4 ring-bg-surface group-hover:scale-125 transition-transform" />
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-white group-hover:text-accent-cyan transition-colors">
-                            {firm?.name || 'Prop Firm'}
-                          </span>
-                          <span className="text-[10px] text-text-muted font-mono">• {changeDate}</span>
+          ) : processedData.length === 0 ? (
+            <div className="border border-border-subtle bg-[#0D0B18]/45 p-12 text-center rounded-3xl">
+              <p className="text-text-secondary text-sm font-semibold">No prop firms match your active criteria filters.</p>
+            </div>
+          ) : (
+            <div className="bg-[#0D0B18]/30 border border-[#221B35] rounded-3xl overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#100D1F] border-b border-border-subtle/60 text-[10px] font-mono uppercase tracking-widest text-text-secondary select-none">
+                      <th 
+                        onClick={() => handleSort('name')}
+                        className="px-6 py-4 font-black cursor-pointer hover:text-white sticky left-0 bg-[#100D1F] z-20 border-r border-[#221B35] min-w-[200px]"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Prop Firm
+                          <ArrowUpDown className="w-3 h-3" />
                         </div>
-                        
-                        <p className="text-xs text-text-secondary">
-                          Modifications: <span className="font-bold text-accent-purple font-mono uppercase tracking-wide">{log.rule_key?.replace(/_/g, ' ')}</span>
-                        </p>
-
-                        <div className="flex items-center gap-3 text-[11px] bg-[#120F22] border border-[#221B35] px-3 py-1.5 rounded-lg w-max font-mono">
-                          {log.previous_value !== null && (
-                            <>
-                              <span className="text-rose-400 line-through">{log.previous_value}</span>
-                              <span className="text-text-muted">➔</span>
-                            </>
-                          )}
-                          <span className="text-emerald-400 font-bold">{log.rule_value}</span>
+                      </th>
+                      <th 
+                        onClick={() => handleSort('max_daily_loss')}
+                        className="px-6 py-4 font-black cursor-pointer hover:text-white"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Daily Loss
+                          <ArrowUpDown className="w-3 h-3" />
                         </div>
-                      </div>
-                    </div>
-                  )
-                })}
+                      </th>
+                      <th 
+                        onClick={() => handleSort('max_drawdown')}
+                        className="px-6 py-4 font-black cursor-pointer hover:text-white"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Max Drawdown
+                          <ArrowUpDown className="w-3 h-3" />
+                        </div>
+                      </th>
+                      <th className="px-6 py-4 font-black">Drawdown Type</th>
+                      <th 
+                        onClick={() => handleSort('min_trading_days')}
+                        className="px-6 py-4 font-black cursor-pointer hover:text-white text-center"
+                      >
+                        <div className="flex items-center justify-center gap-1.5">
+                          Min Days
+                          <ArrowUpDown className="w-3 h-3" />
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => handleSort('profit_target_phase1')}
+                        className="px-6 py-4 font-black cursor-pointer hover:text-white"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Profit Target
+                          <ArrowUpDown className="w-3 h-3" />
+                        </div>
+                      </th>
+                      <th className="px-6 py-4 font-black text-center">EA</th>
+                      <th className="px-6 py-4 font-black text-center">Copy Trading</th>
+                      <th className="px-6 py-4 font-black text-center">News Trading</th>
+                      <th className="px-6 py-4 font-black">Consistency constraint</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#221B35]/65">
+                    {processedData.map((item, idx) => {
+                      const rules = item.rules
+                      const bgRow = idx % 2 === 0 ? 'bg-[#0E0B19]/20' : 'bg-transparent'
+
+                      return (
+                        <tr key={item.id} className={`hover:bg-[#150F28]/35 transition-colors text-xs text-text-secondary ${bgRow}`}>
+                          {/* Sticky name logo column */}
+                          <td className="px-6 py-4 font-bold text-white sticky left-0 bg-[#0A0714] z-10 border-r border-[#221B35] flex items-center gap-3 min-w-[200px]">
+                            <PropFirmLogo
+                              name={item.name}
+                              logoUrl={item.logo_url}
+                              circleCrop={item.circle_crop_logo}
+                              frame={item.logo_frame}
+                              className="w-7 h-7 rounded-lg shrink-0 border border-border-subtle/10"
+                            />
+                            <Link href={`/firms/${item.id}`} className="hover:text-accent-cyan transition-colors truncate">
+                              {item.name}
+                            </Link>
+                          </td>
+
+                          <td className="px-6 py-4 font-mono font-bold text-red-400">{rules.max_daily_loss || '—'}</td>
+                          <td className="px-6 py-4 font-mono font-bold text-red-400">{rules.max_drawdown || '—'}</td>
+                          <td className="px-6 py-4 font-bold capitalize text-text-primary">{String(rules.drawdown_type).replace(/_/g, ' ')}</td>
+                          <td className="px-6 py-4 font-mono text-center">{rules.min_trading_days} days</td>
+                          <td className="px-6 py-4 font-mono font-bold text-green-400">
+                            {rules.profit_target_phase1}
+                            {rules.profit_target_phase2 && <span className="text-[10px] text-text-muted ml-1">→ {rules.profit_target_phase2}</span>}
+                          </td>
+
+                          {/* EA check */}
+                          <td className="px-6 py-4 text-center">
+                            {rules.ea_allowed ? (
+                              <Check className="w-4 h-4 text-accent-cyan mx-auto" />
+                            ) : (
+                              <X className="w-4 h-4 text-rose-500 mx-auto" />
+                            )}
+                          </td>
+
+                          {/* Copy check */}
+                          <td className="px-6 py-4 text-center">
+                            {rules.copy_trading_allowed ? (
+                              <Check className="w-4 h-4 text-accent-cyan mx-auto" />
+                            ) : (
+                              <X className="w-4 h-4 text-rose-500 mx-auto" />
+                            )}
+                          </td>
+
+                          {/* News check */}
+                          <td className="px-6 py-4 text-center">
+                            {rules.news_trading_allowed ? (
+                              <Check className="w-4 h-4 text-accent-cyan mx-auto" />
+                            ) : (
+                              <X className="w-4 h-4 text-rose-500 mx-auto" />
+                            )}
+                          </td>
+
+                          <td className="px-6 py-4 text-text-muted truncate max-w-[200px]" title={rules.consistency_rule}>
+                            {rules.consistency_rule || 'None'}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
-            )}
-          </AFXCard>
-        )}
-
-        {/* Methodology note */}
-        <div className="flex gap-4 p-5 bg-[#0D0B18]/70 border border-[#221B35] rounded-2xl text-[11px] leading-relaxed text-text-muted">
-          <HelpCircle className="w-5 h-5 text-accent-cyan shrink-0" />
-          <p>
-            <span className="font-bold text-white uppercase tracking-wider block mb-0.5">Rules Disclaimer</span>
-            These specifications represent standard program tiers (e.g. $50,000 challenge or closest tier value). Individual parameters might vary depending on custom account size packages or configurations chosen at checkout. Always verify rules directly on official prop channels.
-          </p>
-        </div>
-
-      </main>
+            </div>
+          )}
+        </main>
+      </div>
 
       <Footer />
     </div>
   )
 }
-export const dynamic = 'force-dynamic'
