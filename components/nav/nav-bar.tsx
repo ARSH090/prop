@@ -55,7 +55,7 @@ const subNavLinks = [
   { label: 'Reviews', href: '/reviews' },
   { label: 'Favorite Firms', href: '/favorites' },
   { label: 'Prop Firm Rules', href: '/rules' },
-  { label: 'Spreads', href: '/spreads' },
+  { label: 'Community', href: '/community' },
 ]
 
 const mobileMenuCategories = [
@@ -230,7 +230,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
   const getSubNavLinkHref = (href: string) => {
     if (activeCategory === 'forex') return href
     if (href === '/') return `/${activeCategory}`
-    const isGlobalRoute = ['/favorites', '/rules', '/spreads', '/payouts'].includes(href)
+    const isGlobalRoute = ['/favorites', '/rules', '/spreads', '/payouts', '/community'].includes(href)
     if (isGlobalRoute) return href
     return `/${activeCategory}${href}`
   }

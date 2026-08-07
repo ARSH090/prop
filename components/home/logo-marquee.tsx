@@ -27,7 +27,7 @@ export function LogoMarquee({ firms, title = 'Also Verified Prop Firms' }: LogoM
   const items = [...firms, ...firms]
 
   return (
-    <section className="py-12 bg-bg-surface border-y border-border-default overflow-hidden relative w-full">
+    <section className="py-12 bg-transparent overflow-hidden relative w-full">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-6">
         <h3 className="text-center text-sm font-bold tracking-widest text-text-muted uppercase">
           {title}
@@ -36,8 +36,8 @@ export function LogoMarquee({ firms, title = 'Also Verified Prop Firms' }: LogoM
       
       <div className="relative w-full overflow-hidden">
         {/* Soft fading edges for premium look */}
-        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-bg-surface to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-bg-surface to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-bg-base to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-bg-base to-transparent z-10 pointer-events-none" />
         
         <div className="animate-marquee flex gap-8 items-center py-2">
           {items.map((firm, idx) => {
