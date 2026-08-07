@@ -1,9 +1,9 @@
 import React from 'react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
-import { CommentsSection } from '@/components/ui/comments-section'
 import { WatchlistWidget } from '@/components/ui/watchlist-widget'
-import { MessageSquare, Users, Bell } from 'lucide-react'
+import { Users } from 'lucide-react'
+import { CommunityClient } from './CommunityClient'
 import { db } from '@/lib/firebase/admin'
 
 export const metadata = {
@@ -50,54 +50,7 @@ export default async function CommunityPage() {
             </p>
           </div>
 
-          {/* Official Announcements Section */}
-          {announcements.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-[10px] font-mono font-bold text-text-muted uppercase tracking-widest flex items-center gap-2">
-                <Bell className="w-3.5 h-3.5 text-accent-cyan animate-pulse" />
-                Official Announcements
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {announcements.slice(0, 2).map((ann) => {
-                  const annDateStr = new Date(ann.created_at).toLocaleDateString('en-IN', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })
-                  return (
-                    <div
-                      key={ann.id}
-                      className="bg-gradient-to-br from-bg-surface to-bg-surface/50 border border-accent-cyan/15 p-5 rounded-2xl relative overflow-hidden group shadow-lg"
-                    >
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-accent-cyan/5 rounded-full blur-xl pointer-events-none" />
-                      <div className="space-y-2 relative z-10">
-                        <div className="flex justify-between items-start gap-4">
-                          <h4 className="font-extrabold text-text-primary text-sm group-hover:text-accent-cyan transition-colors">{ann.title}</h4>
-                          <span className="text-[9px] text-text-muted font-mono shrink-0">{annDateStr}</span>
-                        </div>
-                        <p className="text-text-secondary text-xs leading-relaxed line-clamp-2">{ann.content}</p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Main Discussion Thread (left 2 cols) */}
-            <div className="md:col-span-2 space-y-6">
-              <div className="bg-bg-surface border border-border-default p-6 rounded-3xl">
-                <CommentsSection />
-              </div>
-            </div>
-
-            {/* Watchlist & Widget Panel (right 1 col) */}
-            <div className="md:col-span-1 space-y-6">
-              <WatchlistWidget />
-            </div>
-          </div>
+          <CommunityClient announcements={announcements} />
         </main>
       </div>
 

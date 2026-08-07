@@ -26,14 +26,14 @@ interface DealsClientListProps {
 
 const DEAL_TABS = [
   { id: 'all', label: 'All Offers' },
-  { id: 'challenge', label: 'Challenge Deals' },
-  { id: 'cash_back', label: 'Cash Back Deals' },
+  { id: 'exclusive', label: 'Exclusive Deals' },
+  { id: 'cash_back', label: 'CashBack Deals' },
   { id: 'extra_account', label: 'Extra Account Deals' },
 ] as const
 
 export default function DealsClientList({ initialDeals }: DealsClientListProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'all' | 'challenge' | 'cash_back' | 'extra_account'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'exclusive' | 'cash_back' | 'extra_account'>('all')
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code)

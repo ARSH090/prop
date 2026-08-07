@@ -310,7 +310,6 @@ export default function LoyaltyPage() {
     { name: 'Overview', icon: LayoutGrid },
     { name: 'My Profile', icon: User },
     { name: 'Account Security', icon: Shield },
-    { name: 'Affiliate Program', icon: Share2 },
     { name: 'Weekly Giveaway', icon: Gift, suffix: '✨' },
     { name: 'FAQ & Support', icon: HelpCircle },
     { name: 'My Reviews', icon: MessageSquare },
@@ -637,31 +636,6 @@ export default function LoyaltyPage() {
               </AFXCard>
             )}
 
-            {/* Analytics Tab View */}
-            {activeMenu === 'Analytics' && (
-              <AFXCard className="bg-bg-surface border border-border-subtle p-6 space-y-4">
-                <h3 className="text-white text-base font-bold border-b border-border-subtle pb-3">Performance Analytics</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-bg-base/40 p-4 rounded-2xl border border-border-subtle text-center">
-                    <p className="text-[10px] text-text-muted uppercase font-mono tracking-wider">Profile Visits</p>
-                    <p className="text-2xl font-black text-white mt-1 font-mono">1,420</p>
-                  </div>
-                  <div className="bg-bg-base/40 p-4 rounded-2xl border border-border-subtle text-center">
-                    <p className="text-[10px] text-text-muted uppercase font-mono tracking-wider">Bookmarks Saved</p>
-                    <p className="text-2xl font-black text-white mt-1 font-mono">8</p>
-                  </div>
-                  <div className="bg-bg-base/40 p-4 rounded-2xl border border-border-subtle text-center">
-                    <p className="text-[10px] text-text-muted uppercase font-mono tracking-wider">Reviews Posted</p>
-                    <p className="text-2xl font-black text-white mt-1 font-mono">12</p>
-                  </div>
-                  <div className="bg-bg-base/40 p-4 rounded-2xl border border-border-subtle text-center">
-                    <p className="text-[10px] text-text-muted uppercase font-mono tracking-wider">Giveaways Entered</p>
-                    <p className="text-2xl font-black text-white mt-1 font-mono">2</p>
-                  </div>
-                </div>
-              </AFXCard>
-            )}
-
             {/* Account Security Tab View */}
             {activeMenu === 'Account Security' && (
               <AFXCard className="bg-bg-surface border border-border-subtle p-6 space-y-4">
@@ -677,33 +651,6 @@ export default function LoyaltyPage() {
                   <div className="p-4 rounded-xl border border-border-subtle bg-bg-base/30 space-y-2">
                     <p className="font-bold text-white">Check Session Activity</p>
                     <p className="text-[10px] text-text-muted">You are currently logged in from this browser. Active session ID matches secure token auth cache.</p>
-                  </div>
-                </div>
-              </AFXCard>
-            )}
-
-            {/* Affiliate Program View */}
-            {activeMenu === 'Affiliate Program' && (
-              <AFXCard className="bg-bg-surface border border-border-subtle p-6 space-y-4">
-                <h3 className="text-white text-base font-bold border-b border-border-subtle pb-3">Partner Referral Program</h3>
-                <div className="space-y-4 text-xs">
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-bg-base/40 p-3 rounded-xl border border-border-subtle text-center">
-                      <p className="text-[9px] text-text-muted uppercase font-mono">Total Clicks</p>
-                      <p className="text-lg font-black text-white font-mono">342</p>
-                    </div>
-                    <div className="bg-bg-base/40 p-3 rounded-xl border border-border-subtle text-center">
-                      <p className="text-[9px] text-text-muted uppercase font-mono">Referrals</p>
-                      <p className="text-lg font-black text-white font-mono">18</p>
-                    </div>
-                    <div className="bg-bg-base/40 p-3 rounded-xl border border-border-subtle text-center">
-                      <p className="text-[9px] text-text-muted uppercase font-mono">Commissions</p>
-                      <p className="text-lg font-black text-accent-green font-mono">$340.00</p>
-                    </div>
-                  </div>
-                  <div className="space-y-1 bg-bg-base/20 p-3 rounded-xl border border-border-subtle">
-                    <p className="font-bold text-white text-xs">Your Partner Link</p>
-                    <p className="text-[10px] text-accent-cyan font-mono select-all">https://anurajfx.com/join?ref={currentUser.uid.slice(0, 6)}</p>
                   </div>
                 </div>
               </AFXCard>

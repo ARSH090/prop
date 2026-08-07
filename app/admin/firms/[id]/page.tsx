@@ -43,6 +43,7 @@ export default function EditFirmPage() {
     instruments: '',
     payout_programs: [] as any[],
     restricted_countries: [] as string[],
+    logo_frame: 'none',
   })
 
   const [rules, setRules] = useState({
@@ -108,6 +109,7 @@ export default function EditFirmPage() {
             instruments: data.instruments ? (Array.isArray(data.instruments) ? data.instruments.join(', ') : data.instruments) : '',
             payout_programs: data.payout_programs || [],
             restricted_countries: data.restricted_countries || [],
+            logo_frame: data.logo_frame || 'none',
           })
           if (data.rules) {
             setRules({
@@ -449,6 +451,24 @@ export default function EditFirmPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors uppercase text-center font-mono"
                 />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Logo Border Frame</label>
+                <select
+                  name="logo_frame"
+                  value={formData.logo_frame}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                >
+                  <option value="none">No Frame</option>
+                  <option value="gold">Gold Trophy Frame</option>
+                  <option value="silver">Silver Frame</option>
+                  <option value="bronze">Bronze Frame</option>
+                  <option value="neon">Neon Cyan Glow</option>
+                </select>
               </div>
             </div>
 

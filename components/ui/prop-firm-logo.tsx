@@ -9,6 +9,7 @@ interface PropFirmLogoProps {
   className?: string
   imgClassName?: string
   circleCrop?: boolean
+  frame?: string | null
 }
 
 export function PropFirmLogo({
@@ -17,6 +18,7 @@ export function PropFirmLogo({
   className = 'w-10 h-10 rounded-xl',
   imgClassName = 'max-w-full max-h-full object-contain',
   circleCrop = true,
+  frame = 'none',
 }: PropFirmLogoProps) {
   const [imgSrc, setImgSrc] = useState<string | null>(null)
   const [hasError, setHasError] = useState(false)
@@ -52,13 +54,25 @@ export function PropFirmLogo({
     ? 'w-full h-full object-cover rounded-full'
     : imgClassName;
 
+  // Frame classes logic
+  let frameClass = ''
+  if (frame === 'gold') {
+    frameClass = '!border-2 !border-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.7)] scale-[1.05] ring-2 ring-yellow-400/30'
+  } else if (frame === 'silver') {
+    frameClass = '!border-2 !border-slate-300 shadow-[0_0_10px_rgba(148,163,184,0.6)] scale-[1.03] ring-2 ring-slate-400/20'
+  } else if (frame === 'bronze') {
+    frameClass = '!border-2 !border-amber-700 shadow-[0_0_8px_rgba(180,83,9,0.6)] scale-[1.02] ring-2 ring-amber-700/20'
+  } else if (frame === 'neon') {
+    frameClass = '!border-2 !border-accent-cyan shadow-[0_0_12px_rgba(34,211,238,0.8)] scale-[1.05]'
+  }
+
   if (hasError || !imgSrc) {
     const fallbackClassName = forceCircleCrop
       ? className.replace(/rounded-(xl|lg|md|sm|2xl|3xl)/g, '').trim() + ' rounded-full p-0'
       : className;
     return (
       <div
-        className={`${fallbackClassName} border flex items-center justify-center font-bold tracking-wider text-xs select-none shrink-0 bg-gradient-to-br from-accent-cyan/15 to-accent-purple/15 text-accent-cyan border-accent-cyan/20`}
+        className={`${fallbackClassName} border flex items-center justify-center font-bold tracking-wider text-xs select-none shrink-0 bg-gradient-to-br from-accent-cyan/15 to-accent-purple/15 text-accent-cyan border-accent-cyan/20 ${frameClass}`}
         title={name}
       >
         {getInitials(name)}
@@ -67,7 +81,7 @@ export function PropFirmLogo({
   }
 
   return (
-    <div className={`${computedClassName} border flex items-center justify-center shrink-0 overflow-hidden ${containerBg} ${forceCircleCrop ? '' : 'p-1.5'}`}>
+    <div className={`${computedClassName} border flex items-center justify-center shrink-0 overflow-hidden ${containerBg} ${forceCircleCrop ? '' : 'p-1.5'} ${frameClass}`}>
       <img
         src={imgSrc}
         alt={`${name} Logo`}

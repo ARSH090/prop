@@ -162,6 +162,19 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
         globeFirms={verifiedGlobeFirms}
       />
 
+      {/* PARTNER LOGO MARQUEE WITH DETAILS */}
+      <div className="py-6 bg-bg-base relative z-10 -mt-6">
+        <LogoMarquee 
+          firms={verifiedMarqueeFirms} 
+          title="Direct Verified Partners & Trusted Evaluation Programs" 
+        />
+        <div className="max-w-4xl mx-auto text-center px-4 -mt-4 mb-8">
+          <p className="text-xs text-text-muted leading-relaxed max-w-2xl mx-auto">
+            We partner directly with leading institutional platforms to bring you live spreads, audited payout history, and verified challenge promo keys. Filter by size, step limits, or drawdown types to find your perfect fit.
+          </p>
+        </div>
+      </div>
+
       {/* 2. EXPLAINER CARDS */}
       <ExplainerCards />
 

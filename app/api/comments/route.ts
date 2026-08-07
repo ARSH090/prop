@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const firmId = searchParams.get('firm_id')
     const blogPostId = searchParams.get('blog_post_id')
+    const communityPostId = searchParams.get('community_post_id')
 
     let query: any = db.collection('comments').where('status', '==', 'visible')
 
@@ -15,8 +16,10 @@ export async function GET(request: NextRequest) {
       query = query.where('firm_id', '==', firmId)
     } else if (blogPostId) {
       query = query.where('blog_post_id', '==', blogPostId)
+    } else if (communityPostId) {
+      query = query.where('community_post_id', '==', communityPostId)
     } else {
-      query = query.where('firm_id', '==', null).where('blog_post_id', '==', null)
+      query = query.where('firm_id', '==', null).where('blog_post_id', '==', null).where('community_post_id', '==', null)
     }
 
     const snapshot = await query.get()
@@ -38,7 +41,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { firm_id, blog_post_id, user_id, user_name, body: commentBody } = body
+    const { firm_id, blog_post_id, community_post_id, user_id, user_name, body: commentBody } = body
 
     if (!user_id || !commentBody) {
       return NextResponse.json({ error: 'User ID and comment body are required' }, { status: 400 })
@@ -47,12 +50,25 @@ export async function POST(request: NextRequest) {
     const docRef = await db.collection('comments').add({
       firm_id: firm_id || null,
       blog_post_id: blog_post_id || null,
+      community_post_id: community_post_id || null,
       user_id,
       user_name: user_name || 'Anonymous',
       body: commentBody,
       status: 'visible',
       created_at: new Date().toISOString()
     })
+
+    // Increment comments count on community post if relevant
+    if (community_post_id) {
+      try {
+        const postRef = db.collection('community_posts').doc(community_post_id)
+        await postRef.update({
+          comments_count: FieldValue.increment(1)
+        })
+      } catch (err) {
+        console.error('Failed to increment comments count:', err)
+      }
+    }
 
     return NextResponse.json({ success: true, id: docRef.id })
   } catch (error) {

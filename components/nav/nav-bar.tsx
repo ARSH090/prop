@@ -25,6 +25,7 @@ import {
   Users,
   Search,
   Bell,
+  User,
 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 import { signOut } from 'firebase/auth'
@@ -369,8 +370,8 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                         className="flex items-center gap-3 px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <Zap className="w-3.5 h-3.5 text-accent-cyan" />
-                        Loyalty Dashboard
+                        <User className="w-3.5 h-3.5 text-accent-cyan" />
+                        VIEW PROFILE
                       </Link>
                       <Link
                         href="/payouts"

@@ -34,6 +34,7 @@ export default function NewFirmPage() {
     show_in_marquee: true,
     circle_crop_logo: false,
     status: 'active',
+    logo_frame: 'none',
   })
 
   // Rules form fields builder (no raw JSON textarea)
@@ -179,6 +180,24 @@ export default function NewFirmPage() {
                   placeholder="e.g. CZ"
                   className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors uppercase text-center font-mono"
                 />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Logo Border Frame</label>
+                <select
+                  name="logo_frame"
+                  value={formData.logo_frame}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                >
+                  <option value="none">No Frame</option>
+                  <option value="gold">Gold Trophy Frame</option>
+                  <option value="silver">Silver Frame</option>
+                  <option value="bronze">Bronze Frame</option>
+                  <option value="neon">Neon Cyan Glow</option>
+                </select>
               </div>
             </div>
 

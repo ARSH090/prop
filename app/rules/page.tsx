@@ -303,6 +303,7 @@ export default function RulesPage() {
                                 name={firm.name}
                                 logoUrl={firm.logo_url}
                                 circleCrop={firm.circle_crop_logo}
+                                frame={(firm as any).logo_frame}
                                 className="w-7 h-7 rounded-lg shrink-0 border border-border-subtle/10"
                               />
                               <span className="truncate">{firm.name}</span>

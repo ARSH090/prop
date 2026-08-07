@@ -184,9 +184,8 @@ export default function EditDealPage() {
                 required
                 className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
               >
-                <option value="general">General Offer</option>
-                <option value="challenge">Challenge Deal</option>
-                <option value="cash_back">Cash Back Deal</option>
+                <option value="exclusive">Exclusive Deal</option>
+                <option value="cash_back">CashBack Deal</option>
                 <option value="extra_account">Extra Account Deal</option>
               </select>
             </div>

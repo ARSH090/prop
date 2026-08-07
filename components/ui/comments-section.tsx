@@ -17,9 +17,10 @@ interface Comment {
 interface CommentsSectionProps {
   firmId?: string
   blogPostId?: string
+  communityPostId?: string
 }
 
-export function CommentsSection({ firmId, blogPostId }: CommentsSectionProps) {
+export function CommentsSection({ firmId, blogPostId, communityPostId }: CommentsSectionProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [body, setBody] = useState('')
@@ -30,9 +31,14 @@ export function CommentsSection({ firmId, blogPostId }: CommentsSectionProps) {
   // Fetch comments
   const fetchComments = async () => {
     try {
-      const url = firmId 
-        ? `/api/comments?firm_id=${firmId}` 
-        : `/api/comments?blog_post_id=${blogPostId}`
+      let url = ''
+      if (firmId) {
+        url = `/api/comments?firm_id=${firmId}`
+      } else if (blogPostId) {
+        url = `/api/comments?blog_post_id=${blogPostId}`
+      } else if (communityPostId) {
+        url = `/api/comments?community_post_id=${communityPostId}`
+      }
       const res = await fetch(url)
       const data = await res.json()
       if (data.data) {
@@ -51,7 +57,7 @@ export function CommentsSection({ firmId, blogPostId }: CommentsSectionProps) {
       setCurrentUser(user)
     })
     return unsub
-  }, [firmId, blogPostId])
+  }, [firmId, blogPostId, communityPostId])
 
   // Submit comment
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,6 +74,7 @@ export function CommentsSection({ firmId, blogPostId }: CommentsSectionProps) {
       const payload = {
         firm_id: firmId || null,
         blog_post_id: blogPostId || null,
+        community_post_id: communityPostId || null,
         user_id: currentUser.uid,
         user_name: currentUser.displayName || currentUser.email?.split('@')[0] || 'Trader',
         body: body.trim()

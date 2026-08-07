@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
       description,
       rules,
       status,
+      logo_frame,
     } = body
 
     if (!slug || !name || !type) {
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
       description: description || '',
       rules: rules || {},
       status: status || 'active',
+      logo_frame: logo_frame || 'none',
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
     })
