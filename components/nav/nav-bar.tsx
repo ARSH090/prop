@@ -41,7 +41,7 @@ interface NavBarProps {
 }
 
 const toolsLinks = [
-  { label: 'Broker Spreads', href: '/spreads', icon: ArrowUpDown },
+  { label: 'Community Hub', href: '/community', icon: Users },
   { label: 'Payout Proofs', href: '/payouts', icon: DollarSign },
   { label: 'Payout Leaderboard', href: '/leaderboard', icon: Trophy },
   { label: 'Industry Awards', href: '/awards', icon: Award },
@@ -56,7 +56,7 @@ const subNavLinks = [
   { label: 'Reviews', href: '/reviews' },
   { label: 'Favorite Firms', href: '/favorites' },
   { label: 'Prop Firm Rules', href: '/rules' },
-  { label: 'Spreads', href: '/spreads' },
+  { label: 'Community', href: '/community' },
 ]
 
 const mobileMenuCategories = [
@@ -81,7 +81,7 @@ const mobileMenuCategories = [
   {
     title: 'TOOLS',
     links: [
-      { label: 'Broker Spreads', href: '/spreads', icon: ArrowUpDown },
+      {label: 'Community Hub', href: '/community', icon: Users },
       { label: 'Payout Proofs', href: '/payouts', icon: DollarSign },
       { label: 'Payout Leaderboard', href: '/leaderboard', icon: Trophy },
       { label: 'Industry Awards', href: '/awards', icon: Award },
