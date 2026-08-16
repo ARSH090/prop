@@ -16,11 +16,13 @@
   - [x] Implement persistent Category Tab Bar in `components/nav/nav-bar.tsx`
   - [x] Set up route groups under `app/[category]`
   - [x] Filter Firestore data in Home, Challenges, Deals, Best Sellers, Leaderboard, and Reviews page components
-- [x] Clean up Home page & FAQ section:
-  - [x] Delete "How does Anuraj FX make money?" item from `components/home/faq.tsx`.
-- [x] Upgrade year occurrences to 2026:
-  - [x] Update events pages tournament years in `app/events/page.tsx` and `app/admin/events/page.tsx` from 2025 to 2026.
-  - [x] Remove `live_tickers` rendering section from `app/page.tsx`.
+- [x] Component: Promo Codes (Deals) & Admin Settings
+  - [x] Add search bar to `app/deals/DealsClientList.tsx`
+  - [x] Implement dynamic tab category names mapping in `app/deals/DealsClientList.tsx`
+  - [x] Update server-side fetching of `tabLabels` from Firestore in `app/deals/page.tsx`
+  - [x] Add category tab inputs section to System Settings page `app/admin/settings/page.tsx`
+  - [x] Update dropdown selection categories in `app/admin/deals/new/page.tsx`
+  - [x] Update dropdown selection categories in `app/admin/deals/[id]/page.tsx`.
 - [x] AFX Resizing, Tier System & Logo Marquee Fixes:
   - [x] Rewrite marquee animation directives in `globals.css` using Tailwind v4 `@utility`.
   - [x] Marquee Speed, Custom Selections & Custom Logo Uploads:

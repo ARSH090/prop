@@ -64,6 +64,11 @@ export default function AdminSettingsPage() {
   const [savePopupLoading, setSavePopupLoading] = useState(false)
   const [savePopupSuccess, setSavePopupSuccess] = useState('')
 
+  const [tabBestValue, setTabBestValue] = useState('Best Value')
+  const [tabBogo, setTabBogo] = useState('BOGO Offers')
+  const [tabCashBack, setTabCashBack] = useState('CashBack offers')
+  const [tabExtraPoints, setTabExtraPoints] = useState('Extra Points')
+
   const [admins, setAdmins] = useState<AdminUser[]>([
     { name: 'Anuraj Admin', email: 'admin@anurajfx.com', role: 'admin' },
     { name: 'Support Team', email: 'support@anurajfx.com', role: 'support' },
@@ -88,6 +93,10 @@ export default function AdminSettingsPage() {
           setPopupActionUrl(data.action_url || '')
           setPopupActionLabel(data.action_label || '')
           setPopupIsActive(!!data.is_active)
+          setTabBestValue(data.tab_best_value || 'Best Value')
+          setTabBogo(data.tab_bogo || 'BOGO Offers')
+          setTabCashBack(data.tab_cash_back || 'CashBack offers')
+          setTabExtraPoints(data.tab_extra_points || 'Extra Points')
         }
       } catch (err) {
         console.error('Error fetching event popup settings:', err)
@@ -114,6 +123,10 @@ export default function AdminSettingsPage() {
           action_url: popupActionUrl,
           action_label: popupActionLabel,
           is_active: popupIsActive,
+          tab_best_value: tabBestValue,
+          tab_bogo: tabBogo,
+          tab_cash_back: tabCashBack,
+          tab_extra_points: tabExtraPoints,
           updated_at: new Date().toISOString()
         })
       })
@@ -475,6 +488,81 @@ export default function AdminSettingsPage() {
               </div>
             </form>
           </AFXCard>
+
+      {/* Promo Code Tab Labels Card */}
+      <AFXCard className="bg-bg-surface border border-border-subtle p-6 space-y-6 mt-6">
+        <div className="border-b border-border-subtle/50 pb-3">
+          <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
+            <Megaphone className="w-5 h-5 text-accent-cyan" />
+            Promo Code Tab Categories / Labels
+          </h3>
+          <p className="text-text-muted text-xs mt-1">Configure custom names for the promo code filter categories shown to users.</p>
+        </div>
+
+        <form onSubmit={handleSavePopup} className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-text-muted uppercase">Category 1 (Best Value)</label>
+              <input
+                type="text"
+                required
+                value={tabBestValue}
+                onChange={(e) => setTabBestValue(e.target.value)}
+                placeholder="Best Value"
+                className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-semibold"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-text-muted uppercase">Category 2 (BOGO Offers)</label>
+              <input
+                type="text"
+                required
+                value={tabBogo}
+                onChange={(e) => setTabBogo(e.target.value)}
+                placeholder="BOGO Offers"
+                className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-semibold"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-text-muted uppercase">Category 3 (CashBack offers)</label>
+              <input
+                type="text"
+                required
+                value={tabCashBack}
+                onChange={(e) => setTabCashBack(e.target.value)}
+                placeholder="CashBack offers"
+                className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-semibold"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-text-muted uppercase">Category 4 (Extra Points)</label>
+              <input
+                type="text"
+                required
+                value={tabExtraPoints}
+                onChange={(e) => setTabExtraPoints(e.target.value)}
+                placeholder="Extra Points"
+                className="w-full px-4 py-2.5 bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan text-xs font-semibold"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <AFXButton
+              type="submit"
+              disabled={savePopupLoading}
+              variant="primary"
+              className="bg-gradient-to-r from-accent-cyan to-accent-purple font-bold py-2.5 px-6 rounded-xl text-bg-base text-xs flex items-center justify-center gap-1.5"
+            >
+              <Save className="w-4 h-4" />
+              {savePopupLoading ? 'Saving...' : 'Save Categories'}
+            </AFXButton>
+          </div>
+        </form>
+      </AFXCard>
     </div>
   )
 }

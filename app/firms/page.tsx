@@ -71,14 +71,14 @@ export default function FirmsPage() {
       .then((r) => r.json())
       .then((data) => {
         const map: Record<string, { code: string; discount: string }> = {}
-        ;(data.deals || []).forEach((d: any) => {
-          if (d.firm_id && d.code && d.status === 'active') {
-            map[d.firm_id] = { code: d.code, discount: d.discount_label || 'Discount' }
-          }
-        })
+          ; (data.deals || []).forEach((d: any) => {
+            if (d.firm_id && d.code && d.status === 'active') {
+              map[d.firm_id] = { code: d.code, discount: d.discount_label || 'Discount' }
+            }
+          })
         setDeals(map)
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   const fetchFirms = async () => {
@@ -99,7 +99,7 @@ export default function FirmsPage() {
 
       const response = await fetch(`/api/firms?${params}`)
       const result = await response.json()
-      
+
       let fetchedFirms: Firm[] = result.firms || []
 
       // Client-side favorites filter if that tab is selected
@@ -130,7 +130,7 @@ export default function FirmsPage() {
       <NavBar />
 
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-8">
-        
+
         {/* Header section with text */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border-subtle/30 pb-6">
           <div>
@@ -161,43 +161,39 @@ export default function FirmsPage() {
             <div className="flex items-center gap-1 bg-bg-base/80 p-1 rounded-full border border-border-subtle">
               <button
                 onClick={() => setActiveFilterTab('all')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  activeFilterTab === 'all'
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${activeFilterTab === 'all'
                     ? 'bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base'
                     : 'text-text-secondary hover:text-text-primary'
-                }`}
+                  }`}
               >
                 All
               </button>
               <button
                 onClick={() => setActiveFilterTab('popular')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeFilterTab === 'popular'
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeFilterTab === 'popular'
                     ? 'bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base'
                     : 'text-text-secondary hover:text-text-primary'
-                }`}
+                  }`}
               >
                 <Flame className="w-3.5 h-3.5" />
                 Popular
               </button>
               <button
                 onClick={() => setActiveFilterTab('favorite')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeFilterTab === 'favorite'
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${activeFilterTab === 'favorite'
                     ? 'bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base'
                     : 'text-text-secondary hover:text-text-primary'
-                }`}
+                  }`}
               >
                 <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
                 Favorite {favoriteFirms.length}/5
               </button>
               <button
                 onClick={() => setActiveFilterTab('new')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  activeFilterTab === 'new'
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${activeFilterTab === 'new'
                     ? 'bg-gradient-to-r from-accent-cyan to-accent-blue text-bg-base'
                     : 'text-text-secondary hover:text-text-primary'
-                }`}
+                  }`}
               >
                 New
               </button>
@@ -242,7 +238,7 @@ export default function FirmsPage() {
 
         {/* Directory List Container - Using standard HTML table layout for perfect alignment */}
         <div className="border border-border-subtle bg-bg-surface/20 rounded-3xl p-1 overflow-hidden shadow-2xl relative">
-          
+
           <div className="overflow-x-auto scrollbar-none">
             <table className="w-full border-collapse text-left text-xs text-text-secondary table-fixed sm:table-auto">
               <thead>
@@ -287,10 +283,10 @@ export default function FirmsPage() {
                     const flag = COUNTRY_FLAGS[firm.country || ''] || '🌍'
                     const dealInfo = deals[firm.id]
                     const maxK = firm.max_allocation ? `$${(firm.max_allocation / 1000).toFixed(0)}K` : '—'
-                    
+
                     // Compute dynamic allocation percentage for progress bar
-                    const allocPct = firm.max_allocation 
-                      ? Math.min(100, Math.max(20, (firm.max_allocation / 2000000) * 100)) 
+                    const allocPct = firm.max_allocation
+                      ? Math.min(100, Math.max(20, (firm.max_allocation / 2000000) * 100))
                       : 45
 
                     // Rank Badge Logic
@@ -344,15 +340,14 @@ export default function FirmsPage() {
                                 </FirmLink>
                                 {firm.is_verified && <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-accent-green flex-shrink-0" />}
                               </div>
-                              
+
                               {/* Heart Likes Button Toggle */}
                               <button
                                 onClick={(e) => toggleFavorite(firm.id, e)}
                                 className="flex items-center gap-1 mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] text-text-muted hover:text-red-500 transition-colors focus:outline-none"
                               >
-                                <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover:scale-105 ${
-                                  isFav ? 'fill-red-500 text-red-500' : 'text-text-muted hover:fill-red-500/20'
-                                }`} />
+                                <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover:scale-105 ${isFav ? 'fill-red-500 text-red-500' : 'text-text-muted hover:fill-red-500/20'
+                                  }`} />
                                 <span className="font-mono">{likesCount}</span>
                               </button>
                             </div>
@@ -423,12 +418,12 @@ export default function FirmsPage() {
                         <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden sm:table-cell">
                           <div className="inline-flex flex-col items-center">
                             <span className="text-xs font-bold text-text-primary">{maxK}</span>
-                            
+
                             {/* Allocations progress bar */}
                             <div className="w-20 h-1 bg-bg-base border border-border-subtle rounded-full overflow-hidden mt-1.5">
-                              <div 
-                                className="h-full bg-gradient-to-r from-accent-cyan to-accent-purple rounded-full" 
-                                style={{ width: `${allocPct}%` }} 
+                              <div
+                                className="h-full bg-gradient-to-r from-accent-cyan to-accent-purple rounded-full"
+                                style={{ width: `${allocPct}%` }}
                               />
                             </div>
                           </div>

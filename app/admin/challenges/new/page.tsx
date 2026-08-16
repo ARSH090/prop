@@ -45,9 +45,11 @@ export default function NewChallengePage() {
     currency: 'USD',
     deal_id: '',
     affiliate_url: '',
+    coupon_code: '',
     cta_text: '',
     logo_url: '',
     is_active: true,
+    is_popular: false,
     activation_fee: '',
     max_contract_size_minis: '',
     max_contract_size_micros: '',
@@ -607,6 +609,18 @@ export default function NewChallengePage() {
               </div>
 
               <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-secondary">Promo Code Override</label>
+                <input
+                  type="text"
+                  name="coupon_code"
+                  value={formData.coupon_code}
+                  onChange={handleChange}
+                  placeholder="e.g. SAVE20"
+                  className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-text-secondary">Custom Button CTA Text Override</label>
                 <input
                   type="text"
@@ -618,16 +632,29 @@ export default function NewChallengePage() {
                 />
               </div>
 
-              <label className="flex items-center gap-3 cursor-pointer pt-2">
-                <input
-                  type="checkbox"
-                  name="is_active"
-                  checked={formData.is_active}
-                  onChange={handleChange}
-                  className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
-                />
-                <span className="text-xs font-semibold text-text-primary">Publish Active</span>
-              </label>
+              <div className="flex flex-col gap-2.5 pt-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="is_active"
+                    checked={formData.is_active}
+                    onChange={handleChange}
+                    className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+                  />
+                  <span className="text-xs font-semibold text-text-primary">Publish Active</span>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="is_popular"
+                    checked={formData.is_popular}
+                    onChange={handleChange}
+                    className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+                  />
+                  <span className="text-xs font-semibold text-text-primary">Popular Challenge</span>
+                </label>
+              </div>
             </div>
           </AFXCard>
 

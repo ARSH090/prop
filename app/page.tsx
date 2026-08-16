@@ -1,6 +1,5 @@
 import { NavBar } from '@/components/nav/nav-bar'
 import { HeroSection } from '@/components/home/hero'
-import { ExplainerCards } from '@/components/home/explainer-cards'
 import { FeaturedFirms } from '@/components/home/featured-firms'
 import { TrustStats } from '@/components/home/trust-stats'
 import { FeaturedDeals } from '@/components/home/featured-deals'
@@ -14,6 +13,7 @@ import { EventPopup } from '@/components/home/event-popup'
 import { HomeChallenges } from '@/components/home/home-challenges'
 import { HomeBestSellers } from '@/components/home/home-best-sellers'
 import { HomeFavFirms } from '@/components/home/home-fav-firms'
+import { ScrollReveal } from '@/components/ui/scroll-reveal'
 
 import {
   getSiteContent,
@@ -162,66 +162,80 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
         globeFirms={verifiedGlobeFirms}
       />
 
-      {/* PARTNER LOGO MARQUEE */}
-      <LogoMarquee 
-        firms={verifiedMarqueeFirms} 
-        title="Direct Verified Partners & Trusted Evaluation Programs" 
-      />
+      {/* 9. TRUST STATS (Moved directly above partner logo marquee) */}
+      <ScrollReveal>
+        <TrustStats stats={trustStats} />
+      </ScrollReveal>
 
-      {/* 2. EXPLAINER CARDS */}
-      <ExplainerCards />
+      {/* PARTNER LOGO MARQUEE WITH SPACER WRAPPER */}
+      <div className="my-10 md:my-16">
+        <LogoMarquee 
+          firms={verifiedMarqueeFirms} 
+          title="Direct Verified Partners & Trusted Evaluation Programs" 
+        />
+      </div>
 
       {/* 3. CHALLENGES - Popular challenges section */}
-      <HomeChallenges
-        challenges={activeChallengesForHome}
-        firms={allFirms}
-        badge={homeContent.challenges_badge}
-        title={homeContent.challenges_title}
-        subtext={homeContent.challenges_subtext}
-        ctaText={homeContent.challenges_cta}
-      />
+      <ScrollReveal>
+        <HomeChallenges
+          challenges={activeChallengesForHome}
+          firms={allFirms}
+          badge={homeContent.challenges_badge}
+          title={homeContent.challenges_title}
+          subtext={homeContent.challenges_subtext}
+          ctaText={homeContent.challenges_cta}
+        />
+      </ScrollReveal>
 
       {/* 4. BEST SELLERS */}
-      <HomeBestSellers
-        items={bestSellersForHome}
-        badge={homeContent.best_sellers_badge}
-        title={homeContent.best_sellers_title}
-        subtext={homeContent.best_sellers_subtext}
-        ctaText={homeContent.best_sellers_cta}
-      />
+      <ScrollReveal>
+        <HomeBestSellers
+          items={bestSellersForHome}
+          badge={homeContent.best_sellers_badge}
+          title={homeContent.best_sellers_title}
+          subtext={homeContent.best_sellers_subtext}
+          ctaText={homeContent.best_sellers_cta}
+        />
+      </ScrollReveal>
 
       {/* 5. FEATURED PROP FIRMS */}
-      <FeaturedFirms
-        firms={featuredFirms}
-        title={homeContent.featured_firms_title}
-        subtext={homeContent.featured_firms_subtext}
-      />
+      <ScrollReveal>
+        <FeaturedFirms
+          firms={featuredFirms}
+          title={homeContent.featured_firms_title}
+          subtext={homeContent.featured_firms_subtext}
+        />
+      </ScrollReveal>
 
       {/* 6. FEATURED DEALS */}
-      <FeaturedDeals
-        deals={filteredDeals}
-        title={homeContent.featured_deals_title}
-        subtext={homeContent.featured_deals_subtext}
-      />
+      <ScrollReveal>
+        <FeaturedDeals
+          deals={filteredDeals}
+          title={homeContent.featured_deals_title}
+          subtext={homeContent.featured_deals_subtext}
+        />
+      </ScrollReveal>
 
       {/* 7. FAVORITE FIRMS */}
-      <HomeFavFirms
-        firms={favFirmsForHome}
-        badge={homeContent.fav_firms_badge}
-        title={homeContent.fav_firms_title}
-        subtext={homeContent.fav_firms_subtext}
-        ctaText={homeContent.fav_firms_cta}
-      />
-      {/* 9. TRUST STATS */}
-      <TrustStats stats={trustStats} />
+      <ScrollReveal>
+        <HomeFavFirms
+          firms={favFirmsForHome}
+          badge={homeContent.fav_firms_badge}
+          title={homeContent.fav_firms_title}
+          subtext={homeContent.fav_firms_subtext}
+          ctaText={homeContent.fav_firms_cta}
+        />
+      </ScrollReveal>
 
       {/* 10. BLOG PREVIEW */}
-      <BlogPreview
-        posts={blogs}
-        title={homeContent.blog_title}
-        subtext={homeContent.blog_subtext}
-        ctaText={homeContent.blog_cta}
-      />
+      <ScrollReveal>
+        <BlogPreview
+          posts={blogs}
+          title={homeContent.blog_title}
+          subtext={homeContent.blog_subtext}
+          ctaText={homeContent.blog_cta}
+        />
+      </ScrollReveal>
 
       {/* 11. NEWSLETTER */}
       <Newsletter

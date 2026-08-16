@@ -21,9 +21,8 @@ export function FirmTabs({ slug }: FirmTabsProps) {
   ]
 
   return (
-    <div className="flex border-b border-border-subtle/50 mb-8 overflow-x-auto scrollbar-none gap-2">
+    <div className="relative flex border-b border-white/10 mb-8 overflow-x-auto scrollbar-none gap-2">
       {tabs.map((tab) => {
-        // Active if pathname matches exactly, or for overview if pathname is exactly /firms/[slug]
         const isActive =
           tab.name === 'Overview'
             ? pathname === tab.href
@@ -33,16 +32,20 @@ export function FirmTabs({ slug }: FirmTabsProps) {
           <Link
             key={tab.name}
             href={tab.href}
-            className={`px-5 py-3.5 text-sm font-bold border-b-2 transition-all shrink-0 select-none ${
+            className={`relative px-5 py-3.5 text-sm font-bold transition-all duration-200 shrink-0 select-none ${
               isActive
-                ? 'border-accent-cyan text-text-primary'
-                : 'border-transparent text-text-muted hover:text-text-primary'
+                ? 'text-accent-cyan font-extrabold scale-[1.02]'
+                : 'text-text-muted hover:text-text-primary'
             }`}
           >
             {tab.name}
+            {isActive && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-cta rounded-full shadow-[0_0_8px_#22D3EE] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+            )}
           </Link>
         )
       })}
     </div>
   )
 }
+

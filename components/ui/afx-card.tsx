@@ -12,8 +12,7 @@ export const AFXCard = React.forwardRef<HTMLDivElement, AFXCardProps>(
       <div
         ref={ref}
         className={cn(
-          'rounded-[16px] border border-border-subtle bg-bg-card p-6',
-          glass && 'backdrop-blur-sm bg-opacity-80',
+          'rounded-2xl border border-white/10 bg-black/35 backdrop-blur-md p-6 shadow-2xl transition-all duration-300',
           className
         )}
         {...props}

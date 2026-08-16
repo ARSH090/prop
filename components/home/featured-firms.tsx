@@ -68,13 +68,13 @@ export function FeaturedFirms({ firms, title, subtext }: FeaturedFirmsProps) {
   }
 
   return (
-    <section className="py-20 bg-bg-base relative">
+    <section className="py-20 bg-transparent relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10">
           <h2 className="text-4xl font-bold text-text-primary mb-2 afx-gradient-heading">
             {title || 'Featured Prop Firms'}
           </h2>
-          <p className="text-text-secondary text-lg">
+          <p className="text-text-secondary text-lg font-bold">
             {subtext || 'Compare premium programs, get exclusive discount codes, and buy with one click.'}
           </p>
         </div>
@@ -84,15 +84,14 @@ export function FeaturedFirms({ firms, title, subtext }: FeaturedFirmsProps) {
             {firms.map((firm, i) => (
               <AFXCard
                 key={firm.id}
-                className={`relative flex flex-col justify-between group overflow-hidden border transition-all duration-500 bg-bg-card/50 hover:-translate-y-2 ${
-                  i === 0
-                    ? 'neon-border-cyan hover:shadow-[0_0_35px_rgba(34,211,238,0.25)]'
-                    : 'border-border-default hover:border-accent-cyan/60 hover:shadow-[0_0_25px_rgba(34,211,238,0.18)]'
-                }`}
+                className={`relative flex flex-col justify-between group overflow-hidden border transition-all duration-500 bg-black/40 hover:-translate-y-2 rounded-2xl ${i === 0
+                  ? 'border-accent-cyan/40 shadow-[0_0_30px_rgba(34,211,238,0.18)]'
+                  : 'border-white/5 hover:border-accent-cyan/30 hover:shadow-[0_0_20px_rgba(34,211,238,0.12)]'
+                  }`}
               >
                 {/* Glow Overlay */}
-                <div className="absolute -inset-px bg-gradient-to-br from-accent-cyan/0 via-accent-cyan/0 to-accent-purple/0 group-hover:from-accent-cyan/5 group-hover:to-accent-purple/10 rounded-3xl transition-all duration-500 pointer-events-none" />
-                
+                <div className="absolute -inset-px bg-gradient-to-br from-accent-cyan/0 via-accent-cyan/0 to-accent-purple/0 group-hover:from-accent-cyan/5 group-hover:to-accent-purple/10 rounded-2xl transition-all duration-500 pointer-events-none" />
+
                 <div className="space-y-6 relative z-10">
                   {/* Header */}
                   <div className="flex justify-between items-start">
@@ -120,12 +119,12 @@ export function FeaturedFirms({ firms, title, subtext }: FeaturedFirmsProps) {
                   </div>
 
                   {/* Description */}
-                  <p className="text-text-secondary text-sm line-clamp-2">
+                  <p className="text-text-secondary text-sm font-bold line-clamp-2">
                     {firm.description}
                   </p>
 
                   {/* Metrics */}
-                  <div className="grid grid-cols-2 gap-4 py-4 border-y border-border-default text-xs">
+                  <div className="grid grid-cols-2 gap-4 py-4 border-y border-white/5 text-xs font-bold">
                     <div>
                       <span className="text-text-muted block mb-1">Max Allocation</span>
                       <span className="font-semibold text-text-primary font-mono">
@@ -140,12 +139,12 @@ export function FeaturedFirms({ firms, title, subtext }: FeaturedFirmsProps) {
                     </div>
                   </div>
 
-                  {/* Category Tags */}
+                  {/* Category Tags (Translucent and glowing cyan/purple) */}
                   <div className="flex flex-wrap gap-1.5">
                     {firm.category?.map((cat) => (
                       <span
                         key={cat}
-                        className="px-2 py-0.5 rounded border border-border-default text-[10px] uppercase font-bold tracking-wider bg-bg-base text-text-primary"
+                        className="px-2.5 py-0.5 rounded border border-accent-cyan/30 text-[9px] uppercase font-black tracking-widest bg-accent-cyan/10 text-accent-cyan shadow-[0_0_12px_rgba(34,211,238,0.12)]"
                       >
                         {cat}
                       </span>
@@ -153,14 +152,18 @@ export function FeaturedFirms({ firms, title, subtext }: FeaturedFirmsProps) {
                   </div>
                 </div>
 
-                {/* Action Button */}
-                <div className="pt-6 mt-6 border-t border-border-default flex justify-between items-center gap-4">
-                  <span className="text-text-primary text-xs font-mono font-bold bg-bg-base/80 border border-border-default px-2.5 py-1 rounded-xl">
-                    {firm.activeDeal ? `Code: ${firm.activeDeal.code}` : 'No Active Code'}
+                {/* Action Button & Active Promo Code */}
+                <div className="pt-6 mt-6 border-t border-white/5 flex justify-between items-center gap-4 relative z-10">
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 border backdrop-blur-md rounded-lg ${
+                    firm.activeDeal
+                      ? 'bg-accent-green/10 text-accent-green border-accent-green/30 shadow-[0_0_12px_rgba(34,197,94,0.1)]'
+                      : 'bg-red-500/10 text-red-400 border-red-500/25 shadow-[0_0_10px_rgba(239,68,68,0.06)]'
+                  }`}>
+                    {firm.activeDeal ? `CODE: ${firm.activeDeal.code}` : 'NO ACTIVE CODE'}
                   </span>
                   <AFXButton
                     variant="primary"
-                    className="bg-gradient-to-r from-accent-cyan to-accent-purple hover:opacity-90 font-semibold group/btn flex items-center gap-1.5 text-xs py-2 px-4"
+                    className="bg-gradient-to-r from-accent-cyan to-accent-purple hover:opacity-90 font-semibold group/btn flex items-center gap-1.5 text-xs py-2 px-4 rounded-xl"
                     onClick={() => handleBuyNow(firm)}
                   >
                     Buy Now
@@ -171,7 +174,7 @@ export function FeaturedFirms({ firms, title, subtext }: FeaturedFirmsProps) {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 border border-border-default rounded-3xl bg-bg-surface/50">
+          <div className="text-center py-16 border border-white/5 rounded-3xl bg-black/20">
             <p className="text-text-secondary text-sm font-semibold">No prop firms found for this category.</p>
           </div>
         )}

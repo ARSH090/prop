@@ -4,16 +4,16 @@ import React, { useState, useEffect } from 'react'
 import { auth } from '@/lib/firebase/client'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
-import { 
-  ArrowUp, 
-  ArrowDown, 
-  MessageSquare, 
-  Eye, 
-  Share2, 
-  Bookmark, 
-  Users, 
-  Sparkles, 
-  Calendar, 
+import {
+  ArrowUp,
+  ArrowDown,
+  MessageSquare,
+  Eye,
+  Share2,
+  Bookmark,
+  Users,
+  Sparkles,
+  Calendar,
   ShieldAlert,
   Send,
   PlusCircle,
@@ -46,7 +46,7 @@ export function CommunityClient({ announcements }: CommunityClientProps) {
   const [posts, setPosts] = useState<Post[]>([])
   const [loadingPosts, setLoadingPosts] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
-  
+
   // Create Post form state
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newTitle, setNewTitle] = useState('')
@@ -203,10 +203,10 @@ export function CommunityClient({ announcements }: CommunityClientProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
+
       {/* Main Discussion Thread (left 2 cols) */}
       <div className="lg:col-span-2 space-y-6">
-        
+
         {/* Create Post Header trigger */}
         <div className="bg-[#120F1D] border border-[#271E3A] p-4 rounded-3xl flex items-center justify-between gap-4 shadow-lg">
           <div className="flex items-center gap-3">
@@ -248,31 +248,28 @@ export function CommunityClient({ announcements }: CommunityClientProps) {
 
               return (
                 <div key={post.id} className="bg-[#120F1D] border border-[#271E3A] rounded-3xl overflow-hidden shadow-lg flex">
-                  
+
                   {/* Left Upvote/Downvote panel */}
                   <div className="bg-[#0B0813] w-14 flex flex-col items-center py-5 border-r border-[#271E3A] select-none shrink-0">
                     <button
                       onClick={() => handleVote(post.id, 'up')}
-                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                        hasUpvoted 
-                          ? 'text-accent-cyan bg-accent-cyan/10' 
+                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${hasUpvoted
+                          ? 'text-accent-cyan bg-accent-cyan/10'
                           : 'text-text-muted hover:text-white hover:bg-bg-surface/30'
-                      }`}
+                        }`}
                     >
                       <ArrowUp className="w-5 h-5" />
                     </button>
-                    <span className={`text-xs font-mono font-black my-2.5 ${
-                      score > 0 ? 'text-accent-cyan' : score < 0 ? 'text-rose-400' : 'text-text-muted'
-                    }`}>
+                    <span className={`text-xs font-mono font-black my-2.5 ${score > 0 ? 'text-accent-cyan' : score < 0 ? 'text-rose-400' : 'text-text-muted'
+                      }`}>
                       {score}
                     </span>
                     <button
                       onClick={() => handleVote(post.id, 'down')}
-                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                        hasDownvoted 
-                          ? 'text-rose-400 bg-rose-400/10' 
+                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${hasDownvoted
+                          ? 'text-rose-400 bg-rose-400/10'
                           : 'text-text-muted hover:text-white hover:bg-bg-surface/30'
-                      }`}
+                        }`}
                     >
                       <ArrowDown className="w-5 h-5" />
                     </button>
@@ -280,7 +277,7 @@ export function CommunityClient({ announcements }: CommunityClientProps) {
 
                   {/* Right main post details */}
                   <div className="p-6 flex-grow min-w-0 space-y-4">
-                    
+
                     {/* Header */}
                     <div className="flex items-center justify-between gap-3 text-[10px] text-text-muted font-mono flex-wrap">
                       <div className="flex items-center gap-2">
@@ -292,7 +289,7 @@ export function CommunityClient({ announcements }: CommunityClientProps) {
                       </div>
                       <div className="flex gap-1.5">
                         {post.tags?.map((tag) => (
-                          <span 
+                          <span
                             key={tag}
                             className="px-2 py-0.5 rounded bg-bg-base border border-border-subtle/80 text-[8px] font-bold text-accent-purple uppercase tracking-wider"
                           >
@@ -323,7 +320,7 @@ export function CommunityClient({ announcements }: CommunityClientProps) {
 
                     {/* Footer tools */}
                     <div className="pt-4 border-t border-border-subtle/30 flex items-center justify-between text-text-muted text-[10px] font-mono">
-                      
+
                       <div className="flex items-center gap-4">
                         <button
                           onClick={() => setActiveCommentPostId(activeCommentPostId === post.id ? null : post.id)}
@@ -368,7 +365,7 @@ export function CommunityClient({ announcements }: CommunityClientProps) {
 
       {/* Announcements & Community Stats Sidebar (right col) */}
       <div className="lg:col-span-1 space-y-6">
-        
+
         {/* Community Rules card */}
         <AFXCard className="bg-bg-surface border-border-subtle p-5 space-y-4">
           <div className="flex items-center gap-2 border-b border-border-subtle pb-3">

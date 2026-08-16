@@ -3,6 +3,7 @@ import { Gift } from 'lucide-react'
 import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
 import { getDeals, getFirms } from '@/lib/firebase/server'
+import { db } from '@/lib/firebase/admin'
 import DealsClientList from './DealsClientList'
 
 export const metadata = {
@@ -13,7 +14,19 @@ export default async function DealsPage({ params }: { params?: Promise<{ categor
   const resolvedParams = params ? await params : null
   const category = resolvedParams?.category || 'forex'
 
-  const [deals, firms] = await Promise.all([getDeals(), getFirms()])
+  const [deals, firms, settingsDoc] = await Promise.all([
+    getDeals(),
+    getFirms(),
+    db.collection('site_settings').doc('event_popup').get()
+  ])
+
+  const settings = settingsDoc.exists ? settingsDoc.data() : {}
+  const tabLabels = {
+    best_value: settings?.tab_best_value || 'Best Value',
+    bogo: settings?.tab_bogo || 'BOGO Offers',
+    cash_back: settings?.tab_cash_back || 'CashBack offers',
+    extra_points: settings?.tab_extra_points || 'Extra Points',
+  }
 
   // Filter active firms by category
   const activeFirms = firms.filter((f) => {
@@ -31,10 +44,10 @@ export default async function DealsPage({ params }: { params?: Promise<{ categor
         ...deal,
         firms: firm
           ? {
-              name: firm.name,
-              slug: firm.slug,
-              affiliate_url: firm.affiliate_url || firm.website_url || '#',
-            }
+            name: firm.name,
+            slug: firm.slug,
+            affiliate_url: firm.affiliate_url || firm.website_url || '#',
+          }
           : null,
       }
     })
@@ -54,7 +67,7 @@ export default async function DealsPage({ params }: { params?: Promise<{ categor
           </p>
         </div>
 
-        <DealsClientList initialDeals={enrichedDeals} />
+        <DealsClientList initialDeals={enrichedDeals} tabLabels={tabLabels} />
       </main>
 
       <Footer />

@@ -31,6 +31,7 @@ export default function NewFirmPage() {
     is_featured: false,
     is_verified: true,
     is_favorite: false,
+    is_popular: false,
     show_in_marquee: true,
     circle_crop_logo: false,
     status: 'active',
@@ -567,6 +568,17 @@ export default function NewFirmPage() {
                   className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
                 />
                 <span className="text-xs font-semibold text-text-primary">Favorite / Popular Firm</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="is_popular"
+                  checked={formData.is_popular}
+                  onChange={handleChange}
+                  className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+                />
+                <span className="text-xs font-semibold text-text-primary">Is Popular (Top Highlights Panel)</span>
               </label>
 
 

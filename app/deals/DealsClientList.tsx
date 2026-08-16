@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Copy, Clock, TrendingUp, Gift } from 'lucide-react'
+import { Copy, Clock, TrendingUp, Gift, Search } from 'lucide-react'
 import { AFXCard } from '@/components/ui/afx-card'
 
 interface Deal {
@@ -22,18 +22,33 @@ interface Deal {
 
 interface DealsClientListProps {
   initialDeals: Deal[]
+  tabLabels?: {
+    best_value?: string
+    bogo?: string
+    cash_back?: string
+    extra_points?: string
+  }
 }
 
-const DEAL_TABS = [
-  { id: 'all', label: 'All Offers' },
-  { id: 'exclusive', label: 'Exclusive Deals' },
-  { id: 'cash_back', label: 'CashBack Deals' },
-  { id: 'extra_account', label: 'Extra Account Deals' },
-] as const
-
-export default function DealsClientList({ initialDeals }: DealsClientListProps) {
+export default function DealsClientList({ initialDeals, tabLabels = {} }: DealsClientListProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'all' | 'exclusive' | 'cash_back' | 'extra_account'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'best_value' | 'bogo' | 'cash_back' | 'extra_points'>('all')
+  const [search, setSearch] = useState('')
+
+  const labels = {
+    best_value: tabLabels.best_value || 'Best Value',
+    bogo: tabLabels.bogo || 'BOGO Offers',
+    cash_back: tabLabels.cash_back || 'CashBack offers',
+    extra_points: tabLabels.extra_points || 'Extra Points',
+  }
+
+  const dealTabs = [
+    { id: 'all', label: 'All Offers' },
+    { id: 'best_value', label: labels.best_value },
+    { id: 'bogo', label: labels.bogo },
+    { id: 'cash_back', label: labels.cash_back },
+    { id: 'extra_points', label: labels.extra_points },
+  ] as const
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code)
@@ -57,8 +72,13 @@ export default function DealsClientList({ initialDeals }: DealsClientListProps) 
   }
 
   const filteredDeals = initialDeals.filter((deal) => {
-    if (activeTab === 'all') return true
-    return deal.deal_type === activeTab
+    const matchesTab = activeTab === 'all' || deal.deal_type === activeTab
+    const matchesSearch = !search ||
+      deal.code.toLowerCase().includes(search.toLowerCase()) ||
+      deal.title.toLowerCase().includes(search.toLowerCase()) ||
+      deal.description.toLowerCase().includes(search.toLowerCase()) ||
+      (deal.firms?.name || '').toLowerCase().includes(search.toLowerCase())
+    return matchesTab && matchesSearch
   })
 
   if (initialDeals.length === 0) {
@@ -72,21 +92,34 @@ export default function DealsClientList({ initialDeals }: DealsClientListProps) 
 
   return (
     <div className="space-y-8">
-      {/* 4 Tabs Filter Bar */}
-      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 border-b border-border-subtle/50 pb-px">
-        {DEAL_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2.5 text-xs font-mono font-bold border-b-2 transition-all cursor-pointer ${
-              activeTab === tab.id
-                ? 'border-accent-cyan text-text-primary'
-                : 'border-transparent text-text-muted hover:text-text-primary'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Search and Tabs Filter Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-subtle/50 pb-4">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+          {dealTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2.5 text-xs font-mono font-bold border-b-2 transition-all cursor-pointer ${
+                activeTab === tab.id
+                  ? 'border-accent-cyan text-text-primary'
+                  : 'border-transparent text-text-muted hover:text-text-primary'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative w-full md:w-64 group">
+          <Search className="absolute left-3.5 top-3 w-3.5 h-3.5 text-text-muted group-hover:text-accent-cyan transition-colors" />
+          <input
+            type="text"
+            placeholder="Search promo codes..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-bg-surface border border-border-subtle rounded-full text-xs font-mono font-bold text-text-primary focus:border-accent-cyan focus:ring-2 focus:ring-accent-cyan/20 outline-none transition-all shadow-sm"
+          />
+        </div>
       </div>
 
       <div className="grid gap-6">

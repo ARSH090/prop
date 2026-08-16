@@ -34,7 +34,7 @@ export default async function CommunityPage() {
     <div className="min-h-screen bg-bg-base text-text-primary flex flex-col justify-between">
       <div>
         <NavBar />
-        
+
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 space-y-8">
           {/* Header Block */}
           <div className="text-center space-y-4 max-w-3xl mx-auto">

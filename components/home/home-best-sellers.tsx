@@ -3,8 +3,8 @@
 import React from 'react'
 import Link from 'next/link'
 import { AFXCard } from '@/components/ui/afx-card'
-import { Star, ArrowRight, TrendingUp, ExternalLink } from 'lucide-react'
-import { getCleanLogoUrl, isDarkLogo } from '@/lib/utils/logo-url'
+import { ArrowRight, TrendingUp, ExternalLink } from 'lucide-react'
+import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 interface BestSeller {
   id: string
@@ -44,7 +44,7 @@ export function HomeBestSellers({
   const top = items.slice(0, 5)
 
   return (
-    <section className="py-20 bg-bg-surface relative overflow-hidden">
+    <section className="py-20 bg-transparent relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/3 to-accent-cyan/3 pointer-events-none" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
@@ -57,7 +57,7 @@ export function HomeBestSellers({
             <h2 className="text-4xl font-bold text-text-primary afx-gradient-heading">
               {title || 'Top Selling Challenges'}
             </h2>
-            <p className="text-text-secondary text-lg mt-2">
+            <p className="text-text-secondary text-lg mt-2 font-bold">
               {subtext || 'The most purchased challenge programs by traders this month.'}
             </p>
           </div>
@@ -76,35 +76,37 @@ export function HomeBestSellers({
             const firm = item.firm
             if (!firm) return null
 
+            const frame = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : 'offwhite'
+
             return (
               <AFXCard
                 key={item.id}
-                className="bg-bg-card border border-border-subtle p-5 hover:border-accent-purple/30 hover:shadow-[0_0_20px_rgba(139,92,246,0.1)] transition-all duration-300 group relative overflow-hidden"
+                className="p-6 bg-gradient-to-b from-white/[0.04] to-accent-purple/[0.02] border border-white/5 hover:border-accent-purple/40 hover:shadow-[0_0_25px_rgba(139,92,246,0.18)] hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden rounded-2xl"
               >
+                {/* Visual Shiny Highlight overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent opacity-40 pointer-events-none" />
+
                 {/* Rank badge */}
-                <div className="absolute top-3 right-3">
-                  <span className={`text-[10px] font-black font-mono px-2 py-0.5 rounded ${
+                <div className="absolute top-4 right-4">
+                  <span className={`text-[10px] font-black font-mono px-2 py-0.5 rounded-md ${
                     rank === 1 ? 'bg-yellow-400/20 text-yellow-400 border border-yellow-400/30' :
-                    rank === 2 ? 'bg-gray-400/20 text-gray-400 border border-gray-400/30' :
-                    rank === 3 ? 'bg-orange-400/20 text-orange-400 border border-orange-400/30' :
-                    'bg-bg-base text-text-muted border border-border-subtle'
+                      rank === 2 ? 'bg-slate-400/20 text-slate-400 border border-slate-400/30' :
+                        rank === 3 ? 'bg-orange-400/20 text-orange-400 border border-orange-400/30' :
+                          'bg-black/35 text-text-muted border border-white/5'
                   }`}>
                     #{rank}
                   </span>
                 </div>
 
-                {/* Firm header */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border border-border-subtle overflow-hidden shrink-0 ${isDarkLogo(firm.name) ? 'bg-[#0b121f]' : 'bg-white'}`}>
-                    <img 
-                      src={getCleanLogoUrl(firm.name, firm.logo_url)} 
-                      alt={firm.name} 
-                      className="w-10 h-10 object-contain animate-fade-in" 
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = getCleanLogoUrl(firm.name, null)
-                      }}
-                    />
-                  </div>
+                {/* Firm header & logo details */}
+                <div className="flex items-center gap-3 mb-5">
+                  <PropFirmLogo
+                    name={firm.name}
+                    logoUrl={firm.logo_url}
+                    circleCrop={false}
+                    frame={frame}
+                    className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shrink-0"
+                  />
                   <div>
                     <h3 className="font-bold text-text-primary group-hover:text-accent-purple transition-colors">{firm.name}</h3>
                     <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-text-muted">
@@ -113,32 +115,32 @@ export function HomeBestSellers({
                   </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-3 mb-4 py-3 border-y border-border-subtle/50 text-xs">
+                {/* Stats grid section */}
+                <div className="grid grid-cols-2 gap-3 mb-5 py-4 border-y border-white/5 text-xs font-bold">
                   <div>
-                    <p className="text-text-muted font-bold uppercase tracking-wider text-[9px]">Account Size</p>
-                    <p className="font-bold text-text-primary font-mono">${(item.account_size / 1000).toFixed(0)}K</p>
+                    <p className="text-text-muted uppercase tracking-wider text-[9px] mb-0.5">Account Size</p>
+                    <p className="text-text-primary font-mono text-sm">${(item.account_size / 1000).toFixed(0)}K</p>
                   </div>
                   <div>
-                    <p className="text-text-muted font-bold uppercase tracking-wider text-[9px]">Profit Target</p>
-                    <p className="font-bold text-accent-green font-mono">{item.profit_target_p1}%</p>
+                    <p className="text-text-muted uppercase tracking-wider text-[9px] mb-0.5">Profit Target</p>
+                    <p className="text-accent-green font-mono text-sm">{item.profit_target_p1}%</p>
                   </div>
                   <div>
-                    <p className="text-text-muted font-bold uppercase tracking-wider text-[9px]">Max Drawdown</p>
-                    <p className="font-bold text-red-400 font-mono">{item.max_loss_pct}%</p>
+                    <p className="text-text-muted uppercase tracking-wider text-[9px] mb-0.5">Max Drawdown</p>
+                    <p className="text-red-400 font-mono text-sm">{item.max_loss_pct}%</p>
                   </div>
                   <div>
-                    <p className="text-text-muted font-bold uppercase tracking-wider text-[9px]">Price</p>
-                    <p className="font-bold text-accent-cyan font-mono">${item.price}</p>
+                    <p className="text-text-muted uppercase tracking-wider text-[9px] mb-0.5">Price</p>
+                    <p className="text-accent-cyan font-mono text-sm">${item.price}</p>
                   </div>
                 </div>
 
-                {/* CTA */}
+                {/* Buy Button CTA */}
                 <a
                   href={item.affiliate_url || firm.affiliate_url || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-bold text-bg-base bg-gradient-to-r from-accent-purple to-accent-blue text-xs hover:opacity-90 transition-opacity"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-bg-base bg-gradient-to-r from-accent-purple to-accent-blue text-xs hover:opacity-90 transition-opacity"
                 >
                   Buy Challenge
                   <ExternalLink className="w-3.5 h-3.5" />

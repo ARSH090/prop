@@ -3,8 +3,7 @@ import { NavBar } from '@/components/nav/nav-bar'
 import { Footer } from '@/components/footer'
 import { getChallenges, getFirms } from '@/lib/firebase/server'
 import { AFXCard } from '@/components/ui/afx-card'
-import { Award, TrendingUp } from 'lucide-react'
-import { getCleanLogoUrl } from '@/lib/utils/logo-url'
+import { Award } from 'lucide-react'
 import { PropFirmLogo } from '@/components/ui/prop-firm-logo'
 
 export const metadata = {
@@ -36,7 +35,7 @@ export default async function BestSellersPage({ params }: { params?: Promise<{ c
   activeChallenges.sort((a, b) => b.popularity_score - a.popularity_score)
 
   return (
-    <div className="min-h-screen bg-bg-base text-text-primary">
+    <div className="best-sellers-page min-h-screen bg-bg-base text-text-primary">
       <NavBar />
       <main className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-8">
         <div>
@@ -99,9 +98,9 @@ export default async function BestSellersPage({ params }: { params?: Promise<{ c
                     href={c.affiliate_url || c.firm?.affiliate_url || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-5 py-2.5 rounded-xl font-bold text-bg-base bg-gradient-to-r from-accent-cyan to-accent-blue text-xs whitespace-nowrap hover:opacity-90 transition-opacity"
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold bg-accent-cyan text-bg-base hover:opacity-90 transition-opacity text-xs"
                   >
-                    Buy Challenge →
+                    View Challenge
                   </a>
                 </div>
               </AFXCard>

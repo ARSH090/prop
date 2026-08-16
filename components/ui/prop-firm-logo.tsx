@@ -18,8 +18,8 @@ export function PropFirmLogo({
   logoUrl: propLogoUrl,
   className = 'w-10 h-10 rounded-xl',
   imgClassName = 'max-w-full max-h-full object-contain',
-  circleCrop = true,
-  frame = 'none',
+  circleCrop = false,
+  frame = 'offwhite',
   transparentBg = false,
 }: PropFirmLogoProps) {
   const [imgSrc, setImgSrc] = useState<string | null>(null)
@@ -45,7 +45,7 @@ export function PropFirmLogo({
   const isDark = isDarkLogo(name)
   const containerBg = transparentBg 
     ? 'bg-transparent border-transparent' 
-    : (isDark ? 'bg-[#0b121f] border-accent-purple/20' : 'bg-white border-border-subtle')
+    : (isDark ? 'bg-black/40 border-white/5 shadow-inner' : 'bg-white/90 border-white/10 shadow-sm')
 
   const forceCircleCrop = circleCrop
 
@@ -55,18 +55,20 @@ export function PropFirmLogo({
 
   const computedImgClassName = forceCircleCrop
     ? 'w-full h-full object-cover rounded-full'
-    : imgClassName;
+    : 'w-full h-full object-cover';
 
   // Frame classes logic
   let frameClass = ''
   if (frame === 'gold') {
-    frameClass = '!border-2 !border-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.7)] scale-[1.05] ring-2 ring-yellow-400/30'
+    frameClass = '!border-[3px] !border-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.7)] scale-[1.05] ring-2 ring-yellow-400/30'
   } else if (frame === 'silver') {
-    frameClass = '!border-2 !border-slate-300 shadow-[0_0_10px_rgba(148,163,184,0.6)] scale-[1.03] ring-2 ring-slate-400/20'
+    frameClass = '!border-[3px] !border-slate-300 shadow-[0_0_10px_rgba(148,163,184,0.6)] scale-[1.03] ring-2 ring-slate-400/20'
   } else if (frame === 'bronze') {
-    frameClass = '!border-2 !border-amber-700 shadow-[0_0_8px_rgba(180,83,9,0.6)] scale-[1.02] ring-2 ring-amber-700/20'
+    frameClass = '!border-[3px] !border-amber-700 shadow-[0_0_8px_rgba(180,83,9,0.6)] scale-[1.02] ring-2 ring-amber-700/20'
   } else if (frame === 'neon') {
-    frameClass = '!border-2 !border-accent-cyan shadow-[0_0_12px_rgba(34,211,238,0.8)] scale-[1.05]'
+    frameClass = '!border-[3px] !border-accent-cyan shadow-[0_0_12px_rgba(34,211,238,0.8)] scale-[1.05]'
+  } else if (frame === 'offwhite') {
+    frameClass = '!border-[3px] !border-[#2A3348] shadow-[0_0_6px_rgba(255,255,255,0.05)]'
   }
 
   if (hasError || !imgSrc) {
@@ -84,7 +86,7 @@ export function PropFirmLogo({
   }
 
   return (
-    <div className={`${computedClassName} ${transparentBg ? '' : 'border'} flex items-center justify-center shrink-0 overflow-hidden ${containerBg} ${forceCircleCrop ? '' : 'p-1.5'} ${frameClass}`}>
+    <div className={`${computedClassName} flex items-center justify-center shrink-0 overflow-hidden ${containerBg} p-0 ${frameClass}`}>
       <img
         src={imgSrc}
         alt={`${name} Logo`}
@@ -94,3 +96,5 @@ export function PropFirmLogo({
     </div>
   )
 }
+
+export default PropFirmLogo

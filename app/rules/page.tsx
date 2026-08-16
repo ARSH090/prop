@@ -140,12 +140,12 @@ export default function RulesPage() {
       }
 
       if (typeof valA === 'string') {
-        return sortOrder === 'asc' 
-          ? valA.localeCompare(valB) 
+        return sortOrder === 'asc'
+          ? valA.localeCompare(valB)
           : valB.localeCompare(valA)
       } else {
-        return sortOrder === 'asc' 
-          ? (valA > valB ? 1 : -1) 
+        return sortOrder === 'asc'
+          ? (valA > valB ? 1 : -1)
           : (valB > valA ? 1 : -1)
       }
     })
@@ -219,11 +219,10 @@ export default function RulesPage() {
                   <button
                     key={c.id}
                     onClick={() => setActiveCategory(c.id as any)}
-                    className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                      activeCategory === c.id
+                    className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${activeCategory === c.id
                         ? 'bg-accent-cyan text-bg-base'
                         : 'text-text-secondary hover:text-white'
-                    }`}
+                      }`}
                   >
                     {c.label}
                   </button>
@@ -269,7 +268,7 @@ export default function RulesPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-[#100D1F] border-b border-border-subtle/60 text-[10px] font-mono uppercase tracking-widest text-text-secondary select-none">
-                      <th 
+                      <th
                         onClick={() => handleSort('name')}
                         className="px-6 py-4 font-black cursor-pointer hover:text-white sticky left-0 bg-[#100D1F] z-20 border-r border-[#221B35] min-w-[200px]"
                       >
@@ -278,7 +277,7 @@ export default function RulesPage() {
                           <ArrowUpDown className="w-3 h-3" />
                         </div>
                       </th>
-                      <th 
+                      <th
                         onClick={() => handleSort('max_daily_loss')}
                         className="px-6 py-4 font-black cursor-pointer hover:text-white"
                       >
@@ -287,7 +286,7 @@ export default function RulesPage() {
                           <ArrowUpDown className="w-3 h-3" />
                         </div>
                       </th>
-                      <th 
+                      <th
                         onClick={() => handleSort('max_drawdown')}
                         className="px-6 py-4 font-black cursor-pointer hover:text-white"
                       >
@@ -297,7 +296,7 @@ export default function RulesPage() {
                         </div>
                       </th>
                       <th className="px-6 py-4 font-black">Drawdown Type</th>
-                      <th 
+                      <th
                         onClick={() => handleSort('min_trading_days')}
                         className="px-6 py-4 font-black cursor-pointer hover:text-white text-center"
                       >
@@ -306,7 +305,7 @@ export default function RulesPage() {
                           <ArrowUpDown className="w-3 h-3" />
                         </div>
                       </th>
-                      <th 
+                      <th
                         onClick={() => handleSort('profit_target_phase1')}
                         className="px-6 py-4 font-black cursor-pointer hover:text-white"
                       >

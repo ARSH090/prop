@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Search, Filter, Bookmark, Copy, ExternalLink, HelpCircle, Check, ArrowUpDown, Flame, Trophy, Heart, ChevronDown, Star } from 'lucide-react'
 import { AFXCard } from '@/components/ui/afx-card'
 import { AFXButton } from '@/components/ui/afx-button'
@@ -42,6 +43,7 @@ interface Firm {
   affiliate_url: string
   category?: string[]
   circle_crop_logo?: boolean
+  likes_count?: number
 }
 
 interface Deal {
@@ -60,6 +62,7 @@ interface ChallengesClientProps {
   initialChallenges: Challenge[]
   firms: Firm[]
   deals: Deal[]
+  category?: string
 }
 
 
@@ -89,55 +92,82 @@ export default function ChallengesClient({
   deals,
   category = 'forex',
 }: ChallengesClientProps) {
+  const router = useRouter()
   const [favoriteFirms, setFavoriteFirms] = useState<string[]>([])
+  const [localFirms, setLocalFirms] = useState(firms)
 
-  // Dynamically build active Forex offers from actual Firestore deals and firms
-  const dynamicForexOffers = React.useMemo(() => {
-    return deals
-      .filter((d) => d.status === 'active')
-      .map((d) => {
-        const firm = firms.find((f) => f.id === d.firm_id)
-        if (!firm) return null
+  useEffect(() => {
+    setLocalFirms(firms)
+  }, [firms])
+
+  // Dynamically build most popular prop firms sorted by likes_count or rating
+  const popularFirmsList = React.useMemo(() => {
+    const all = localFirms
+      .map((f) => {
+        const deal = deals.find((d) => d.firm_id === f.id && d.status === 'active')
+        const estYear = 2026 - (f.years_active || 5)
+        const payoutCalculated = f.likes_count ? `$${(f.likes_count * 0.15 + 8).toFixed(0)}M+` : '$12M+'
+        const allocCalculated = f.max_allocation 
+          ? (f.max_allocation >= 1000000 ? `$${(f.max_allocation / 1000000).toFixed(1)}M` : `$${(f.max_allocation / 1000).toFixed(0)}K`)
+          : '$400K'
+
         return {
-          name: firm.name,
+          name: f.name,
+          rating: f.rating ? f.rating.toFixed(1) : '4.5',
+          likes_count: f.likes_count || 0,
+          discount: deal?.discount_label || 'Special Offers',
+          code: deal?.code || 'ACTIVE',
+          logo: f.logo_url,
+          firmSlug: f.slug,
+          established: estYear,
+          totalPayout: payoutCalculated,
+          maxAllocation: allocCalculated,
+          is_popular: !!(f as any).is_popular,
+        }
+      })
+
+    const marked = all.filter(f => f.is_popular)
+    if (marked.length > 0) {
+      return marked.sort((a, b) => b.likes_count - a.likes_count)
+    }
+    return all.sort((a, b) => b.likes_count - a.likes_count || parseFloat(b.rating) - parseFloat(a.rating))
+  }, [localFirms, deals])
+
+  // Dynamically build top 3 most popular challenges based on firm popularity (likes_count)
+  const popularChallengesList = React.useMemo(() => {
+    const all = initialChallenges
+      .map((c) => {
+        const firm = localFirms.find((f) => f.id === c.firm_id)
+        if (!firm) return null
+        const deal = deals.find((d) => d.id === c.deal_id && d.status === 'active')
+        return {
+          id: c.id,
+          name: `${firm.name} $${c.account_size >= 1000 ? `${(c.account_size / 1000).toFixed(0)}K` : c.account_size}`,
           rating: firm.rating ? firm.rating.toFixed(1) : '4.5',
-          discount: d.discount_label || 'Special Promo',
-          code: d.code,
-          logo: d.logo_url || firm.logo_url,
+          discount: deal?.discount_label || 'Promo Active',
+          code: (c as any).coupon_code || deal?.code || 'ACTIVE',
+          logo: c.logo_url || firm.logo_url,
+          likes_count: firm.likes_count || 0,
+          is_popular: !!(c as any).is_popular,
           firmSlug: firm.slug,
-          isFeatured: !!d.is_featured,
+          buyUrl: c.affiliate_url || firm.affiliate_url || '#',
         }
       })
       .filter(Boolean) as any[]
-  }, [deals, firms])
 
-  // Dynamically build active Futures firms from actual Firestore
-  const dynamicFuturesFirms = React.useMemo(() => {
-    return firms
-      .filter((f) => {
-        const cats = f.category?.map(c => c.toLowerCase()) || []
-        return cats.includes('futures')
-      })
-      .map((firm, idx) => {
-        const deal = deals.find((d) => d.firm_id === firm.id && d.status === 'active')
-        return {
-          rank: idx + 1,
-          name: firm.name,
-          rating: firm.rating ? firm.rating.toFixed(1) : '4.5',
-          discount: deal?.discount_label || 'Promo Active',
-          code: deal?.code || 'MATCH',
-          logo: firm.logo_url,
-          firmSlug: firm.slug
-        }
-      })
-      .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+    const marked = all.filter(c => c.is_popular)
+    const listToUse = marked.length > 0 ? marked : all
+
+    return listToUse
+      .sort((a, b) => b.likes_count - a.likes_count)
       .slice(0, 3)
-  }, [firms, deals])
+      .map((item, idx) => ({ ...item, rank: idx + 1 }))
+  }, [initialChallenges, localFirms, deals])
 
-  // Auto-swipe page carousel state for Forex Offers
+  // Auto-swipe page carousel state for popular firms
   const [activePromoPage, setActivePromoPage] = useState(0)
   const promoItemsPerPage = 3
-  const totalPromoPages = Math.max(1, Math.ceil(dynamicForexOffers.length / promoItemsPerPage))
+  const totalPromoPages = Math.max(1, Math.ceil(popularFirmsList.length / promoItemsPerPage))
 
   useEffect(() => {
     if (totalPromoPages <= 1) return
@@ -148,29 +178,33 @@ export default function ChallengesClient({
   }, [totalPromoPages])
 
   const visiblePromoOffers = React.useMemo(() => {
-    if (dynamicForexOffers.length === 0) return []
+    if (popularFirmsList.length === 0) return []
     const startIdx = activePromoPage * promoItemsPerPage
-    return dynamicForexOffers.slice(startIdx, startIdx + promoItemsPerPage)
-  }, [dynamicForexOffers, activePromoPage])
+    return popularFirmsList.slice(startIdx, startIdx + promoItemsPerPage)
+  }, [popularFirmsList, activePromoPage])
 
   // Dynamically extract unique sizes from the full initial challenges list
   const uniqueSizes = Array.from(
     new Set(initialChallenges.map((c) => c.account_size))
   ).sort((a, b) => a - b)
-  
+
   // Filters & State
   const [search, setSearch] = useState('')
   const [showDrawer, setShowDrawer] = useState(false)
   const [filterFirm, setFilterFirm] = useState('all')
   const [filterCategory, setFilterCategory] = useState('all')
-  const [filterSteps, setFilterSteps] = useState('all')
-  const [filterSize, setFilterSize] = useState('all')
+  const [selectedSizes, setSelectedSizes] = useState<number[]>([])
+  const [selectedSteps, setSelectedSteps] = useState<number[]>([])
+  const [customSizeActive, setCustomSizeActive] = useState(false)
+  const [customMinSize, setCustomMinSize] = useState('')
+  const [customMaxSize, setCustomMaxSize] = useState('')
+  const [openDropdown, setOpenDropdown] = useState<'size' | 'steps' | null>(null)
   const [filterMaxPrice, setFilterMaxPrice] = useState('')
 
   // Toggles
   const [applyDiscount, setApplyDiscount] = useState(true)
   const [sortByPopularity, setSortByPopularity] = useState(true)
-  const [viewBookmarksOnly, setViewBookmarksOnly] = useState(false)
+  const [viewMode, setViewMode] = useState<'all' | 'bookmarks' | 'best_selling'>('all')
 
   // Sortable headers state
   const [sortField, setSortField] = useState<string | null>(null)
@@ -179,15 +213,43 @@ export default function ChallengesClient({
   // Buy Code Modal State
   const [selectedDeal, setSelectedDeal] = useState<any | null>(null)
   const [copied, setCopied] = useState(false)
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  const getSizeLabel = () => {
+    if (customSizeActive && (customMinSize !== '' || customMaxSize !== '')) {
+      if (customMinSize !== '' && customMaxSize !== '') {
+        return `Size: $${(Number(customMinSize)/1000).toFixed(0)}K-$${(Number(customMaxSize)/1000).toFixed(0)}K`
+      } else if (customMinSize !== '') {
+        return `Size: >$${(Number(customMinSize)/1000).toFixed(0)}K`
+      } else {
+        return `Size: <$${(Number(customMaxSize)/1000).toFixed(0)}K`
+      }
+    }
+    if (selectedSizes.length === 0) return 'Size: All'
+    const labels = selectedSizes
+      .sort((a, b) => a - b)
+      .map((s) => `$${s >= 1000 ? `${(s / 1000).toFixed(0)}K` : s}`)
+    if (labels.length <= 2) return `Size: ${labels.join(', ')}`
+    return `Size: ${labels.length} Selected`
+  }
+
+  const getStepsLabel = () => {
+    if (selectedSteps.length === 0) return 'Steps: All'
+    const labels = selectedSteps
+      .sort((a, b) => a - b)
+      .map((st) => st === 0 ? 'Instant' : st === 1 ? '1 Step' : `${st} Steps`)
+    if (labels.length <= 2) return `Steps: ${labels.join(', ')}`
+    return `Steps: ${labels.length} Selected`
+  }
+
   // Reset pagination to first page when search/filter criteria change
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, filterFirm, filterCategory, filterSteps, filterSize, filterMaxPrice, viewBookmarksOnly, sortByPopularity, applyDiscount])
+  }, [search, filterFirm, filterCategory, selectedSizes, selectedSteps, customSizeActive, customMinSize, customMaxSize, filterMaxPrice, viewMode, sortByPopularity, applyDiscount])
 
   // Load favorites from localStorage on mount
   useEffect(() => {
@@ -201,18 +263,41 @@ export default function ChallengesClient({
     }
   }, [])
 
-  const handleToggleBookmark = (firmId: string, e: React.MouseEvent) => {
+  const handleToggleBookmark = async (firmId: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const updated = favoriteFirms.includes(firmId)
-      ? favoriteFirms.filter((id) => id !== firmId)
-      : [...favoriteFirms, firmId]
+    const isAdding = !favoriteFirms.includes(firmId)
+    const updated = isAdding
+      ? [...favoriteFirms, firmId]
+      : favoriteFirms.filter((id) => id !== firmId)
     setFavoriteFirms(updated)
     localStorage.setItem('afx_favorites', JSON.stringify(updated))
+    setOpenDropdown(null)
+
+    // Update local state immediately for instant feedback
+    setLocalFirms((prev) =>
+      prev.map((f) => {
+        if (f.id === firmId) {
+          const currentLikes = f.likes_count || 0
+          return {
+            ...f,
+            likes_count: isAdding ? currentLikes + 1 : Math.max(0, currentLikes - 1),
+          }
+        }
+        return f
+      })
+    )
+
+    // Increment count on database
+    try {
+      await fetch(`/api/firms/${firmId}/like`, { method: 'POST' })
+    } catch (err) {
+      console.error('Error ticking like counter:', err)
+    }
   }
 
   const getFirm = (firmId: string) => {
-    return firms.find((f) => f.id === firmId)
+    return localFirms.find((f) => f.id === firmId)
   }
 
   const getDealCode = (dealId: string | null) => {
@@ -241,8 +326,12 @@ export default function ChallengesClient({
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code)
+    setCopiedCode(code)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setTimeout(() => {
+      setCopiedCode(null)
+      setCopied(false)
+    }, 2000)
   }
 
   // Filter & Sort Pipeline
@@ -255,7 +344,7 @@ export default function ChallengesClient({
     })
   }
 
-  if (viewBookmarksOnly) {
+  if (viewMode === 'bookmarks') {
     challenges = challenges.filter((c) => favoriteFirms.includes(c.firm_id))
   }
 
@@ -270,12 +359,30 @@ export default function ChallengesClient({
     })
   }
 
-  if (filterSteps !== 'all') {
-    challenges = challenges.filter((c) => c.steps === Number(filterSteps))
+  if (selectedSteps.length > 0) {
+    challenges = challenges.filter((c) => selectedSteps.includes(c.steps))
   }
 
-  if (filterSize !== 'all') {
-    challenges = challenges.filter((c) => c.account_size === Number(filterSize))
+  if (selectedSizes.length > 0 || (customSizeActive && (customMinSize !== '' || customMaxSize !== ''))) {
+    challenges = challenges.filter((c) => {
+      const size = c.account_size
+
+      // Match custom range if active
+      if (customSizeActive && (customMinSize !== '' || customMaxSize !== '')) {
+        const minVal = customMinSize !== '' ? Number(customMinSize) : 0
+        const maxVal = customMaxSize !== '' ? Number(customMaxSize) : Infinity
+        if (size >= minVal && size <= maxVal) {
+          return true
+        }
+      }
+
+      // Match standard selections
+      if (selectedSizes.includes(size)) {
+        return true
+      }
+
+      return false
+    })
   }
 
   if (filterMaxPrice) {
@@ -291,8 +398,16 @@ export default function ChallengesClient({
       if (valA > valB) return sortDirection === 'asc' ? 1 : -1
       return 0
     })
-  } else if (sortByPopularity) {
+  } else if (viewMode === 'best_selling') {
     challenges.sort((a, b) => b.popularity_score - a.popularity_score)
+  } else if (sortByPopularity) {
+    challenges.sort((a, b) => {
+      const firmA = getFirm(a.firm_id)
+      const firmB = getFirm(b.firm_id)
+      const likesA = firmA ? (firmA.likes_count ?? (firmA.review_count * 8 + 1240)) : 0
+      const likesB = firmB ? (firmB.likes_count ?? (firmB.review_count * 8 + 1240)) : 0
+      return likesB - likesA
+    })
   } else {
     challenges.sort((a, b) => b.popularity_score - a.popularity_score)
   }
@@ -326,9 +441,8 @@ export default function ChallengesClient({
             return (
               <div
                 key={idx}
-                className={`w-[3px] h-full rounded-[1px] transition-colors duration-300 ${
-                  isFilled ? 'bg-gradient-to-t from-accent-cyan to-accent-purple' : 'bg-border-subtle/30'
-                }`}
+                className={`w-[3px] h-full rounded-[1px] transition-colors duration-300 ${isFilled ? 'bg-gradient-to-t from-accent-cyan to-accent-purple' : 'bg-border-subtle/30'
+                  }`}
               />
             )
           })}
@@ -339,25 +453,24 @@ export default function ChallengesClient({
 
   return (
     <div className="space-y-8">
-      
+
       {/* 1. Promotional dual boxes grid matches screenshot */}
       <div className="grid lg:grid-cols-12 gap-6">
-        
-        {/* Left Side: Exclusive July Offers */}
+
+        {/* Left Side: Popular Prop Firms */}
         <div className="lg:col-span-8 bg-bg-surface/30 border border-border-subtle/70 rounded-3xl p-5 backdrop-blur-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-44 h-44 bg-accent-purple/5 rounded-full blur-3xl pointer-events-none" />
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-black text-text-primary flex items-center gap-2 uppercase tracking-wide">
-              Exclusive July Forex Offers 🩸
+              Most Popular Prop Firms 🔥
             </h2>
             <div className="flex gap-1.5">
               {Array.from({ length: totalPromoPages }).map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActivePromoPage(idx)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 focus:outline-none ${
-                    idx === activePromoPage ? 'bg-accent-cyan scale-125' : 'bg-border-subtle hover:bg-text-secondary'
-                  }`}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 focus:outline-none ${idx === activePromoPage ? 'bg-accent-cyan scale-125' : 'bg-border-subtle hover:bg-text-secondary'
+                    }`}
                   title={`Go to page ${idx + 1}`}
                 />
               ))}
@@ -365,30 +478,63 @@ export default function ChallengesClient({
           </div>
 
           {/* Cards Grid */}
-          <div key={activePromoPage} className="grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-in">
+          <div key={activePromoPage} className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in">
             {visiblePromoOffers.length === 0 ? (
               <div className="col-span-3 text-center py-6 text-xs text-text-muted">
-                No active Forex deals. Admin can configure deals in the admin panel.
+                No popular firms found.
               </div>
             ) : (
               visiblePromoOffers.map((item) => {
                 return (
                   <div
                     key={item.name}
-                    className="group p-3 bg-bg-base border border-border-subtle hover:border-accent-cyan/40 transition-all rounded-2xl flex items-center gap-3 relative"
+                    onClick={() => {
+                      router.push(`/firms/${item.firmSlug}`)
+                    }}
+                    className="group p-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-accent-cyan/40 shadow-xl transition-all duration-300 rounded-3xl flex flex-col items-center text-center gap-3.5 relative backdrop-blur-lg min-h-[260px] cursor-pointer"
                   >
-                    <PropFirmLogo name={item.name} logoUrl={item.logo} className="w-9 h-9 rounded-xl transition-all duration-300 group-hover:scale-110" />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
-                      <p className="text-[9px] text-text-muted mt-0.5 font-bold truncate">★ {item.rating}</p>
+                    {/* Logo & Basic Info */}
+                    <div className="flex flex-col items-center gap-2">
+                      <PropFirmLogo name={item.name} logoUrl={item.logo} className="w-12 h-12 rounded-xl transition-all duration-300 group-hover:scale-110" />
+                      <div className="text-center">
+                        <h3 className="text-sm sm:text-base font-black text-text-primary line-clamp-1">{item.name}</h3>
+                        <div className="flex items-center justify-center gap-0.5 mt-1">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span key={i} className="text-[#00b67a] text-xs">★</span>
+                          ))}
+                          <span className="text-[10px] font-black text-text-secondary ml-1">({item.rating})</span>
+                        </div>
+                      </div>
                     </div>
-                    
-                    {/* Discount Code Badging */}
-                    <div className="text-right shrink-0">
-                      <span className="block text-[10px] font-black text-[#EC4899]">{item.discount}</span>
-                      <span className="inline-block text-[8px] font-mono text-text-secondary bg-border-subtle/50 px-1 py-0.5 rounded font-black tracking-wider uppercase">
-                        {item.code}
-                      </span>
+
+                    {/* Parameters Grid */}
+                    <div className="grid grid-cols-3 gap-1.5 w-full border-t border-b border-white/5 py-3 my-1">
+                      <div>
+                        <span className="block text-[9px] text-text-muted font-black uppercase tracking-wider">Payout</span>
+                        <span className="text-xs sm:text-sm font-black text-text-primary font-mono">{item.totalPayout}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[9px] text-text-muted font-black uppercase tracking-wider">Est.</span>
+                        <span className="text-xs sm:text-sm font-black text-text-primary font-mono">{item.established}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[9px] text-text-muted font-black uppercase tracking-wider">Alloc.</span>
+                        <span className="text-xs sm:text-sm font-black text-text-primary font-mono">{item.maxAllocation}</span>
+                      </div>
+                    </div>
+
+                    {/* Bottom: Discount & Promo Code Button */}
+                    <div className="w-full flex flex-col items-center gap-1.5 mt-auto">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCopyCode(item.code)
+                        }}
+                        className="w-full py-2 text-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-mono font-bold text-accent-cyan transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
+                        title="Click to copy coupon code"
+                      >
+                        {copiedCode === item.code ? 'COPIED!' : `${item.code} (${item.discount})`}
+                      </button>
                     </div>
                   </div>
                 )
@@ -397,24 +543,27 @@ export default function ChallengesClient({
           </div>
         </div>
 
-        {/* Right Side: Popular Futures Firms */}
+        {/* Right Side: Popular Challenges */}
         <div className="lg:col-span-4 bg-bg-surface/30 border border-border-subtle/70 rounded-3xl p-5 backdrop-blur-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-accent-cyan/5 rounded-full blur-3xl pointer-events-none" />
           <h2 className="text-sm font-black text-text-primary flex items-center gap-2 mb-4 uppercase tracking-wide">
-            Most Popular Futures Prop Firms 🏆
+            Most Popular Challenges 🏆
           </h2>
 
           <div className="space-y-2">
-            {dynamicFuturesFirms.length === 0 ? (
+            {popularChallengesList.length === 0 ? (
               <div className="text-center py-6 text-xs text-text-muted">
-                No active Futures firms. Add 'futures' category to firms in the admin panel.
+                No popular challenges found.
               </div>
             ) : (
-              dynamicFuturesFirms.map((item) => {
+              popularChallengesList.map((item) => {
                 return (
                   <div
-                    key={item.name}
-                    className="group p-2.5 bg-bg-base border border-border-subtle hover:border-accent-purple/40 transition-all rounded-2xl flex items-center justify-between gap-3 animate-fade-in"
+                    key={item.id}
+                    onClick={() => {
+                      router.push(`/firms/${item.firmSlug}`)
+                    }}
+                    className="group p-3.5 bg-bg-surface/60 border border-border-subtle hover:border-accent-purple/60 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-300 rounded-2xl flex items-center justify-between gap-3.5 relative backdrop-blur-md animate-fade-in cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       {item.rank === 1 ? (
@@ -424,20 +573,43 @@ export default function ChallengesClient({
                       ) : (
                         <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
                       )}
-                      
-                      <PropFirmLogo name={item.name} logoUrl={item.logo} className="w-7 h-7 rounded-lg transition-all duration-300 group-hover:scale-110" />
+
+                      <PropFirmLogo name={item.name} logoUrl={item.logo} className="w-9 h-9 rounded-lg transition-all duration-300 group-hover:scale-110" />
 
                       <div className="min-w-0">
-                        <h3 className="text-[11px] font-black text-text-primary truncate">{item.name}</h3>
-                        <p className="text-[8px] text-text-muted mt-0.5 font-bold">★ {item.rating}</p>
+                        <h3 className="text-xs sm:text-sm font-black text-text-primary truncate">{item.name}</h3>
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span key={i} className="text-[#00b67a] text-[10px]">★</span>
+                          ))}
+                          <span className="text-[9px] font-black text-text-muted ml-1">({item.rating})</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <span className="block text-[10px] font-black text-accent-cyan">{item.discount}</span>
-                      <span className="inline-block text-[8px] font-mono text-text-secondary bg-border-subtle/50 px-1 py-0.5 rounded font-black tracking-wider uppercase">
-                        {item.code}
-                      </span>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCopyCode(item.code)
+                        }}
+                        className="inline-block text-[9.5px] font-mono text-text-secondary bg-border-subtle/80 hover:bg-bg-surface hover:text-accent-cyan px-3 py-1.5 rounded font-black tracking-wider uppercase border border-transparent hover:border-accent-cyan/30 transition-all duration-200 select-none cursor-pointer"
+                        title="Click to copy coupon code"
+                      >
+                        {copiedCode === item.code ? 'COPIED!' : item.code}
+                      </button>
+
+                      <a
+                        href={item.buyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                        }}
+                        className="inline-flex items-center justify-center text-[10px] font-black text-black bg-accent-cyan hover:bg-accent-cyan/80 px-3 py-1.5 rounded-lg transition-all active:scale-95 shrink-0 shadow-[0_0_12px_rgba(34,211,238,0.35)]"
+                      >
+                        BUY
+                      </a>
                     </div>
                   </div>
                 )
@@ -448,36 +620,8 @@ export default function ChallengesClient({
 
       </div>
 
-      {/* 2. Selection Sub-menu tabs bar matches PFM screenshot navigation */}
-      <div className="flex flex-wrap items-center justify-center gap-2 pt-2 border-b border-border-subtle/30 pb-4">
-        {[
-          { label: 'Firms', href: '/firms', active: false },
-          { label: 'Challenges', href: '/challenges', active: true },
-          { label: 'Offers', href: '/deals', active: false },
-          { label: 'Reviews', href: '/reviews', active: false },
-          { label: 'Futures Firms', href: '/futures', active: false, badge: 'Trending' }
-        ].map((tab) => (
-          <Link
-            key={tab.label}
-            href={tab.href}
-            className={`px-5 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all duration-200 flex items-center gap-1.5 border border-border-subtle/60 ${
-              tab.active
-                ? 'bg-text-primary text-bg-base border-text-primary shadow-lg shadow-white/5'
-                : 'text-text-secondary hover:text-text-primary bg-bg-surface/50'
-            }`}
-          >
-            {tab.label}
-            {tab.badge && (
-              <span className="bg-gradient-to-r from-accent-cyan to-accent-purple text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase leading-none">
-                {tab.badge}
-              </span>
-            )}
-          </Link>
-        ))}
-      </div>
-
       {/* 3. Refactored Toolbar Filters row - Matches screenshot filters exactly */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-bg-surface/50 border border-border-subtle/50 p-4 rounded-3xl backdrop-blur-sm shadow-xl">
+      <div className="relative z-30 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-bg-surface/50 border border-border-subtle/50 p-4 rounded-3xl backdrop-blur-sm shadow-xl">
         <div className="flex flex-wrap items-center gap-3.5">
           {/* Filters Drawer Trigger */}
           <button
@@ -503,51 +647,134 @@ export default function ChallengesClient({
           </div>
 
           {/* Quick Dropdown: Size */}
-          <div className="relative shrink-0 group">
-            <select
-              value={filterSize}
-              onChange={(e) => setFilterSize(e.target.value)}
-              className="appearance-none bg-bg-base border border-border-subtle rounded-full pl-4 pr-9 py-2.5 text-xs font-black text-text-secondary cursor-pointer hover:border-accent-cyan/80 group-hover:scale-[1.03] transition-all outline-none shadow-sm"
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setOpenDropdown(openDropdown === 'size' ? null : 'size')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-border-subtle bg-bg-base text-xs font-black text-text-secondary hover:text-text-primary hover:border-accent-cyan/80 transition-all shadow-sm cursor-pointer select-none"
             >
-              <option value="all">Size: All</option>
-              {uniqueSizes.map((size) => (
-                <option key={size} value={size}>
-                  Size: ${size >= 1000000 ? `${(size / 1000000).toFixed(1).replace('.0', '')}M` : `${(size / 1000).toFixed(0)}K`}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3.5 top-3.5 w-3 h-3 text-text-muted pointer-events-none group-hover:text-accent-cyan transition-colors" />
+              <span>{getSizeLabel()}</span>
+              <ChevronDown className={`w-3 h-3 text-text-muted transition-transform duration-200 ${openDropdown === 'size' ? 'rotate-180' : ''}`} />
+            </button>
+
+            {openDropdown === 'size' && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
+                <div className="absolute top-full left-0 mt-2 w-80 bg-[#120F22] border border-[#2A3348] rounded-3xl p-5 shadow-2xl z-50 animate-fade-in">
+                  <h4 className="text-[10px] font-black text-text-primary uppercase tracking-wider mb-4">Select one or multiple options</h4>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { label: '$5K', value: 5000 },
+                      { label: '$10K', value: 10000 },
+                      { label: '$25K', value: 25000 },
+                      { label: '$50K', value: 50000 },
+                      { label: '$100K', value: 100000 },
+                      { label: '$200K', value: 200000 },
+                      { label: '$300K', value: 300000 },
+                      { label: '$500K', value: 500000 },
+                    ].map((opt) => {
+                      const isSelected = selectedSizes.includes(opt.value)
+                      return (
+                        <button
+                          key={opt.value}
+                          onClick={() => {
+                            setSelectedSizes((prev) =>
+                              prev.includes(opt.value)
+                                ? prev.filter((v) => v !== opt.value)
+                                : [...prev, opt.value]
+                            )
+                          }}
+                          className={`py-2 rounded-xl text-[10px] font-black tracking-wider transition-all border cursor-pointer ${
+                            isSelected
+                              ? 'bg-gradient-to-r from-accent-cyan/20 to-accent-purple/20 border-accent-cyan text-text-primary shadow-[0_0_12px_rgba(34,211,238,0.2)]'
+                              : 'bg-bg-base/50 border-border-subtle text-text-secondary hover:text-text-primary hover:border-text-secondary/30'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <button
+                    onClick={() => setCustomSizeActive(!customSizeActive)}
+                    className={`w-full mt-4 py-2 rounded-full text-xs font-black transition-all border cursor-pointer ${
+                      customSizeActive
+                        ? 'bg-gradient-to-r from-accent-cyan/20 to-accent-purple/20 border-accent-cyan text-text-primary shadow-[0_0_12px_rgba(34,211,238,0.2)]'
+                        : 'bg-bg-base/50 border-border-subtle text-text-secondary hover:text-text-primary hover:border-text-secondary/30'
+                    }`}
+                  >
+                    Custom
+                  </button>
+                  {customSizeActive && (
+                    <div className="mt-3 flex gap-2 animate-fade-in">
+                      <input
+                        type="number"
+                        placeholder="Min ($)"
+                        value={customMinSize}
+                        onChange={(e) => setCustomMinSize(e.target.value)}
+                        className="w-1/2 px-3 py-2 bg-bg-base border border-[#2A3348] rounded-xl text-[10px] font-bold text-text-primary outline-none focus:border-accent-cyan"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Max ($)"
+                        value={customMaxSize}
+                        onChange={(e) => setCustomMaxSize(e.target.value)}
+                        className="w-1/2 px-3 py-2 bg-bg-base border border-[#2A3348] rounded-xl text-[10px] font-bold text-text-primary outline-none focus:border-accent-cyan"
+                      />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Quick Dropdown: Steps */}
-          <div className="relative shrink-0 group">
-            <select
-              value={filterSteps}
-              onChange={(e) => setFilterSteps(e.target.value)}
-              className="appearance-none bg-bg-base border border-border-subtle rounded-full pl-4 pr-9 py-2.5 text-xs font-black text-text-secondary cursor-pointer hover:border-accent-cyan/80 group-hover:scale-[1.03] transition-all outline-none shadow-sm"
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setOpenDropdown(openDropdown === 'steps' ? null : 'steps')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-border-subtle bg-bg-base text-xs font-black text-text-secondary hover:text-text-primary hover:border-accent-cyan/80 transition-all shadow-sm cursor-pointer select-none"
             >
-              <option value="all">Steps: All</option>
-              <option value="0">Steps: Instant</option>
-              <option value="1">Steps: 1 Step</option>
-              <option value="2">Steps: 2 Steps</option>
-            </select>
-            <ChevronDown className="absolute right-3.5 top-3.5 w-3 h-3 text-text-muted pointer-events-none group-hover:text-accent-cyan transition-colors" />
-          </div>
+              <span>{getStepsLabel()}</span>
+              <ChevronDown className={`w-3 h-3 text-text-muted transition-transform duration-200 ${openDropdown === 'steps' ? 'rotate-180' : ''}`} />
+            </button>
 
-          {/* Apply Discount Custom Toggle Switch */}
-          <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 group">
-            <div className="relative">
-              <input
-                type="checkbox"
-                checked={applyDiscount}
-                onChange={() => setApplyDiscount(!applyDiscount)}
-                className="sr-only"
-              />
-              <div className={`w-9 h-5 rounded-full transition-all duration-300 group-hover:shadow-[0_0_8px_rgba(236,72,153,0.4)] ${applyDiscount ? 'bg-[#EC4899]' : 'bg-bg-base border border-border-subtle'}`} />
-              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-300 ${applyDiscount ? 'translate-x-4' : 'translate-x-0'}`} />
-            </div>
-            <span className="text-xs font-black text-text-secondary group-hover:text-text-primary transition-colors">Apply Discount</span>
-          </label>
+            {openDropdown === 'steps' && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
+                <div className="absolute top-full left-0 mt-2 w-72 bg-[#120F22] border border-[#2A3348] rounded-3xl p-5 shadow-2xl z-50 animate-fade-in">
+                  <h4 className="text-[10px] font-black text-text-primary uppercase tracking-wider mb-4">Select one or multiple options</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: 'Instant', value: 0 },
+                      { label: '1 Step', value: 1 },
+                      { label: '2 Steps', value: 2 },
+                      { label: '3 Steps', value: 3 },
+                    ].map((opt) => {
+                      const isSelected = selectedSteps.includes(opt.value)
+                      return (
+                        <button
+                          key={opt.value}
+                          onClick={() => {
+                            setSelectedSteps((prev) =>
+                              prev.includes(opt.value)
+                                ? prev.filter((v) => v !== opt.value)
+                                : [...prev, opt.value]
+                            )
+                          }}
+                          className={`py-2 px-3 rounded-xl text-xs font-black tracking-wider transition-all border text-center cursor-pointer ${
+                            isSelected
+                              ? 'bg-gradient-to-r from-accent-cyan/20 to-accent-purple/20 border-accent-cyan text-text-primary shadow-[0_0_12px_rgba(34,211,238,0.2)]'
+                              : 'bg-bg-base/50 border-border-subtle text-text-secondary hover:text-text-primary hover:border-text-secondary/30'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Popularity Custom Toggle Switch */}
           <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 group">
@@ -564,36 +791,39 @@ export default function ChallengesClient({
             <span className="text-xs font-black text-text-secondary group-hover:text-text-primary transition-colors">Popularity</span>
           </label>
 
-          {/* Bookmarks Toggle button pills */}
+          {/* View Mode button pills */}
           <button
-            onClick={() => { setViewBookmarksOnly(false); setCurrentPage(1); }}
-            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all border cursor-pointer shrink-0 hover:scale-105 active:scale-95 duration-200 ${
-              !viewBookmarksOnly
-                ? 'bg-bg-base text-accent-cyan border-accent-cyan/40 shadow-md shadow-accent-cyan/5'
-                : 'text-text-secondary border-border-subtle bg-transparent hover:text-text-primary'
-            }`}
+            onClick={() => { setViewMode('all'); setCurrentPage(1); setOpenDropdown(null); }}
+            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all border cursor-pointer shrink-0 hover:scale-105 active:scale-95 duration-200 ${viewMode === 'all'
+              ? 'bg-bg-base text-accent-cyan border-accent-cyan/40 shadow-md shadow-accent-cyan/5'
+              : 'text-text-secondary border-border-subtle bg-transparent hover:text-text-primary'
+              }`}
           >
             All
           </button>
           <button
-            onClick={() => { setViewBookmarksOnly(true); setCurrentPage(1); }}
-            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all border flex items-center gap-1.5 cursor-pointer shrink-0 hover:scale-105 active:scale-95 duration-200 ${
-              viewBookmarksOnly
-                ? 'bg-bg-base text-accent-cyan border-accent-cyan/40 shadow-md shadow-accent-cyan/5'
-                : 'text-text-secondary border-border-subtle bg-transparent hover:text-text-primary'
-            }`}
+            onClick={() => { setViewMode('bookmarks'); setCurrentPage(1); setOpenDropdown(null); }}
+            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all border flex items-center gap-1.5 cursor-pointer shrink-0 hover:scale-105 active:scale-95 duration-200 ${viewMode === 'bookmarks'
+              ? 'bg-bg-base text-accent-cyan border-accent-cyan/40 shadow-md shadow-accent-cyan/5'
+              : 'text-text-secondary border-border-subtle bg-transparent hover:text-text-primary'
+              }`}
           >
             <Bookmark className="w-3.5 h-3.5 text-accent-cyan fill-accent-cyan" />
             Bookmarks
           </button>
+          <button
+            onClick={() => { setViewMode('best_selling'); setCurrentPage(1); setOpenDropdown(null); }}
+            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all border flex items-center gap-1.5 cursor-pointer shrink-0 hover:scale-105 active:scale-95 duration-200 ${viewMode === 'best_selling'
+              ? 'bg-bg-base text-[#EC4899] border-[#EC4899]/40 shadow-md shadow-[#EC4899]/5'
+              : 'text-text-secondary border-border-subtle bg-transparent hover:text-text-primary'
+              }`}
+          >
+            <Flame className="w-3.5 h-3.5 text-[#EC4899] fill-[#EC4899]/20 animate-pulse" />
+            Best Selling
+          </button>
         </div>
 
         <div className="flex items-center gap-2 self-stretch xl:self-auto justify-between xl:justify-end">
-          {/* Customize columns */}
-          <button className="px-5 py-2.5 rounded-full border border-border-subtle bg-bg-base text-xs font-black text-text-secondary hover:text-text-primary hover:scale-105 active:scale-95 transition-all flex items-center gap-1 shrink-0 shadow-sm cursor-pointer">
-            <span>🎛️</span> Customize
-          </button>
-
           {/* Search prop challenges input */}
           <div className="relative flex-1 xl:flex-initial xl:w-44 group">
             <Search className="absolute left-3.5 top-3 w-3.5 h-3.5 text-text-muted group-hover:text-accent-cyan transition-colors" />
@@ -601,7 +831,8 @@ export default function ChallengesClient({
               type="text"
               placeholder="Search..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); setOpenDropdown(null); }}
+              onFocus={() => setOpenDropdown(null)}
               className="w-full pl-10 pr-4 py-2.5 bg-bg-base border border-border-subtle rounded-full text-xs font-extrabold text-text-primary focus:border-accent-cyan focus:ring-2 focus:ring-accent-cyan/20 outline-none transition-all shadow-sm"
             />
           </div>
@@ -621,19 +852,38 @@ export default function ChallengesClient({
               <option value="all">All Firms</option>
               {firms.map((f) => (
                 <option key={f.id} value={f.id}>{f.name}</option>
-              ))}
+               ))}
             </select>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="font-bold text-text-muted uppercase tracking-wider text-[10px]">Max Price ($)</label>
-            <input
-              type="number"
-              placeholder="e.g. 500"
-              value={filterMaxPrice}
-              onChange={(e) => setFilterMaxPrice(e.target.value)}
-              className="w-full px-3 py-2 bg-bg-base border border-border-subtle rounded-xl text-text-primary outline-none"
-            />
+          <div className="space-y-1.5 col-span-2">
+            <div className="flex justify-between items-center mb-1">
+              <label className="font-bold text-text-muted uppercase tracking-wider text-[10px]">Max Price</label>
+              <span className="text-[10px] font-black text-accent-cyan font-mono bg-accent-cyan/10 px-2 py-0.5 rounded-lg border border-accent-cyan/20">
+                {filterMaxPrice === '' || Number(filterMaxPrice) >= 2000 ? 'All' : `$${filterMaxPrice}`}
+              </span>
+            </div>
+            <div className="pt-2">
+              <input
+                type="range"
+                min="0"
+                max="2000"
+                step="10"
+                value={filterMaxPrice === '' ? 2000 : filterMaxPrice}
+                onChange={(e) => {
+                  const val = Number(e.target.value)
+                  setFilterMaxPrice(val >= 2000 ? '' : String(val))
+                }}
+                className="w-full h-1.5 bg-[#120F22] rounded-full appearance-none cursor-pointer afx-range-slider"
+              />
+              <div className="flex justify-between text-[8px] font-bold text-text-muted mt-1 select-none font-mono">
+                <span>$0</span>
+                <span>$500</span>
+                <span>$1000</span>
+                <span>$1500</span>
+                <span>$2000+</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -643,15 +893,12 @@ export default function ChallengesClient({
         <h3 className="text-sm font-black text-text-primary">
           Challenges <span className="text-accent-cyan font-mono">{challenges.length}</span>
         </h3>
-        <button className="text-xs font-bold text-accent-purple hover:underline bg-transparent">
-          How We Verify and Rank Firms
-        </button>
       </div>
 
       {/* 4. 13-Column Comparison Table Container - Using standard HTML table layout for pixel-perfect columns */}
       {paginatedChallenges.length > 0 ? (
         <div className="border border-border-subtle bg-bg-surface/20 rounded-3xl p-1 overflow-hidden shadow-2xl relative">
-          
+
           <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full border-collapse text-left text-sm text-text-secondary min-w-[950px]">
               <thead>
@@ -664,12 +911,14 @@ export default function ChallengesClient({
                   <th className="px-3 py-3 text-center font-black w-[85px]">Max Loss</th>
                   <th className="px-3 py-3 text-center font-black w-[100px] hidden lg:table-cell">Max Loss Type</th>
                   <th className="px-3 py-3 text-center font-black w-[100px]">Profit Split</th>
+                  <th className="px-3 py-3 text-center font-black w-[120px]">Payout Cycle</th>
                   <th className="px-3 py-3 text-center font-black w-[100px]">Price</th>
+                  <th className="px-3 py-3 text-center font-black w-[110px]">Promo Code</th>
                   <th className="px-3 py-3 text-right font-black w-[95px]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle/30">
-                {paginatedChallenges.map((ch) => {
+                {paginatedChallenges.map((ch, idx) => {
                   const firm = getFirm(ch.firm_id)
                   const isGoldTier = firm && GOLD_TIER_FIRMS.includes(firm.name.toLowerCase().trim())
 
@@ -689,6 +938,8 @@ export default function ChallengesClient({
 
                   // Retrieve clean logo URL using helper function, respecting overrides
                   const logoUrl = getCleanLogoUrl(firm?.name || 'challenge', ch.logo_url || firm?.logo_url || null)
+                  const globalIdx = (currentPage - 1) * itemsPerPage + idx
+                  const logoFrame = globalIdx === 0 ? 'gold' : globalIdx === 1 ? 'silver' : globalIdx === 2 ? 'bronze' : 'offwhite'
 
                   return (
                     <tr
@@ -709,9 +960,24 @@ export default function ChallengesClient({
                             <Star className={`w-4 h-4 transition-transform active:scale-75 ${favoriteFirms.includes(ch.firm_id) ? "fill-amber-400 text-amber-400" : "text-text-muted hover:text-text-secondary"}`} />
                           </button>
 
+                          {/* Rank Badge */}
+                          <div className="w-5 flex items-center justify-center shrink-0">
+                            {globalIdx === 0 ? (
+                              <Trophy className="w-4 h-4 text-amber-400" />
+                            ) : globalIdx === 1 ? (
+                              <Trophy className="w-4 h-4 text-slate-300" />
+                            ) : globalIdx === 2 ? (
+                              <Trophy className="w-4 h-4 text-amber-600" />
+                            ) : (
+                              <span className="w-4 h-4 rounded-full bg-bg-base border border-border-subtle flex items-center justify-center text-[9px] font-bold text-text-muted font-mono">
+                                {globalIdx + 1}
+                              </span>
+                            )}
+                          </div>
+
                           {/* Logo with gold tier badge overlap */}
                           <div className="relative shrink-0 transition-all duration-300 group-hover:scale-110">
-                            <PropFirmLogo name={firm?.name || 'Challenge'} logoUrl={ch.logo_url || firm?.logo_url || null} circleCrop={firm?.circle_crop_logo} className="w-10 h-10 rounded-xl transition-all duration-300 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
+                            <PropFirmLogo name={firm?.name || 'Challenge'} logoUrl={ch.logo_url || firm?.logo_url || null} circleCrop={false} frame={logoFrame} className="w-12 h-12 rounded-lg transition-all duration-300 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]" />
                             {isGoldTier && (
                               <div className="absolute -bottom-1.5 -right-1.5 w-4.5 h-4.5 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full border border-bg-surface flex items-center justify-center shadow-md shadow-black/40" title="Gold Tier Verified">
                                 <span className="text-[10px] text-bg-surface font-black leading-none">★</span>
@@ -726,15 +992,15 @@ export default function ChallengesClient({
                             >
                               {firm?.name || 'Challenge'}
                             </ChallengeLink>
-                            
+
                             {/* Rating block under title */}
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[11px] bg-accent-purple/20 text-accent-purple px-1 rounded font-bold">
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <span className="text-[12px] bg-[#00b67a]/15 text-[#00b67a] px-1.5 py-0.5 rounded font-black">
                                 {firm?.rating.toFixed(1) || '4.5'}
                               </span>
-                              <span className="text-amber-400 text-[8px] tracking-tighter">★★★★★</span>
+                              <span className="text-[#00b67a] text-[12px] tracking-tighter font-bold">★★★★★</span>
                               <span className="text-[10px] text-text-muted font-bold truncate">
-                                {firm?.review_count || '120'}
+                                ({firm?.review_count || '120'} reviews)
                               </span>
                             </div>
                           </div>
@@ -778,21 +1044,49 @@ export default function ChallengesClient({
                         </div>
                       </td>
 
+                      {/* Payout Cycle column */}
+                      <td className="px-3 py-3 text-center align-middle text-sm font-black text-text-primary">
+                        {ch.payout_freq || 'Bi-weekly'}
+                      </td>
+
                       {/* 12. Price column */}
                       <td className="px-3 py-3 text-center align-middle font-mono">
                         {isDiscounted ? (
-                          <div className="inline-flex flex-col items-center">
-                            <span className="line-through text-text-muted text-[12px] font-bold">
-                              ${originalPrice.toFixed(2)}
+                          <div className="inline-flex flex-col items-center gap-1">
+                            <span className="text-accent-cyan text-[16px] font-black">
+                              {ch.currency === 'EUR' || ch.currency === 'eur' ? '€' : ch.currency === 'GBP' || ch.currency === 'gbp' ? '£' : '$'}
+                              {displayPrice.toFixed(2)}
                             </span>
-                            <span className="text-accent-cyan text-[17px] font-black">
-                              ${displayPrice.toFixed(2)}
+                            <span className="line-through text-text-muted text-[11px] font-bold">
+                              {ch.currency === 'EUR' || ch.currency === 'eur' ? '€' : ch.currency === 'GBP' || ch.currency === 'gbp' ? '£' : '$'}
+                              {originalPrice.toFixed(2)}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-[17px] font-black text-text-primary">
-                            ${ch.price.toFixed(2)}
-                          </span>
+                          <div className="inline-flex flex-col items-center gap-1">
+                            <span className="text-[16px] font-black text-text-primary">
+                              {ch.currency === 'EUR' || ch.currency === 'eur' ? '€' : ch.currency === 'GBP' || ch.currency === 'gbp' ? '£' : '$'}
+                              {ch.price.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Promo Code column */}
+                      <td className="px-3 py-3 text-center align-middle">
+                        {(ch.coupon_code || deal?.code) ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleCopyCode(ch.coupon_code || deal?.code || '')
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg bg-bg-base hover:bg-bg-surface border border-border-subtle/80 text-xs font-mono font-bold text-accent-cyan flex items-center justify-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer mx-auto select-none"
+                             title="Click to copy coupon code"
+                          >
+                            <span>{copiedCode === (ch.coupon_code || deal?.code) ? 'COPIED!' : (ch.coupon_code || deal?.code)}</span>
+                          </button>
+                        ) : (
+                          <span className="text-text-muted text-xs font-bold">—</span>
                         )}
                       </td>
 
@@ -800,7 +1094,7 @@ export default function ChallengesClient({
                       <td className="px-3 py-3 text-right align-middle">
                         <button
                           onClick={() => handleBuyClick(ch)}
-                          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple text-[15px] font-black text-white hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md shadow-accent-cyan/10 hover:shadow-lg hover:shadow-accent-cyan/20 cursor-pointer whitespace-nowrap"
+                          className="px-5 py-2.5 rounded-full bg-gradient-to-r from-accent-cyan to-accent-purple text-xs font-black text-white hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md shadow-accent-cyan/10 hover:shadow-lg hover:shadow-accent-cyan/20 cursor-pointer whitespace-nowrap"
                         >
                           Buy
                         </button>
@@ -854,7 +1148,7 @@ export default function ChallengesClient({
             >
               ✕
             </button>
-            
+
             <div className="text-center space-y-2">
               <span className="px-2.5 py-0.5 rounded-full bg-accent-cyan/15 text-accent-cyan text-[10px] font-bold uppercase tracking-wider font-mono">
                 {selectedDeal.label} Enabled

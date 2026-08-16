@@ -27,27 +27,46 @@ export default function NewDealPage() {
     logo_url: '',
     expires_at: '',
     status: 'active',
-    deal_type: 'general',
+    deal_type: 'best_value',
   })
 
-  // Load firms for selection dropdown
+  const [tabLabels, setTabLabels] = useState({
+    best_value: 'Best Value',
+    bogo: 'BOGO Offers',
+    cash_back: 'CashBack offers',
+    extra_points: 'Extra Points',
+  })
+
+  // Load firms and settings for selection dropdown
   useEffect(() => {
-    async function loadFirms() {
+    async function loadFirmsAndSettings() {
       try {
-        const res = await fetch('/api/admin/firms')
-        if (res.ok) {
-          const data = await res.json()
+        const [firmsRes, settingsRes] = await Promise.all([
+          fetch('/api/admin/firms'),
+          fetch('/api/admin/settings')
+        ])
+        if (firmsRes.ok) {
+          const data = await firmsRes.json()
           const list = data.data || []
           setFirms(list)
           if (list.length > 0) {
             setFormData((prev) => ({ ...prev, firm_id: list[0].id }))
           }
         }
+        if (settingsRes.ok) {
+          const settings = await settingsRes.json()
+          setTabLabels({
+            best_value: settings.tab_best_value || 'Best Value',
+            bogo: settings.tab_bogo || 'BOGO Offers',
+            cash_back: settings.tab_cash_back || 'CashBack offers',
+            extra_points: settings.tab_extra_points || 'Extra Points',
+          })
+        }
       } catch (err) {
         console.error(err)
       }
     }
-    loadFirms()
+    loadFirmsAndSettings()
   }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -159,9 +178,10 @@ export default function NewDealPage() {
                 required
                 className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
               >
-                <option value="exclusive">Exclusive Deal</option>
-                <option value="cash_back">CashBack Deal</option>
-                <option value="extra_account">Extra Account Deal</option>
+                <option value="best_value">{tabLabels.best_value}</option>
+                <option value="bogo">{tabLabels.bogo}</option>
+                <option value="cash_back">{tabLabels.cash_back}</option>
+                <option value="extra_points">{tabLabels.extra_points}</option>
               </select>
             </div>
           </div>

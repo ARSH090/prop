@@ -89,11 +89,10 @@ export function FeaturedDeals({ deals = [], title, subtext }: FeaturedDealsProps
                   </span>
                   <button
                     onClick={() => handleCopyCode(deal.code)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-all ${
-                      isCopied
-                        ? 'bg-accent-green/20 text-accent-green'
-                        : 'bg-accent-cyan/10 text-accent-cyan hover:bg-accent-cyan/20'
-                    }`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-all ${isCopied
+                      ? 'bg-accent-green/20 text-accent-green'
+                      : 'bg-accent-cyan/10 text-accent-cyan hover:bg-accent-cyan/20'
+                      }`}
                   >
                     {isCopied ? 'Copied' : 'Copy'}
                   </button>

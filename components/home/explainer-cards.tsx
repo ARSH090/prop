@@ -53,21 +53,21 @@ export function ExplainerCards() {
                 {/* Subtle Hover Glow Gradient */}
                 <div className="absolute -inset-px bg-gradient-to-br from-accent-cyan/0 to-accent-purple/0 group-hover:from-accent-cyan/5 group-hover:to-accent-purple/5 rounded-3xl transition-all duration-500 pointer-events-none" />
                 <div className="relative z-10 flex flex-col h-full">
-                <div className="flex justify-between items-start mb-6">
-                  <div className={`p-4 rounded-2xl border ${item.color} group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className="w-6 h-6" />
+                  <div className="flex justify-between items-start mb-6">
+                    <div className={`p-4 rounded-2xl border ${item.color} group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <span className="text-4xl font-extrabold text-text-muted font-mono leading-none tracking-tight opacity-40 group-hover:opacity-100 transition-opacity">
+                      {item.step}
+                    </span>
                   </div>
-                  <span className="text-4xl font-extrabold text-text-muted font-mono leading-none tracking-tight opacity-40 group-hover:opacity-100 transition-opacity">
-                    {item.step}
-                  </span>
-                </div>
 
-                <h3 className="text-xl font-bold text-text-primary mb-3 group-hover:text-accent-cyan transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-text-secondary text-sm leading-relaxed flex-1">
-                  {item.description}
-                </p>
+                  <h3 className="text-xl font-bold text-text-primary mb-3 group-hover:text-accent-cyan transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-text-secondary text-sm leading-relaxed flex-1">
+                    {item.description}
+                  </p>
                 </div>
               </div>
             )

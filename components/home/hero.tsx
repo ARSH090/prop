@@ -80,16 +80,28 @@ export function HeroSection({
   marqueeFirms = [],
   globeFirms = [],
 }: HeroProps) {
+  const [scrollY, setScrollY] = useState(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
     <section className="relative min-h-[auto] md:min-h-screen bg-bg-base overflow-hidden pt-28 pb-24 md:pb-24 flex items-center">
-      {/* Dynamic Neon Background */}
-      <NeonBackground />
+      {/* Dynamic Neon Background with subtle parallax */}
+      <div style={{ transform: `translate3d(0, ${scrollY * 0.2}px, 0)` }} className="absolute inset-0 pointer-events-none">
+        <NeonBackground />
+      </div>
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full py-12">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left Column - Content */}
-          <div className="space-y-8">
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight tracking-tight">
+          <div className="space-y-8 z-10">
+            <h1 className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight">
               <span className="afx-gradient-heading">{headlinePart1}</span>
               <br />
               <span className="text-white">{headlinePart2}</span>
@@ -104,7 +116,7 @@ export function HeroSection({
                 <AFXButton
                   variant="primary"
                   size="lg"
-                  className="bg-gradient-to-r from-accent-cyan to-accent-blue font-bold px-8 hover:shadow-lg hover:shadow-accent-cyan/20 transition-all"
+                  className="font-bold px-8"
                 >
                   {ctaExplore}
                 </AFXButton>
@@ -113,14 +125,14 @@ export function HeroSection({
                 <AFXButton
                   variant="secondary"
                   size="lg"
-                  className="border-accent-purple/40 hover:border-accent-purple/80 hover:bg-accent-purple/10 px-8 text-white font-medium transition-all"
+                  className="px-8 font-medium"
                 >
                   {ctaBrokers}
                 </AFXButton>
               </a>
             </div>
 
-            {/* Quick Stats */}
+            {/* Quick Stats with tabular numbers */}
             <div className="flex gap-6 pt-4">
               {[
                 { label: 'Prop Firms', value: '60+' },
@@ -128,15 +140,18 @@ export function HeroSection({
                 { label: 'Traders', value: '50K+' },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <p className="text-xl font-bold font-mono text-accent-cyan">{stat.value}</p>
+                  <p className="text-xl font-bold font-numeric text-accent-cyan">{stat.value}</p>
                   <p className="text-[10px] text-text-muted uppercase tracking-wider">{stat.label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right Column - Neon Orb Visual */}
-          <div className="h-[300px] xs:h-[340px] sm:h-[400px] md:h-[500px] flex items-center justify-center relative">
+          {/* Right Column - 3D Globe Visual with subtle parallax */}
+          <div
+            style={{ transform: `translate3d(0, ${scrollY * 0.1}px, 0)` }}
+            className="h-[300px] xs:h-[340px] sm:h-[400px] md:h-[500px] flex items-center justify-center relative transition-transform duration-75 ease-out"
+          >
             <div className="relative w-full h-full flex items-center justify-center">
               {/* Outer neon ring */}
               <div className="absolute w-72 h-72 rounded-full border border-accent-cyan/20 animate-spin" style={{ animationDuration: '20s' }} />
@@ -155,3 +170,4 @@ export function HeroSection({
     </section>
   )
 }
+

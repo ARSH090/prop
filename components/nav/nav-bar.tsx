@@ -50,13 +50,13 @@ const toolsLinks = [
 
 const subNavLinks = [
   { label: 'Home', href: '/' },
+  { label: 'Propfirms', href: '/firms' },
   { label: 'Offers', href: '/deals' },
   { label: 'Challenges', href: '/challenges' },
-  { label: 'Best Sellers', href: '/best-sellers' },
-  { label: 'Reviews', href: '/reviews' },
-  { label: 'Favorite Firms', href: '/favorites' },
-  { label: 'Prop Firm Rules', href: '/rules' },
-  { label: 'Community', href: '/community' },
+  { label: 'POPULAR FIRMS', href: '/favorites' },
+  { label: 'PropFirm RULES', href: '/rules' },
+  { label: 'COMMUNITY', href: '/community' },
+  { label: 'Compare Firms', href: '/compare' },
 ]
 
 const mobileMenuCategories = [
@@ -66,7 +66,6 @@ const mobileMenuCategories = [
       { label: 'Home', href: '/', icon: Home },
       { label: 'Prop Firms', href: '/firms', icon: Building2 },
       { label: 'Challenges', href: '/challenges', icon: Award },
-      { label: 'Best Sellers', href: '/best-sellers', icon: Star },
       { label: 'Compare Firms', href: '/compare', icon: BarChart3 },
     ],
   },
@@ -296,7 +295,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 text-text-primary shrink-0">
               <img src="/logo.png" alt="EMPIRIAL Logo" className="h-8 w-auto rounded-lg object-contain" />
-              <span className="text-lg font-black tracking-tight afx-gradient-heading">
+              <span className="text-2xl md:text-3xl font-black tracking-widest afx-gradient-heading font-bebas">
                 EMPIRIAL
               </span>
             </Link>

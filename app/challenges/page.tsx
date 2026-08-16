@@ -48,34 +48,23 @@ export default async function ChallengesPage({ params }: { params?: Promise<{ ca
   return (
     <div className="min-h-screen bg-[#05070D] text-text-primary">
       <NavBar />
-      <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-8">
-        
+      <main className="w-full max-w-full px-4 md:px-8 lg:px-12 py-12 space-y-8">
+
         {/* Title and trust badges matches screenshots */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-primary leading-tight">
-            Compare the Best Prop Trading Firms of 2026
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-text-primary leading-tight whitespace-nowrap">
+            Find the Right Prop Firm Challenge for You
           </h1>
-          <p className="text-text-secondary text-sm md:text-base max-w-2xl mx-auto">
-            Trusted platform to compare prop trading firms using verified data and insights, including reviews, rules, and rankings.
-          </p>
 
           {/* Trust stats overlay badges */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
-            <span className="px-3.5 py-1.5 rounded-full bg-bg-surface border border-border-subtle/50 text-[10px] md:text-xs font-bold text-text-primary flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-accent-cyan" />
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+            <span className="px-5 py-2.5 rounded-full bg-bg-surface border border-border-subtle/50 text-xs sm:text-sm md:text-base font-bold text-text-primary flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-accent-cyan" />
               60+ Verified Top Prop Firms
             </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-bg-surface border border-border-subtle/50 text-[10px] md:text-xs font-bold text-text-primary flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-accent-purple" />
+            <span className="px-5 py-2.5 rounded-full bg-bg-surface border border-border-subtle/50 text-xs sm:text-sm md:text-base font-bold text-text-primary flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-accent-purple" />
               1500+ Challenges
-            </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-bg-surface border border-border-subtle/50 text-[10px] md:text-xs font-bold text-text-primary flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#EC4899]" />
-              11000+ Real Trader Reviews
-            </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-bg-surface border border-border-subtle/50 text-[10px] md:text-xs font-bold text-text-primary flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              4M+ Monthly Website Views
             </span>
           </div>
         </div>

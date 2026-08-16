@@ -88,26 +88,27 @@ export function HomeFavFirms({
                       circleCrop={firm.circle_crop_logo}
                       className="w-14 h-14 rounded-2xl group-hover:border-pink-400/30 transition-colors"
                     />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-text-primary group-hover:text-pink-400 transition-colors truncate">{firm.name}</h3>
-                    {firm.rating && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                        <span className="text-xs font-bold text-text-secondary font-mono">{firm.rating.toFixed(1)}</span>
-                        {firm.review_count && (
-                          <span className="text-[10px] text-text-muted">({firm.review_count} reviews)</span>
-                        )}
-                      </div>
-                    )}
-                    {firm.description && (
-                      <p className="text-text-muted text-xs mt-1.5 line-clamp-2">{firm.description}</p>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-text-primary group-hover:text-pink-400 transition-colors truncate">{firm.name}</h3>
+                      {firm.rating && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                          <span className="text-xs font-bold text-text-secondary font-mono">{firm.rating.toFixed(1)}</span>
+                          {firm.review_count && (
+                            <span className="text-[10px] text-text-muted">({firm.review_count} reviews)</span>
+                          )}
+                        </div>
+                      )}
+                      {firm.description && (
+                        <p className="text-text-muted text-xs mt-1.5 line-clamp-2">{firm.description}</p>
+                      )}
+                    </div>
+                    <Heart className="w-4 h-4 text-pink-400/40 group-hover:text-pink-400 group-hover:fill-pink-400 transition-all shrink-0 mt-0.5" />
                   </div>
-                  <Heart className="w-4 h-4 text-pink-400/40 group-hover:text-pink-400 group-hover:fill-pink-400 transition-all shrink-0 mt-0.5" />
-                </div>
-              </AFXCard>
-            </Link>
-          )})}
+                </AFXCard>
+              </Link>
+            )
+          })}
         </div>
 
         <div className="mt-8 text-center">

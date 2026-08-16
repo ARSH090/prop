@@ -10,6 +10,8 @@ import { AFXButton } from '@/components/ui/afx-button'
 
 export const revalidate = 10
 
+import { ReadingProgressBar } from '@/components/ui/reading-progress-bar'
+
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   try {
     const { slug } = await params
@@ -64,6 +66,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">
+      <ReadingProgressBar />
       <NavBar />
 
       <main className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">

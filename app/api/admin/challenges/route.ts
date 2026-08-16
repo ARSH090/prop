@@ -38,7 +38,9 @@ export async function POST(request: NextRequest) {
       currency,
       deal_id,
       affiliate_url,
+      coupon_code,
       is_active,
+      is_popular,
       logo_url,
     } = body
 
@@ -67,8 +69,10 @@ export async function POST(request: NextRequest) {
       currency: currency || 'USD',
       deal_id: deal_id || null,
       affiliate_url: affiliate_url || null,
+      coupon_code: coupon_code || '',
       logo_url: logo_url || null,
       is_active: is_active !== false,
+      is_popular: !!is_popular,
       created_at: FieldValue.serverTimestamp(),
       updated_at: FieldValue.serverTimestamp(),
     })

@@ -58,11 +58,10 @@ export default async function BlogPage({
             <Link
               key={cat.id}
               href={cat.href}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all border ${
-                activeCategory === cat.id
+              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all border ${activeCategory === cat.id
                   ? 'bg-accent-cyan/15 border-accent-cyan/40 text-accent-cyan neon-border-cyan'
                   : 'bg-bg-surface border-border-subtle text-text-secondary hover:text-text-primary'
-              }`}
+                }`}
             >
               {cat.label}
             </Link>
@@ -94,7 +93,7 @@ export default async function BlogPage({
                       <p className="text-text-secondary text-sm leading-relaxed">
                         {filteredPosts[0].excerpt}
                       </p>
- 
+
                       <div className="flex items-center gap-4 pt-4 border-t border-border-subtle text-xs text-text-muted font-mono">
                         <span>Anuraj FX Editorial</span>
                         {filteredPosts[0].published_at && (
@@ -108,7 +107,7 @@ export default async function BlogPage({
                           </div>
                         )}
                       </div>
- 
+
                       <div className="flex items-center gap-2 text-accent-cyan font-bold text-sm pt-2 group">
                         Read Article
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -118,14 +117,14 @@ export default async function BlogPage({
                 </div>
               </Link>
             )}
- 
+
             {/* Rest of Posts */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredPosts.slice(1).map((post) => {
                 const dateStr = post.published_at
                   ? new Date(
-                      post.published_at.seconds ? post.published_at.seconds * 1000 : post.published_at
-                    ).toLocaleDateString('en-US')
+                    post.published_at.seconds ? post.published_at.seconds * 1000 : post.published_at
+                  ).toLocaleDateString('en-US')
                   : 'Recent'
                 return (
                   <Link key={post.id} href={`/blog/${post.slug}`}>

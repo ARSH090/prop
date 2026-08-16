@@ -14,7 +14,7 @@ export function TrustStats({ stats = [] }: TrustStatsProps) {
   if (!stats || stats.length === 0) return null
 
   return (
-    <section className="py-16 bg-bg-surface border-y border-border-subtle">
+    <section className="py-8 bg-transparent">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <p className="text-text-muted text-sm text-center mb-8 font-semibold tracking-wider uppercase font-mono">
           Trusted by traders worldwide
