@@ -30,6 +30,8 @@ export default function EditFirmPage() {
     payout_custom: '',
     allocation_custom: '',
     profit_split_custom: '',
+    discount_label_custom: '',
+    coupon_code_custom: '',
     badge_custom: '',
     platform_custom: '',
     max_allocation: '',
@@ -118,6 +120,8 @@ export default function EditFirmPage() {
             payout_custom: data.payout_custom || '',
             allocation_custom: data.allocation_custom || '',
             profit_split_custom: data.profit_split_custom || '',
+            discount_label_custom: data.discount_label_custom || '',
+            coupon_code_custom: data.coupon_code_custom || '',
             badge_custom: data.badge_custom || '',
             platform_custom: data.platform_custom || '',
             max_allocation: data.max_allocation ? String(data.max_allocation) : '',
@@ -784,7 +788,7 @@ export default function EditFirmPage() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-text-secondary">Custom Profit Split Override</label>
                 <input
@@ -793,6 +797,30 @@ export default function EditFirmPage() {
                   value={formData.profit_split_custom}
                   onChange={handleChange}
                   placeholder="e.g. Up to 100%"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Promo Discount Override (e.g. 30% OFF)</label>
+                <input
+                  type="text"
+                  name="discount_label_custom"
+                  value={formData.discount_label_custom}
+                  onChange={handleChange}
+                  placeholder="e.g. 30% OFF"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Promo Code Override (e.g. FPT)</label>
+                <input
+                  type="text"
+                  name="coupon_code_custom"
+                  value={formData.coupon_code_custom}
+                  onChange={handleChange}
+                  placeholder="e.g. FPT"
                   className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
                 />
               </div>

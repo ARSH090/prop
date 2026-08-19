@@ -115,8 +115,8 @@ export default function ChallengesClient({
           name: f.name,
           rating: f.rating ? f.rating.toFixed(1) : '4.5',
           likes_count: f.likes_count || 0,
-          discount: deal?.discount_label || 'Special Offers',
-          code: deal?.code || 'ACTIVE',
+          discount: (f as any).discount_label_custom || deal?.discount_label || 'Special Offers',
+          code: (f as any).coupon_code_custom || deal?.code || 'ACTIVE',
           ctaText: f.cta_text || 'Visit Review',
           logo: f.logo_url,
           firmSlug: f.slug,
@@ -518,19 +518,16 @@ export default function ChallengesClient({
                           {item.badgeCustom}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#00b67a]/10 border border-[#00b67a]/20 text-[#00b67a] text-[9px] font-black uppercase tracking-wider">
-                          ⚡ High Rating
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[9px] font-black uppercase tracking-wider">
+                          🔥 MOST POPULAR
                         </span>
                       )}
                     </div>
 
-                    {/* Sub-header row: Platform and Coupon badges */}
+                    {/* Sub-header row: Coupon badge */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9px] font-black text-text-secondary">
-                        📈 {item.platformCustom || 'MT5'}
-                      </span>
                       {(item.discount || item.code) && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-400">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[9.5px] font-black text-emerald-400">
                           🏷️ {item.discount}: {item.code}
                         </span>
                       )}
@@ -540,15 +537,15 @@ export default function ChallengesClient({
                     <div className="grid grid-cols-3 gap-2 w-full border-t border-b border-white/5 py-4 my-1 text-left">
                       <div>
                         <span className="block text-[9px] text-text-muted font-bold uppercase tracking-wider mb-1">Payout</span>
-                        <span className="text-sm sm:text-base font-black text-text-primary font-mono">{item.totalPayout}</span>
+                        <span className="text-lg sm:text-xl md:text-2xl font-black text-white font-bebas tracking-wide uppercase">{item.totalPayout}</span>
                       </div>
                       <div>
                         <span className="block text-[9px] text-text-muted font-bold uppercase tracking-wider mb-1">Allocation</span>
-                        <span className="text-sm sm:text-base font-black text-text-primary font-mono">{item.maxAllocation}</span>
+                        <span className="text-lg sm:text-xl md:text-2xl font-black text-white font-bebas tracking-wide uppercase">{item.maxAllocation}</span>
                       </div>
                       <div>
                         <span className="block text-[9px] text-text-muted font-bold uppercase tracking-wider mb-1">Profit Split</span>
-                        <span className="text-sm sm:text-base font-black text-[#00b67a] font-mono">{item.profitSplit}</span>
+                        <span className="text-lg sm:text-xl md:text-2xl font-black text-[#00b67a] font-bebas tracking-wide uppercase">{item.profitSplit}</span>
                       </div>
                     </div>
 
