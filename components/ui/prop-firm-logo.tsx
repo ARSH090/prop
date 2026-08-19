@@ -68,7 +68,7 @@ export function PropFirmLogo({
   } else if (frame === 'neon') {
     frameClass = '!border-[3px] !border-accent-cyan shadow-[0_0_12px_rgba(34,211,238,0.8)] scale-[1.05]'
   } else if (frame === 'offwhite') {
-    frameClass = '!border-[3px] !border-[#2A3348] shadow-[0_0_6px_rgba(255,255,255,0.05)]'
+    frameClass = '!border-[3px] !border-white/15 shadow-[0_0_8px_rgba(255,255,255,0.08)]'
   }
 
   if (hasError || !imgSrc) {

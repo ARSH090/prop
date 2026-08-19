@@ -63,6 +63,161 @@ const TABS = [
   { id: 'crypto', label: 'Crypto', icon: '🪙' },
 ] as const
 
+function RadarChart({ 
+  title, 
+  rating, 
+  targetPct, 
+  drawdownPct, 
+  pricePer100k, 
+  splitPct, 
+  themeColor = 'cyan'
+}: {
+  title: string
+  rating: number
+  targetPct: number
+  drawdownPct: number
+  pricePer100k: number
+  splitPct: number
+  themeColor?: 'cyan' | 'purple'
+}) {
+  const center = 110
+  const maxR = 60
+  
+  // Normalize scores (0.2 to 1.0)
+  const sRating = Math.max(0.2, Math.min(1.0, rating / 5))
+  const sTarget = Math.max(0.2, Math.min(1.0, 1.3 - (targetPct / 20)))
+  const sDrawdown = Math.max(0.2, Math.min(1.0, drawdownPct / 12))
+  const sValue = Math.max(0.2, Math.min(1.0, 1.3 - (pricePer100k / 800)))
+  const sSplit = Math.max(0.2, Math.min(1.0, splitPct / 100))
+  
+  const scores = [sRating, sValue, sDrawdown, sTarget, sSplit]
+  
+  // Calculate regular pentagon vertices
+  const getCoordinates = (index: number, score: number) => {
+    const angle = -Math.PI / 2 + index * ((2 * Math.PI) / 5)
+    return {
+      x: center + maxR * score * Math.cos(angle),
+      y: center + maxR * score * Math.sin(angle)
+    }
+  }
+  
+  // Outer grid points
+  const grid3 = Array.from({ length: 5 }).map((_, i) => getCoordinates(i, 1.0))
+  const grid2 = Array.from({ length: 5 }).map((_, i) => getCoordinates(i, 0.66))
+  const grid1 = Array.from({ length: 5 }).map((_, i) => getCoordinates(i, 0.33))
+  
+  // Data points
+  const points = scores.map((s, i) => getCoordinates(i, s))
+  const polygonPath = points.map(p => `${p.x},${p.y}`).join(' ')
+  
+  const accentColor = themeColor === 'cyan' ? '#00D2FF' : '#A855F7'
+  const glowShadow = themeColor === 'cyan' 
+    ? 'rgba(0,210,255,0.4)' 
+    : 'rgba(168,85,247,0.4)'
+    
+  // Labels details
+  const labelNames = [
+    { text: 'Review Score', val: `${(rating).toFixed(1)} / 5` },
+    { text: 'Price Value', val: `$${pricePer100k.toFixed(0)}/100K` },
+    { text: 'Max Drawdown', val: `${drawdownPct}%` },
+    { text: 'Profit Target', val: `${targetPct}%` },
+    { text: 'Profit Split', val: `${splitPct}%` }
+  ]
+  
+  // Positions for text labels (a bit outside the max radius)
+  const labelPositions = Array.from({ length: 5 }).map((_, i) => {
+    const angle = -Math.PI / 2 + i * ((2 * Math.PI) / 5)
+    const labelDist = maxR + 25
+    return {
+      x: center + labelDist * Math.cos(angle),
+      y: center + (labelDist + 5) * Math.sin(angle)
+    }
+  })
+  
+  return (
+    <div className="flex flex-col items-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl backdrop-blur-md shadow-2xl flex-1 min-w-[280px]">
+      <h4 className="text-xs font-black uppercase tracking-wider text-text-primary mb-3">
+        {title}
+      </h4>
+      
+      <svg width="220" height="235" className="overflow-visible">
+        {/* Background grids */}
+        <polygon 
+          points={grid3.map(p => `${p.x},${p.y}`).join(' ')} 
+          className="fill-none stroke-white/10 stroke-1" 
+        />
+        <polygon 
+          points={grid2.map(p => `${p.x},${p.y}`).join(' ')} 
+          className="fill-none stroke-white/5 stroke-1" 
+        />
+        <polygon 
+          points={grid1.map(p => `${p.x},${p.y}`).join(' ')} 
+          className="fill-none stroke-white/5 stroke-1" 
+        />
+        
+        {/* Radial lines */}
+        {grid3.map((p, i) => (
+          <line 
+            key={i} 
+            x1={center} 
+            y1={center} 
+            x2={p.x} 
+            y2={p.y} 
+            className="stroke-white/5 stroke-1" 
+          />
+        ))}
+        
+        {/* Data polygon */}
+        <polygon 
+          points={polygonPath} 
+          fill={`${accentColor}25`} 
+          stroke={accentColor} 
+          strokeWidth="2" 
+          style={{ filter: `drop-shadow(0 0 6px ${glowShadow})` }}
+        />
+        
+        {/* Data points dots */}
+        {points.map((p, i) => (
+          <circle 
+            key={i} 
+            cx={p.x} 
+            cy={p.y} 
+            r="3.5" 
+            fill={accentColor} 
+            className="stroke-white stroke-1" 
+          />
+        ))}
+        
+        {/* Labels rendering */}
+        {labelPositions.map((pos, i) => {
+          const anchor = i === 0 ? 'middle' : (i === 1 || i === 2) ? 'start' : 'end'
+          const name = labelNames[i]
+          return (
+            <g key={i} className="select-none">
+              <text 
+                x={pos.x} 
+                y={pos.y - 4} 
+                textAnchor={anchor} 
+                className="text-[9px] font-bold text-text-muted fill-current"
+              >
+                {name.text}
+              </text>
+              <text 
+                x={pos.x} 
+                y={pos.y + 7} 
+                textAnchor={anchor} 
+                className="text-[9px] font-black text-text-primary fill-current font-mono"
+              >
+                {name.val}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
 export default function CompareClient({ firms, challenges }: CompareClientProps) {
   const [activeTab, setActiveTab] = useState<'forex' | 'futures' | 'crypto'>('forex')
   
@@ -222,6 +377,37 @@ export default function CompareClient({ firms, challenges }: CompareClientProps)
           </button>
         ))}
       </div>
+
+      {/* Radar Charts comparison at the very top */}
+      {leftFirm && rightFirm && (
+        <div className="flex flex-col md:flex-row gap-6 max-w-4xl mx-auto items-stretch justify-center animate-fade-in">
+          <RadarChart
+            title={leftFirm.name}
+            rating={leftFirm.rating}
+            targetPct={parseNumber(leftChallenge?.profit_target_p1 || leftChallenge?.profit_target || 8)}
+            drawdownPct={parseNumber(leftChallenge?.max_loss_pct || leftChallenge?.max_loss || 10)}
+            pricePer100k={leftChallenge ? (parseNumber(leftChallenge.price) / (parseNumber(leftChallenge.account_size) || 100000)) * 100000 : 500}
+            splitPct={parseNumber(leftChallenge?.profit_split_percent || leftChallenge?.profit_split_pct || 80)}
+            themeColor="cyan"
+          />
+          
+          <div className="hidden md:flex flex-col justify-center items-center font-bold text-xs text-text-muted select-none">
+            <span className="h-8 w-[1px] bg-border-subtle/50" />
+            <span className="my-2 uppercase tracking-widest text-[9px] font-black">METRIC MATCH</span>
+            <span className="h-8 w-[1px] bg-border-subtle/50" />
+          </div>
+
+          <RadarChart
+            title={rightFirm.name}
+            rating={rightFirm.rating}
+            targetPct={parseNumber(rightChallenge?.profit_target_p1 || rightChallenge?.profit_target || 8)}
+            drawdownPct={parseNumber(rightChallenge?.max_loss_pct || rightChallenge?.max_loss || 10)}
+            pricePer100k={rightChallenge ? (parseNumber(rightChallenge.price) / (parseNumber(rightChallenge.account_size) || 100000)) * 100000 : 500}
+            splitPct={parseNumber(rightChallenge?.profit_split_percent || rightChallenge?.profit_split_pct || 80)}
+            themeColor="purple"
+          />
+        </div>
+      )}
 
       {/* Selectors Grid (VS Layout) */}
       <div className="grid grid-cols-1 md:grid-cols-9 gap-4 items-center max-w-4xl mx-auto">

@@ -525,24 +525,26 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
           </div>
 
           {/* Row 2: Sub-navigation links */}
-          <div className="flex h-12 items-center justify-start md:justify-center overflow-x-auto scrollbar-none gap-6 md:gap-8 pt-2 pb-1">
-            {links.map((link) => {
-              const resolvedHref = getSubNavLinkHref(link.href)
-              const isActive = pathname === resolvedHref
-              return (
-                <Link
-                  key={link.href}
-                  href={resolvedHref}
-                  className={`relative pb-2 text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-accent-cyan after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 ${
-                    isActive 
-                      ? 'text-accent-cyan after:scale-x-100 font-extrabold' 
-                      : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              )
-            })}
+          <div className="flex items-center justify-center py-2 pb-3">
+            <div className="flex h-11 items-center justify-center bg-[#0c0926]/90 border border-white/10 backdrop-blur-md rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] px-4 py-1 gap-1.5 md:gap-2 mx-auto max-w-fit overflow-x-auto scrollbar-none">
+              {links.map((link) => {
+                const resolvedHref = getSubNavLinkHref(link.href)
+                const isActive = pathname === resolvedHref
+                return (
+                  <Link
+                    key={link.href}
+                    href={resolvedHref}
+                    className={`px-3.5 py-1.5 rounded-full text-[10.5px] font-black uppercase tracking-wider transition-all whitespace-nowrap border select-none ${
+                      isActive 
+                        ? 'bg-accent-cyan/10 text-accent-cyan border-accent-cyan/30 shadow-[0_0_12px_rgba(34,211,238,0.15)] font-black' 
+                        : 'text-text-secondary hover:text-text-primary border-transparent'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              })}
+            </div>
           </div>
 
         </div>

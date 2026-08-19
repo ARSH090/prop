@@ -199,40 +199,6 @@ export default function FirmsPage() {
               </button>
             </div>
 
-            {/* Firm Type quick switch radio */}
-            <div className="flex items-center gap-1.5 bg-bg-base/80 px-3 py-1.5 rounded-full border border-border-subtle text-xs">
-              <label className="flex items-center gap-1.5 cursor-pointer font-bold text-text-secondary hover:text-text-primary">
-                <input
-                  type="radio"
-                  name="firm_type"
-                  checked={firmType === 'prop_firm'}
-                  onChange={() => setFirmType('prop_firm')}
-                  className="accent-accent-cyan"
-                />
-                Firms
-              </label>
-              <span className="text-text-muted">|</span>
-              <label className="flex items-center gap-1.5 cursor-pointer font-bold text-text-secondary hover:text-text-primary">
-                <input
-                  type="radio"
-                  name="firm_type"
-                  checked={firmType === 'broker'}
-                  onChange={() => setFirmType('broker')}
-                  className="accent-accent-cyan"
-                />
-                Brokers
-              </label>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-start">
-            <button className="px-4 py-1.5 bg-accent-purple/10 border border-accent-purple/30 text-accent-purple hover:bg-accent-purple/20 transition-all rounded-full text-xs font-bold">
-              How We Verify and Rank Firms
-            </button>
-            <div className="flex items-center gap-1.5 text-xs text-text-muted font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Live Data updated 1h ago</span>
-            </div>
           </div>
         </div>
 
@@ -327,8 +293,9 @@ export default function FirmsPage() {
                               <PropFirmLogo
                                 name={firm.name}
                                 logoUrl={firm.logo_url}
-                                circleCrop={firm.circle_crop_logo}
-                                className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]"
+                                circleCrop={false}
+                                frame="offwhite"
+                                className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl transition-all duration-300 group-hover:scale-110"
                               />
                             </FirmLink>
 
@@ -357,60 +324,92 @@ export default function FirmsPage() {
                         {/* 2. RANK / REVIEWS COLUMN */}
                         <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle">
                           <div className="inline-flex flex-col items-center gap-0.5 sm:gap-1">
-                            <div className="px-1.5 sm:px-2.5 py-0.5 rounded-lg bg-accent-purple/20 border border-accent-purple/30 text-accent-purple text-[10px] sm:text-xs font-bold">
+                            <div className="px-2.5 sm:px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[#00b67a] text-xs sm:text-sm font-black">
                               {firm.rating.toFixed(1)}
                             </div>
-                            <div className="flex text-amber-400 text-[8px] sm:text-[10px]">★★★★★</div>
-                            <div className="text-[8px] sm:text-[10px] text-text-muted font-bold truncate max-w-[70px] sm:max-w-none">
+                            <div className="flex text-[#00b67a] text-[10px] sm:text-[12px] gap-0.5 my-0.5">★★★★★</div>
+                            <div className="text-[9px] sm:text-[11px] text-text-secondary font-black truncate max-w-[70px] sm:max-w-none">
                               {firm.review_count} revs
                             </div>
                           </div>
                         </td>
 
                         {/* 3. COUNTRY COLUMN */}
-                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle text-xs font-bold text-text-secondary hidden sm:table-cell">
-                          <div className="inline-flex items-center gap-1.5">
-                            <span className="text-base">{flag}</span>
-                            <span>{COUNTRY_NAMES[firm.country || ''] || firm.country || 'United States'}</span>
+                        <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden sm:table-cell">
+                          <div className="flex flex-col items-center gap-1 justify-center">
+                            <span className="text-xl sm:text-2xl filter drop-shadow">{flag}</span>
+                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#16122C]/80 border border-border-subtle text-text-secondary inline-block">
+                              {COUNTRY_NAMES[firm.country || ''] || firm.country || 'United States'}
+                            </span>
                           </div>
                         </td>
 
                         {/* 4. YEARS IN OPERATION COLUMN */}
                         <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden lg:table-cell">
-                          <div className="inline-flex items-center justify-center">
-                            <div className="w-10 h-10 rounded-full border-2 border-accent-cyan/30 flex items-center justify-center text-xs font-bold text-text-primary bg-bg-base/30 relative">
-                              <span className="absolute inset-0.5 rounded-full border border-dashed border-accent-cyan/50 animate-pulse" />
-                              {firm.years_active || '1'}
-                            </div>
-                          </div>
+                          <span className="text-sm font-black text-text-primary font-mono">{firm.years_active || '1'}</span>
                         </td>
 
                         {/* 5. ASSETS COLUMN */}
                         <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden lg:table-cell">
                           <div className="flex flex-wrap gap-1 justify-center max-w-[180px] mx-auto">
-                            {firm.category?.slice(0, 3).map((cat) => (
-                              <span
-                                key={cat}
-                                className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-bg-base border border-border-subtle text-text-secondary uppercase"
-                              >
-                                {cat}
-                              </span>
-                            ))}
+                            {firm.category?.slice(0, 3).map((cat) => {
+                              const c = cat.toLowerCase()
+                              let style = 'bg-accent-purple/10 border-accent-purple/20 text-accent-purple'
+                              if (c.includes('forex')) {
+                                style = 'bg-emerald-500/10 border-emerald-500/20 text-[#00b67a]'
+                              } else if (c.includes('crypto')) {
+                                style = 'bg-orange-500/10 border-orange-500/20 text-orange-400'
+                              } else if (c.includes('futures')) {
+                                style = 'bg-accent-cyan/10 border-accent-cyan/20 text-accent-cyan'
+                              }
+                              return (
+                                <span
+                                  key={cat}
+                                  className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase ${style}`}
+                                >
+                                  {cat}
+                                </span>
+                              )
+                            })}
                           </div>
                         </td>
 
                         {/* 6. PLATFORMS COLUMN */}
                         <td className="px-2 sm:px-6 py-4 sm:py-5 text-center align-middle hidden md:table-cell">
-                          <div className="flex items-center justify-center gap-1">
-                            {firm.platforms?.slice(0, 3).map((plat) => (
-                              <div
-                                key={plat}
-                                className="w-6 h-6 rounded-full bg-bg-base border border-border-subtle flex items-center justify-center text-[8px] font-bold text-text-primary shrink-0"
-                                title={plat}
-                              >
-                                {plat.charAt(0)}
-                              </div>
-                            ))}
+                          <div className="flex items-center justify-center gap-2.5">
+                            {firm.platforms?.slice(0, 3).map((plat) => {
+                              const getPlatformDetails = (pName: string) => {
+                                const p = pName.toLowerCase()
+                                if (p.includes('mt4') || p.includes('metatrader 4')) {
+                                  return { name: 'MT4', color: 'bg-blue-600/20 border-blue-500/30 text-blue-400', initial: '4' }
+                                }
+                                if (p.includes('mt5') || p.includes('metatrader 5')) {
+                                  return { name: 'MT5', color: 'bg-indigo-600/20 border-indigo-500/30 text-indigo-400', initial: '5' }
+                                }
+                                if (p.includes('ctrader')) {
+                                  return { name: 'cTrader', color: 'bg-teal-600/20 border-teal-500/30 text-teal-400', initial: 'C' }
+                                }
+                                if (p.includes('matchtrader') || p.includes('match')) {
+                                  return { name: 'Match', color: 'bg-purple-600/20 border-purple-500/30 text-purple-400', initial: 'M' }
+                                }
+                                if (p.includes('dxtrade') || p.includes('dx')) {
+                                  return { name: 'DXTrade', color: 'bg-amber-600/20 border-amber-500/30 text-amber-400', initial: 'DX' }
+                                }
+                                if (p.includes('tradelocker') || p.includes('locker')) {
+                                  return { name: 'Locker', color: 'bg-rose-600/20 border-rose-500/30 text-rose-400', initial: 'TL' }
+                                }
+                                return { name: pName, color: 'bg-slate-600/20 border-slate-500/30 text-slate-400', initial: pName.substring(0, 2).toUpperCase() }
+                              }
+                              const details = getPlatformDetails(plat)
+                              return (
+                                <div key={plat} className="flex flex-col items-center text-center shrink-0">
+                                  <div className={`w-6 h-6 rounded-md border flex items-center justify-center font-bold text-[9px] ${details.color}`}>
+                                    {details.initial}
+                                  </div>
+                                  <span className="text-[8px] text-text-muted mt-0.5 font-bold uppercase block">{details.name}</span>
+                                </div>
+                              )
+                            })}
                           </div>
                         </td>
 

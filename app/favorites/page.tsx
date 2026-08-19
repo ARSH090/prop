@@ -137,10 +137,6 @@ export default function FavoritesPage() {
             <span className="text-sm font-bold text-text-primary">
               Firms <span className="text-accent-cyan font-mono">{filteredFirms.length}</span>
             </span>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-purple-500/35 bg-purple-500/5 text-[10px] font-bold text-purple-300 hover:bg-purple-500/10 transition-colors">
-              <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-              How We Verify and Rank Firms
-            </button>
           </div>
 
           <div className="relative w-full sm:w-72">
@@ -189,8 +185,9 @@ export default function FavoritesPage() {
                       <PropFirmLogo 
                         name={firm.name} 
                         logoUrl={firm.logo_url} 
-                        circleCrop={firm.circle_crop_logo} 
-                        className="w-11 h-11 rounded-xl shrink-0 border border-border-subtle/20"
+                        circleCrop={false} 
+                        frame="offwhite"
+                        className="w-11 h-11 rounded-xl shrink-0"
                       />
                       <div>
                         <h3 className="text-sm font-black text-white group-hover:text-accent-cyan transition-colors">
