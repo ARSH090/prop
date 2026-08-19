@@ -482,7 +482,7 @@ export default function ChallengesClient({
           </div>
 
           {/* Cards Grid */}
-          <div key={activePromoPage} className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in">
+          <div key={activePromoPage} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 animate-fade-in">
             {visiblePromoOffers.length === 0 ? (
               <div className="col-span-3 text-center py-6 text-xs text-text-muted">
                 No popular firms found.
@@ -588,7 +588,7 @@ export default function ChallengesClient({
                     onClick={() => {
                       router.push(`/firms/${item.firmSlug}`)
                     }}
-                    className="group p-3.5 bg-bg-surface/60 border border-border-subtle hover:border-accent-purple/60 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-300 rounded-2xl flex items-center justify-between gap-3.5 relative backdrop-blur-md animate-fade-in cursor-pointer"
+                    className="group p-3.5 bg-bg-surface/60 border border-border-subtle hover:border-accent-purple/60 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-300 rounded-2xl flex flex-col sm:flex-row lg:flex-col xl:flex-row sm:items-center lg:items-stretch xl:items-center justify-between gap-3.5 relative backdrop-blur-md animate-fade-in cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       {item.rank === 1 ? (
@@ -612,7 +612,7 @@ export default function ChallengesClient({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex items-center gap-3 shrink-0 justify-between sm:justify-end lg:justify-between xl:justify-end w-full sm:w-auto lg:w-full xl:w-auto border-t border-white/5 sm:border-t-0 lg:border-t lg:pt-2 xl:border-t-0 xl:pt-0 pt-2">
                       {/* Pink/Purple double-box code copy container */}
                       <button
                         onClick={(e) => {
