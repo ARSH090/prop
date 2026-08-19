@@ -27,6 +27,11 @@ export default function EditFirmPage() {
     website_url: '',
     affiliate_url: '',
     cta_text: '',
+    payout_custom: '',
+    allocation_custom: '',
+    profit_split_custom: '',
+    badge_custom: '',
+    platform_custom: '',
     max_allocation: '',
     platforms: '',
     category: '',
@@ -110,6 +115,11 @@ export default function EditFirmPage() {
             website_url: data.website_url || '',
             affiliate_url: data.affiliate_url || '',
             cta_text: data.cta_text || '',
+            payout_custom: data.payout_custom || '',
+            allocation_custom: data.allocation_custom || '',
+            profit_split_custom: data.profit_split_custom || '',
+            badge_custom: data.badge_custom || '',
+            platform_custom: data.platform_custom || '',
             max_allocation: data.max_allocation ? String(data.max_allocation) : '',
             platforms: data.platforms ? data.platforms.join(', ') : '',
             category: data.category ? data.category.join(', ') : '',
@@ -719,6 +729,70 @@ export default function EditFirmPage() {
                   value={formData.cta_text}
                   onChange={handleChange}
                   placeholder="Get Funded Now"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Top-Right Custom Badge Label</label>
+                <input
+                  type="text"
+                  name="badge_custom"
+                  value={formData.badge_custom}
+                  onChange={handleChange}
+                  placeholder="e.g. ⚡ High Rating"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Custom Platform Label</label>
+                <input
+                  type="text"
+                  name="platform_custom"
+                  value={formData.platform_custom}
+                  onChange={handleChange}
+                  placeholder="e.g. MT5"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Custom Payout Override</label>
+                <input
+                  type="text"
+                  name="payout_custom"
+                  value={formData.payout_custom}
+                  onChange={handleChange}
+                  placeholder="e.g. $12M+"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Custom Max Allocation Override</label>
+                <input
+                  type="text"
+                  name="allocation_custom"
+                  value={formData.allocation_custom}
+                  onChange={handleChange}
+                  placeholder="e.g. $1,000,000"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Custom Profit Split Override</label>
+                <input
+                  type="text"
+                  name="profit_split_custom"
+                  value={formData.profit_split_custom}
+                  onChange={handleChange}
+                  placeholder="e.g. Up to 100%"
                   className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
                 />
               </div>

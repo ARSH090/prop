@@ -117,11 +117,15 @@ export default function ChallengesClient({
           likes_count: f.likes_count || 0,
           discount: deal?.discount_label || 'Special Offers',
           code: deal?.code || 'ACTIVE',
+          ctaText: f.cta_text || 'Visit Review',
           logo: f.logo_url,
           firmSlug: f.slug,
           established: estYear,
-          totalPayout: payoutCalculated,
-          maxAllocation: allocCalculated,
+          totalPayout: (f as any).payout_custom || payoutCalculated,
+          maxAllocation: (f as any).allocation_custom || allocCalculated,
+          profitSplit: (f as any).profit_split_custom || 'Up to 90%',
+          badgeCustom: (f as any).badge_custom || '',
+          platformCustom: (f as any).platform_custom || '',
           is_popular: !!(f as any).is_popular,
         }
       })
@@ -491,49 +495,73 @@ export default function ChallengesClient({
                     onClick={() => {
                       router.push(`/firms/${item.firmSlug}`)
                     }}
-                    className="group p-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-accent-cyan/40 shadow-xl transition-all duration-300 rounded-3xl flex flex-col items-center text-center gap-3.5 relative backdrop-blur-lg min-h-[260px] cursor-pointer"
+                    className="group p-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-accent-cyan/40 shadow-xl transition-all duration-300 rounded-3xl flex flex-col gap-4 relative backdrop-blur-lg min-h-[300px] cursor-pointer"
                   >
-                    {/* Logo & Basic Info */}
-                    <div className="flex flex-col items-center gap-2">
-                      <PropFirmLogo name={item.name} logoUrl={item.logo} className="w-12 h-12 rounded-xl transition-all duration-300 group-hover:scale-110" />
-                      <div className="text-center">
-                        <h3 className="text-sm sm:text-base font-black text-text-primary line-clamp-1">{item.name}</h3>
-                        <div className="flex items-center justify-center gap-0.5 mt-1">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <span key={i} className="text-[#00b67a] text-xs">★</span>
-                          ))}
-                          <span className="text-[10px] font-black text-text-secondary ml-1">({item.rating})</span>
+                    {/* Header Row: Logo & Name + Custom Badge */}
+                    <div className="flex items-start justify-between w-full">
+                      <div className="flex items-center gap-3">
+                        <PropFirmLogo name={item.name} logoUrl={item.logo} className="w-12 h-12 rounded-xl transition-all duration-300 group-hover:scale-110" />
+                        <div className="text-left">
+                          <h3 className="text-sm sm:text-base font-black text-text-primary line-clamp-1">{item.name}</h3>
+                          <div className="flex items-center gap-0.5 mt-0.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <span key={i} className="text-[#00b67a] text-xs">★</span>
+                            ))}
+                            <span className="text-[10px] font-black text-text-secondary ml-1">({item.rating})</span>
+                          </div>
                         </div>
                       </div>
+
+                      {/* Top Right Custom Badge */}
+                      {item.badgeCustom ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[#00b67a] text-[9px] font-black uppercase tracking-wider">
+                          {item.badgeCustom}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#00b67a]/10 border border-[#00b67a]/20 text-[#00b67a] text-[9px] font-black uppercase tracking-wider">
+                          ⚡ High Rating
+                        </span>
+                      )}
                     </div>
 
-                    {/* Parameters Grid */}
-                    <div className="grid grid-cols-3 gap-1.5 w-full border-t border-b border-white/5 py-3 my-1">
+                    {/* Sub-header row: Platform and Coupon badges */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9px] font-black text-text-secondary">
+                        📈 {item.platformCustom || 'MT5'}
+                      </span>
+                      {(item.discount || item.code) && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-400">
+                          🏷️ {item.discount}: {item.code}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Metrics row: PAYOUT, ALLOCATION, PROFIT SPLIT (Large Fonts) */}
+                    <div className="grid grid-cols-3 gap-2 w-full border-t border-b border-white/5 py-4 my-1 text-left">
                       <div>
-                        <span className="block text-[9px] text-text-muted font-black uppercase tracking-wider">Payout</span>
-                        <span className="text-xs sm:text-sm font-black text-text-primary font-mono">{item.totalPayout}</span>
+                        <span className="block text-[9px] text-text-muted font-bold uppercase tracking-wider mb-1">Payout</span>
+                        <span className="text-sm sm:text-base font-black text-text-primary font-mono">{item.totalPayout}</span>
                       </div>
                       <div>
-                        <span className="block text-[9px] text-text-muted font-black uppercase tracking-wider">Est.</span>
-                        <span className="text-xs sm:text-sm font-black text-text-primary font-mono">{item.established}</span>
+                        <span className="block text-[9px] text-text-muted font-bold uppercase tracking-wider mb-1">Allocation</span>
+                        <span className="text-sm sm:text-base font-black text-text-primary font-mono">{item.maxAllocation}</span>
                       </div>
                       <div>
-                        <span className="block text-[9px] text-text-muted font-black uppercase tracking-wider">Alloc.</span>
-                        <span className="text-xs sm:text-sm font-black text-text-primary font-mono">{item.maxAllocation}</span>
+                        <span className="block text-[9px] text-text-muted font-bold uppercase tracking-wider mb-1">Profit Split</span>
+                        <span className="text-sm sm:text-base font-black text-[#00b67a] font-mono">{item.profitSplit}</span>
                       </div>
                     </div>
 
-                    {/* Bottom: Discount & Promo Code Button */}
-                    <div className="w-full flex flex-col items-center gap-1.5 mt-auto">
+                    {/* Bottom: Custom CTA Button */}
+                    <div className="w-full mt-auto">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleCopyCode(item.code)
+                          router.push(`/firms/${item.firmSlug}`)
                         }}
-                        className="w-full py-2 text-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-mono font-bold text-accent-cyan transition-all hover:scale-105 active:scale-95 cursor-pointer select-none"
-                        title="Click to copy coupon code"
+                        className="w-full py-2.5 text-center rounded-xl bg-accent-cyan text-black hover:bg-accent-cyan/90 text-xs font-black transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-[0_0_12px_rgba(34,211,238,0.25)] select-none"
                       >
-                        {copiedCode === item.code ? 'COPIED!' : `${item.code} (${item.discount})`}
+                        {item.ctaText}
                       </button>
                     </div>
                   </div>
@@ -588,17 +616,25 @@ export default function ChallengesClient({
                     </div>
 
                     <div className="flex items-center gap-4 shrink-0">
+                      {/* Pink/Purple double-box code copy container */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           handleCopyCode(item.code)
                         }}
-                        className="inline-block text-[9.5px] font-mono text-text-secondary bg-border-subtle/80 hover:bg-bg-surface hover:text-accent-cyan px-3 py-1.5 rounded font-black tracking-wider uppercase border border-transparent hover:border-accent-cyan/30 transition-all duration-200 select-none cursor-pointer"
+                        className="flex flex-col items-center bg-gradient-to-r from-[#d946ef] to-[#a855f7] px-2.5 py-1.5 rounded-xl border border-white/10 select-none shrink-0 w-24 sm:w-[110px] text-center gap-0.5 shadow-md shadow-purple-500/20 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
                         title="Click to copy coupon code"
                       >
-                        {copiedCode === item.code ? 'COPIED!' : item.code}
+                        <span className="text-[8px] sm:text-[9px] font-black text-white uppercase tracking-wider leading-none">
+                          {item.discount}
+                        </span>
+                        <div className="w-full flex items-center justify-between bg-black/80 px-2 py-1.5 rounded-lg text-[9.5px] sm:text-[10px] font-black text-white font-mono leading-none mt-1">
+                          <span className="truncate max-w-[65px]">{copiedCode === item.code ? 'DONE' : item.code}</span>
+                          <Copy className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#d946ef] shrink-0 ml-1" />
+                        </div>
                       </button>
 
+                      {/* Larger BUY Button */}
                       <a
                         href={item.buyUrl}
                         target="_blank"
@@ -606,7 +642,7 @@ export default function ChallengesClient({
                         onClick={(e) => {
                           e.stopPropagation()
                         }}
-                        className="inline-flex items-center justify-center text-[10px] font-black text-black bg-accent-cyan hover:bg-accent-cyan/80 px-3 py-1.5 rounded-lg transition-all active:scale-95 shrink-0 shadow-[0_0_12px_rgba(34,211,238,0.35)]"
+                        className="inline-flex items-center justify-center text-xs sm:text-sm font-black text-black bg-accent-cyan hover:bg-accent-cyan/80 px-4 py-3 rounded-xl transition-all active:scale-95 shrink-0 shadow-[0_0_12px_rgba(34,211,238,0.35)]"
                       >
                         BUY
                       </a>

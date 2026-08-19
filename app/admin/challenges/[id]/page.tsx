@@ -50,6 +50,7 @@ export default function EditChallengePage() {
     deal_id: '',
     affiliate_url: '',
     coupon_code: '',
+    discount_label: '',
     cta_text: '',
     logo_url: '',
     is_active: true,
@@ -99,6 +100,7 @@ export default function EditChallengePage() {
             deal_id: chData.deal_id || '',
             affiliate_url: chData.affiliate_url || '',
             coupon_code: chData.coupon_code || '',
+            discount_label: chData.discount_label || '',
             cta_text: chData.cta_text || '',
             logo_url: chData.logo_url || '',
             is_active: chData.is_active !== false,
@@ -652,6 +654,18 @@ export default function EditChallengePage() {
                   value={formData.coupon_code}
                   onChange={handleChange}
                   placeholder="e.g. SAVE20"
+                  className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-text-secondary">Promo Discount Label Override</label>
+                <input
+                  type="text"
+                  name="discount_label"
+                  value={formData.discount_label}
+                  onChange={handleChange}
+                  placeholder="e.g. UPTO 50% OFF"
                   className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
                 />
               </div>

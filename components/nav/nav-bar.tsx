@@ -165,6 +165,10 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
   const notifCloseTimer = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const pathname = usePathname()
+  const isChallengesPage = pathname?.includes('/challenges')
+  const navBgClass = isChallengesPage
+    ? 'bg-[#061b36]/90 border-b border-sky-500/30 shadow-[0_4px_20px_rgba(14,165,233,0.15)]'
+    : 'bg-bg-surface/80 border-b border-border-subtle'
 
   const handleNotifMouseEnter = () => {
     if (notifCloseTimer.current) clearTimeout(notifCloseTimer.current)
@@ -287,7 +291,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 border-b border-border-subtle bg-bg-surface/80 backdrop-blur-md">
+      <nav className={`sticky top-0 z-50 backdrop-blur-md transition-all duration-300 ${navBgClass}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           {/* Row 1: Brand Logo, Mock Search, Category Switcher & Main Actions */}
