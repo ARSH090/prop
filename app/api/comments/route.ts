@@ -1,5 +1,6 @@
 import { db } from '@/lib/firebase/admin'
 import { NextRequest, NextResponse } from 'next/server'
+import { FieldValue } from 'firebase-admin/firestore'
 
 export const dynamic = 'force-dynamic'
 

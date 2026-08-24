@@ -105,17 +105,22 @@ const EVENTS = [
   },
 ]
 
-import { getSiteContent } from '@/lib/firebase/server'
+import { getEvents, getSiteContent } from '@/lib/firebase/server'
+
+export const dynamic = 'force-dynamic'
 
 export default async function EventsPage() {
-  const content = await getSiteContent('events')
+  const [events, content] = await Promise.all([
+    getEvents(),
+    getSiteContent('events')
+  ])
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary">
       <NavBar />
 
       <main className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <EventsClient content={content} initialEvents={EVENTS as any} />
+        <EventsClient content={content} initialEvents={events} />
       </main>
 
       <Footer />

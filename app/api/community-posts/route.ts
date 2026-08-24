@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const snap = await db.collection('community_posts').orderBy('created_at', 'desc').get()
     const posts: any[] = []
     
-    snap.forEach((doc) => {
+    snap.forEach((doc: any) => {
       const data = doc.data()
       posts.push({
         id: doc.id,

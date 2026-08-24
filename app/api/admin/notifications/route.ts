@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const snapshot = await db.collection('notifications').orderBy('created_at', 'desc').get()
     const list: any[] = []
-    snapshot.forEach((doc) => {
+    snapshot.forEach((doc: any) => {
       list.push({
         id: doc.id,
         ...doc.data()

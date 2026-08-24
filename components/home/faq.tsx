@@ -34,14 +34,21 @@ const faqs = [
   },
 ]
 
+interface FAQItem {
+  q: string
+  a: string
+}
+
 interface HomeFAQProps {
   badge?: string
   title?: string
   subtext?: string
+  items?: FAQItem[]
 }
 
-export function HomeFAQ({ badge, title, subtext }: HomeFAQProps) {
+export function HomeFAQ({ badge, title, subtext, items }: HomeFAQProps) {
   const [open, setOpen] = useState<number | null>(null)
+  const displayFaqs = (items && items.length > 0) ? items : faqs
 
   return (
     <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -58,7 +65,7 @@ export function HomeFAQ({ badge, title, subtext }: HomeFAQProps) {
       </div>
 
       <div className="space-y-3">
-        {faqs.map((faq, idx) => (
+        {displayFaqs.map((faq, idx) => (
           <div
             key={idx}
             className="border border-border-subtle rounded-2xl bg-bg-surface overflow-hidden hover:border-accent-cyan/30 transition-colors"

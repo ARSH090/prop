@@ -224,9 +224,13 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
         badge={homeContent.faq_badge}
         title={homeContent.faq_title}
         subtext={homeContent.faq_subtext}
+        items={homeContent.faq_items || homeContent.faqs}
       />
 
-      <Footer />
+      <Footer
+        brandDescription={homeContent.footer_brand_description || homeContent.brand_description}
+        riskDisclaimer={homeContent.footer_risk_disclaimer || homeContent.risk_disclaimer}
+      />
     </main>
   )
 }

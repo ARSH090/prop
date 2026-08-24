@@ -221,7 +221,7 @@ export async function getSiteContent(page: string): Promise<Record<string, any>>
       const content: Record<string, any> = {}
       snapshot.forEach((doc: any) => {
         const data = doc.data()
-        if (data.is_active) {
+        if (data.is_active !== false) {
           content[data.section_key] =
             data.content_type === 'json' ? JSON.parse(data.value) : data.value
         }
