@@ -102,14 +102,6 @@ export function HeroSection({
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left Column - Content */}
           <div className="space-y-8 z-10">
-            {/* FULL PINK BOX BADGE */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#EC4899] to-[#d946ef] text-white shadow-[0_0_25px_rgba(236,72,153,0.5)] border border-pink-300/30">
-              <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
-              <span className="text-xs font-black text-white uppercase tracking-wider font-mono">
-                INDIA'S #1 PROP TRADING COMMAND CENTER
-              </span>
-            </div>
-
             <h1 className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight">
               <span className="afx-gradient-heading">{headlinePart1}</span>
               <br />
