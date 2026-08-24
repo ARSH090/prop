@@ -73,13 +73,6 @@ const mobileMenuCategories = [
     ],
   },
   {
-    title: 'DEALS & OFFERS',
-    links: [
-      { label: 'Discount Codes', href: '/deals', icon: Percent },
-      { label: 'Loyalty Rewards', href: '/loyalty', icon: Zap },
-    ],
-  },
-  {
     title: 'TOOLS',
     links: [
       { label: 'Community Hub', href: '/community', icon: Users },
