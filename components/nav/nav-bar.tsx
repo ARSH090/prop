@@ -325,33 +325,33 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                   </button>
 
                   {userMenuOpen && (
-                    <div className="absolute top-10 right-0 w-48 bg-bg-surface border border-border-subtle rounded-xl shadow-xl py-2 mt-1 backdrop-blur-md animate-fade-in z-50">
-                      <div className="px-4 py-2 border-b border-border-subtle mb-1">
-                        <p className="text-xs font-bold text-text-primary truncate">{getUserDisplayName(currentUser)}</p>
-                        <p className="text-[10px] text-text-muted truncate">{currentUser.email}</p>
+                    <div className="absolute top-10 right-0 w-52 bg-[#12131a]/95 border border-white/20 rounded-2xl shadow-2xl py-2 mt-1 backdrop-blur-xl animate-fade-in z-50 overflow-hidden">
+                      <div className="px-4 py-2.5 border-b border-white/10 mb-1 bg-white/[0.03]">
+                        <p className="text-xs font-black text-white tracking-wide truncate">{getUserDisplayName(currentUser)}</p>
+                        <p className="text-[11px] font-bold text-slate-300 truncate mt-0.5">{currentUser.email}</p>
                       </div>
                       <Link
                         href="/loyalty"
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
+                        className="flex items-center gap-3 px-4 py-2.5 text-xs text-white font-extrabold hover:text-accent-cyan hover:bg-white/10 transition-all tracking-wide"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <User className="w-3.5 h-3.5 text-accent-cyan" />
+                        <User className="w-4 h-4 text-accent-cyan shrink-0" />
                         VIEW PROFILE
                       </Link>
                       <Link
                         href="/payouts"
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
+                        className="flex items-center gap-3 px-4 py-2.5 text-xs text-white font-extrabold hover:text-accent-cyan hover:bg-white/10 transition-all tracking-wide"
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <DollarSign className="w-3.5 h-3.5" />
+                        <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
                         Payout Proofs
                       </Link>
-                      <div className="border-t border-border-subtle mt-1 pt-1">
+                      <div className="border-t border-white/10 mt-1 pt-1">
                         <button
                           onClick={handleSignOut}
-                          className="flex items-center gap-3 px-4 py-2.5 text-xs text-red-400 hover:bg-bg-base/50 transition-colors font-medium w-full text-left"
+                          className="flex items-center gap-3 px-4 py-2.5 text-xs font-extrabold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all w-full text-left tracking-wide"
                         >
-                          <LogOut className="w-3.5 h-3.5" />
+                          <LogOut className="w-4 h-4 text-red-400 shrink-0" />
                           Sign Out
                         </button>
                       </div>
@@ -451,32 +451,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                 )}
               </div>
 
-              {/* Tools Dropdown Button */}
-              <div
-                className="relative hidden lg:block"
-                onMouseEnter={handleToolsMouseEnter}
-                onMouseLeave={handleToolsMouseLeave}
-              >
-                <button className="flex items-center gap-1 text-text-secondary hover:text-accent-cyan transition-colors text-xs font-semibold uppercase tracking-wider focus:outline-none">
-                  Tools
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${toolsOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {toolsOpen && (
-                  <div className="absolute top-6 right-0 w-52 bg-bg-surface border border-border-subtle rounded-xl shadow-xl py-2 mt-1 backdrop-blur-md animate-fade-in z-50">
-                    {toolsLinks.map((tool) => (
-                      <Link
-                        key={tool.href}
-                        href={tool.href}
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
-                        onClick={() => setToolsOpen(false)}
-                      >
-                        <tool.icon className="w-3.5 h-3.5 text-accent-cyan/60" />
-                        {tool.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+
 
               {/* Hamburger Button (Always visible on all screen sizes next to actions) */}
               <button
