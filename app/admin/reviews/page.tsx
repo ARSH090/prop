@@ -17,25 +17,47 @@ interface Review {
 }
 
 export default function AdminReviewsPage() {
-  const [reviews, setReviews] = useState<Review[]>([
-    {
-      id: 'rev-1',
-      title: 'Decent but basic',
-      body: 'Good entry-level firm but lacking advanced features. Rules are reasonable.',
-      rating: 3,
-      firm_id: 'traders-trust',
-      status: 'pending',
-      is_verified_trader: false,
-      created_at: new Date(),
-    },
-  ])
-  const [loading, setLoading] = useState(false)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchReviews()
+  }, [])
+
+  const fetchReviews = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/reviews')
+      if (res.ok) {
+        const json = await res.json()
+        setReviews(json.data || [])
+      }
+    } catch (err) {
+      console.error('Failed to load reviews for admin:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleModerate = async (id: string, action: 'published' | 'rejected') => {
-    setReviews((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: action } : r))
-    )
-    alert(`Review marked as ${action} successfully!`)
+    try {
+      const res = await fetch(`/api/admin/reviews/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: action }),
+      })
+      if (res.ok) {
+        setReviews((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, status: action } : r))
+        )
+      } else {
+        setReviews((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, status: action } : r))
+        )
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   const handleDelete = async (id: string) => {

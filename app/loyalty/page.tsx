@@ -73,7 +73,7 @@ export default function LoyaltyPage() {
   const [loadingReviews, setLoadingReviews] = useState(false)
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged(async (user) => {
+    const unsub = auth.onAuthStateChanged(async (user: any) => {
       if (user) {
         setCurrentUser(user)
         await loadLoyaltyData(user.email || '')

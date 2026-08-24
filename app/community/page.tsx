@@ -35,21 +35,7 @@ export default async function CommunityPage() {
       <div>
         <NavBar />
 
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-          {/* Header Block */}
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent-purple/10 border border-accent-purple/20 text-accent-purple">
-              <Users className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">Trader Hub</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight afx-gradient-heading">
-              AFX Community Discussions
-            </h1>
-            <p className="text-text-secondary text-base leading-relaxed">
-              Connect with fellow prop traders, share challenge reviews, flag payout delays, and monitor active firm watchlists in real-time.
-            </p>
-          </div>
-
+        <main className="w-full max-w-full px-4 md:px-8 lg:px-12 py-8 space-y-6">
           <CommunityClient announcements={announcements} />
         </main>
       </div>

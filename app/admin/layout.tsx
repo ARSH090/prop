@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [checkingAuth, setCheckingAuth] = useState(true)
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged(async (user) => {
+    const unsub = auth.onAuthStateChanged(async (user: any) => {
       if (user) {
         // Fast-path: check designated admin emails first to avoid Firestore reads/errors
         if (user.email === 'admin@anurajfx.com' || user.email === 'admin@empirial.com') {

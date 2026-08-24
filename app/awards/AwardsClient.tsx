@@ -64,7 +64,7 @@ export default function AwardsClient({ initialFirms, dataAwards }: AwardsClientP
   }
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged((user) => {
+    const unsub = auth.onAuthStateChanged((user: any) => {
       setCurrentUser(user)
       fetchData(user?.uid)
     })

@@ -10,32 +10,25 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic'
 
-export default async function ReviewsPage({ params }: { params?: Promise<{ category?: string }> }) {
+export default async function ReviewsPage({
+  params,
+}: {
+  params?: Promise<{ category?: string }>
+} = {}) {
   const resolvedParams = params ? await params : null
-  const category = resolvedParams?.category || 'forex'
-
+  const initialCategory = resolvedParams?.category || 'all'
   const firms = await getFirms('prop_firm')
-  const activeFirms = firms.filter((f) => {
-    if (f.status !== 'active') return false
-    const cats = f.category || []
-    return cats.map((c: string) => c.toLowerCase()).includes(category.toLowerCase())
-  })
+  const activeFirms = firms.filter((f) => f.status !== 'inactive')
+  const serializedFirms = JSON.parse(JSON.stringify(activeFirms))
 
   return (
-    <div className="min-h-screen bg-bg-base text-text-primary">
-      <NavBar />
-      <main className="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8 space-y-6">
-        <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-text-primary mb-2 afx-gradient-heading">
-            Trader Feedback Directory
-          </h1>
-          <p className="text-text-secondary text-sm">
-            Read verified reviews and check scores compiled directly from active prop challenge users.
-          </p>
-        </div>
-
-        <ReviewsClient firms={activeFirms} />
-      </main>
+    <div className="min-h-screen bg-bg-base text-text-primary flex flex-col justify-between">
+      <div>
+        <NavBar />
+        <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8 space-y-8">
+          <ReviewsClient firms={serializedFirms} initialCategory={initialCategory} />
+        </main>
+      </div>
       <Footer />
     </div>
   )

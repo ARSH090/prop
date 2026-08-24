@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Playfair_Display, Inter, JetBrains_Mono } from 'next/font/google'
+import { Playfair_Display, Inter, JetBrains_Mono, Outfit, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import { NotificationToast } from '@/components/ui/notification-toast'
 import { SparklingStars } from '@/components/ui/sparkling-stars'
@@ -20,6 +20,18 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-jetbrains',
+})
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-outfit',
+})
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-jakarta',
 })
 
 export const metadata: Metadata = {
@@ -50,35 +62,35 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${playfairDisplay.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="antialiased bg-background font-semibold">
+    <html lang="en" className={`${playfairDisplay.variable} ${inter.variable} ${jetbrainsMono.variable} ${outfit.variable} ${jakarta.variable}`}>
+      <body className="antialiased bg-gradient-to-b from-[#0b132b] via-[#101b38] to-[#080e20] text-text-primary min-h-screen font-semibold">
         {/* Background grids (global stars) */}
-        <div className="global-stars pointer-events-none fixed inset-0 z-50 bg-[radial-gradient(#ffffff03_1px,transparent_1px)] [background-size:16px_16px] opacity-70" />
-        
+        <div className="global-stars pointer-events-none fixed inset-0 z-50 bg-[radial-gradient(#ffffff04_1px,transparent_1px)] [background-size:16px_16px] opacity-75" />
+
         {/* Sparkling Stars */}
         <SparklingStars />
 
-        {/* Fixed background neon glows on left and right for all pages */}
+        {/* Fixed screen-level background glows - vibrant sky-blue ambient aura */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-          {/* Neon Cyan on the left */}
-          <div 
-            className="absolute w-[600px] h-[600px] rounded-full opacity-[0.09] blur-[130px] top-[-100px] left-[-200px]"
-            style={{ background: 'radial-gradient(circle, #22D3EE 0%, transparent 70%)' }}
+          {/* Sky Blue top left */}
+          <div
+            className="absolute w-[800px] h-[800px] rounded-full opacity-[0.22] blur-[150px] top-[-100px] left-[-150px]"
+            style={{ background: 'radial-gradient(circle, #38bdf8 0%, transparent 65%)' }}
           />
-          {/* Neon Purple on the right */}
-          <div 
-            className="absolute w-[700px] h-[700px] rounded-full opacity-[0.08] blur-[150px] top-[15%] right-[-250px]"
-            style={{ background: 'radial-gradient(circle, #8B5CF6 0%, transparent 70%)' }}
+          {/* Electric Sky Blue top right */}
+          <div
+            className="absolute w-[850px] h-[850px] rounded-full opacity-[0.20] blur-[160px] top-[10%] right-[-150px]"
+            style={{ background: 'radial-gradient(circle, #00d8ff 0%, transparent 65%)' }}
           />
-          {/* Neon Pink on the left */}
-          <div 
-            className="absolute w-[600px] h-[600px] rounded-full opacity-[0.07] blur-[140px] top-[45%] left-[-250px]"
-            style={{ background: 'radial-gradient(circle, #EC4899 0%, transparent 70%)' }}
+          {/* Deep Cyan / Sky Blue middle center */}
+          <div
+            className="absolute w-[750px] h-[750px] rounded-full opacity-[0.18] blur-[150px] top-[45%] left-[-100px]"
+            style={{ background: 'radial-gradient(circle, #0284c7 0%, transparent 65%)' }}
           />
-          {/* Neon Blue on the right */}
-          <div 
-            className="absolute w-[650px] h-[650px] rounded-full opacity-[0.08] blur-[140px] top-[70%] right-[-200px]"
-            style={{ background: 'radial-gradient(circle, #3B82F6 0%, transparent 70%)' }}
+          {/* Sky Blue bottom right */}
+          <div
+            className="absolute w-[800px] h-[800px] rounded-full opacity-[0.20] blur-[160px] top-[70%] right-[-150px]"
+            style={{ background: 'radial-gradient(circle, #38bdf8 0%, transparent 65%)' }}
           />
         </div>
 

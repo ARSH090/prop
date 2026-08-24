@@ -14,7 +14,7 @@ export function WatchlistWidget() {
   const [favorites, setFavorites] = useState<any[]>([])
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged(async (user) => {
+    const unsub = auth.onAuthStateChanged(async (user: any) => {
       setCurrentUser(user)
       try {
         // Fetch firms

@@ -98,30 +98,41 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
   }
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged((user) => setCurrentUser(user))
+    const unsub = auth.onAuthStateChanged((user: any) => setCurrentUser(user))
     return unsub
   }, [])
 
+  const [selectedCategory, setSelectedCategory] = useState<'forex' | 'futures' | 'crypto'>('forex')
   const [searchQuery, setSearchQuery] = useState('')
   const [verifiedOnly, setVerifiedOnly] = useState(false)
 
   // Filters
   const filtered = useMemo(() => {
     return initialPayouts.filter((p) => {
+      const firm = getFirm(p.firm_id)
+      if (selectedCategory) {
+        const cats = ((firm as any)?.category || ['forex']).map((c: string) => c.toLowerCase().trim())
+        if (selectedCategory === 'forex') {
+          if (!cats.includes('forex') && !cats.includes('cfd') && cats.length > 0) return false
+        } else {
+          if (!cats.includes(selectedCategory)) return false
+        }
+      }
+
       const firmOk = filterFirm === 'all' || p.firm_id === filterFirm
       const regionOk = filterRegion === 'All Regions' || p.region === filterRegion
       const conceptOk = filterConcept === 'All Concepts' || p.concept === filterConcept
-      
+
       const verifiedOk = !verifiedOnly || p.is_verified === true
 
       const cleanQuery = searchQuery.trim().toLowerCase()
-      const searchMatch = !cleanQuery || 
-        p.trader_display_name.toLowerCase().includes(cleanQuery) || 
+      const searchMatch = !cleanQuery ||
+        p.trader_display_name.toLowerCase().includes(cleanQuery) ||
         getFirmName(p.firm_id).toLowerCase().includes(cleanQuery)
 
       return firmOk && regionOk && conceptOk && verifiedOk && searchMatch
     })
-  }, [initialPayouts, filterFirm, filterRegion, filterConcept, verifiedOnly, searchQuery])
+  }, [initialPayouts, filterFirm, filterRegion, filterConcept, verifiedOnly, searchQuery, selectedCategory])
 
   // Best performing regions
   const regionStats = useMemo(() => {
@@ -171,6 +182,31 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
 
   return (
     <div className="space-y-8">
+      {/* Category Switcher Tabs (📈 Forex / CFDs, ⚡ Futures, 🪙 Crypto) */}
+      <div className="flex justify-center -mt-2 mb-2">
+        <div className="bg-[#0B132B]/90 backdrop-blur-xl border border-white/15 p-1.5 rounded-full inline-flex items-center gap-1.5 shadow-[0_0_25px_rgba(0,0,0,0.5)]">
+          {[
+            { id: 'forex', label: 'Forex / CFDs', icon: '📈' },
+            { id: 'futures', label: 'Futures', icon: '⚡' },
+            { id: 'crypto', label: 'Crypto', icon: '🪙' },
+          ].map((cat) => {
+            const isActive = selectedCategory === cat.id
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id as any)}
+                className={`px-5 sm:px-7 py-2.5 rounded-full text-xs sm:text-sm font-black flex items-center gap-2 transition-all duration-300 cursor-pointer select-none ${isActive
+                    ? 'bg-gradient-to-r from-accent-cyan via-accent-blue to-accent-purple text-white shadow-[0_0_20px_rgba(34,211,238,0.5)] scale-105'
+                    : 'text-text-secondary hover:text-white hover:bg-white/5'
+                  }`}
+              >
+                <span className="text-base leading-none">{cat.icon}</span>
+                <span>{cat.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
       {/* Best Performing Regions */}
       {regionStats.length > 0 && (
         <div className="space-y-3">
@@ -183,11 +219,10 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
               <button
                 key={region}
                 onClick={() => setFilterRegion(region === filterRegion ? 'All Regions' : region)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all ${
-                  filterRegion === region
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all ${filterRegion === region
                     ? 'bg-accent-cyan/10 border-accent-cyan/40 text-accent-cyan neon-border-cyan'
                     : 'bg-bg-surface border-border-subtle text-text-secondary hover:border-accent-cyan/30 hover:text-text-primary'
-                }`}
+                  }`}
               >
                 <span className="text-lg">{REGION_FLAGS[region] || '🌐'}</span>
                 <span>{region}</span>
@@ -277,8 +312,8 @@ export default function PayoutsClient({ initialPayouts, firms }: PayoutsClientPr
           {filtered.map((payout) => {
             const dateStr = payout.payout_date
               ? new Date(
-                  payout.payout_date.seconds ? payout.payout_date.seconds * 1000 : payout.payout_date
-                ).toLocaleDateString('en-US')
+                payout.payout_date.seconds ? payout.payout_date.seconds * 1000 : payout.payout_date
+              ).toLocaleDateString('en-US')
               : 'Recent'
             return (
               <AFXCard

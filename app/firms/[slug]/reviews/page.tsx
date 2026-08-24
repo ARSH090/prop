@@ -2,9 +2,7 @@ import React from 'react'
 import { db } from '@/lib/firebase/admin'
 import { notFound } from 'next/navigation'
 import { getFirms } from '@/lib/firebase/server'
-import { Star } from 'lucide-react'
-
-export const revalidate = 10
+import FirmReviewsClient from './FirmReviewsClient'
 
 export default async function FirmReviewsPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params
@@ -15,11 +13,16 @@ export default async function FirmReviewsPage({ params }: { params: Promise<{ sl
   let isFirestoreEmpty = false
 
   if (snapshot.empty) {
-    isFirestoreEmpty = true
-    const allMock = await getFirms()
-    firm = allMock.find((f: any) => f.slug === slug)
-    if (!firm) {
-      notFound()
+    const docSnap = await db.collection('firms').doc(slug).get()
+    if (docSnap.exists) {
+      firm = { id: docSnap.id, ...docSnap.data() }
+    } else {
+      isFirestoreEmpty = true
+      const allMock = await getFirms()
+      firm = allMock.find((f: any) => f.slug === slug || f.id === slug)
+      if (!firm) {
+        notFound()
+      }
     }
   } else {
     const firmDoc = snapshot.docs[0]
@@ -35,7 +38,16 @@ export default async function FirmReviewsPage({ params }: { params: Promise<{ sl
         .where('firm_id', '==', firm.id)
         .where('status', '==', 'published')
         .get()
-      reviews = reviewsSnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }))
+      reviews = reviewsSnap.docs.map((doc: any, idx: number) => {
+        const data = doc.data()
+        return {
+          ...data,
+          id: doc.id || data.id || `firestore-rev-${idx}`,
+          body: data.body || data.comment || '',
+          comment: data.comment || data.body || '',
+          created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : data.created_at,
+        }
+      })
     } catch (e) {
       console.warn('Reviews fetch failed')
     }
@@ -46,59 +58,41 @@ export default async function FirmReviewsPage({ params }: { params: Promise<{ sl
     reviews = [
       {
         id: 'r-1',
+        firm_id: firm.id,
         rating: 5,
-        title: 'Outstanding Payout Speeds',
-        comment: 'I requested a payout on Friday evening and it cleared into my bank by Saturday afternoon. Extremely reliable spreads and zero slip.',
-        user_name: 'David K.',
-        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        trading_conditions: 5,
+        customer_care: 5,
+        user_friendliness: 5,
+        payout_process: 5,
+        title: 'Outstanding Payout Speeds & Raw Spreads',
+        body: 'I requested a payout on Friday evening and it cleared into my wallet within 4 hours. Extremely reliable execution during high volatility news.',
+        full_name: 'David K.',
+        is_verified_trader: true,
+        upvotes: 14,
+        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
       },
       {
         id: 'r-2',
+        firm_id: firm.id,
         rating: 4,
-        title: 'Great platform, minor server latency',
-        comment: 'Everything has been smooth. The daily drawdown limits are clearly calculated in the dashboard. Recommended!',
-        user_name: 'Anuraj S.',
-        created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString()
-      }
+        trading_conditions: 4,
+        customer_care: 4,
+        user_friendliness: 5,
+        payout_process: 4,
+        title: 'Great platform, transparent drawdown calculations',
+        body: 'Everything has been smooth. The daily drawdown limits are clearly calculated in the dashboard and live support answered my questions within 2 minutes. Recommended!',
+        full_name: 'Anuraj S.',
+        is_verified_trader: true,
+        upvotes: 9,
+        created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+      },
     ]
   }
 
   return (
-    <div className="bg-bg-surface border border-border-subtle p-6 rounded-3xl space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-text-primary">Trader Reviews & Experiences</h2>
-        <p className="text-xs text-text-secondary mt-1">Real reviews and ratings submitted by traders in our community.</p>
-      </div>
-
-      <div className="space-y-4">
-        {reviews.map((rev: any) => (
-          <div key={rev.id} className="p-5 rounded-2xl bg-bg-base/30 border border-border-subtle/50 space-y-3">
-            <div className="flex justify-between items-start">
-              <div>
-                <h4 className="font-bold text-text-primary text-sm">{rev.title || 'Trader Review'}</h4>
-                <p className="text-[10px] text-text-muted mt-0.5">By {rev.user_name || 'Anonymous'} • {new Date(rev.created_at || Date.now()).toLocaleDateString()}</p>
-              </div>
-
-              <div className="flex text-accent-yellow">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-3.5 h-3.5 ${
-                      i < (rev.rating || 5)
-                        ? 'fill-current text-accent-yellow'
-                        : 'text-text-muted'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <p className="text-xs text-text-secondary leading-relaxed">
-              {rev.comment}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
+    <FirmReviewsClient
+      firm={JSON.parse(JSON.stringify(firm))}
+      initialReviews={JSON.parse(JSON.stringify(reviews))}
+    />
   )
 }

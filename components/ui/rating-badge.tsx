@@ -36,9 +36,9 @@ export function RatingBadge({
       {/* Star Icon (Secondary) */}
       <Star className="w-3 h-3 text-yellow-400 fill-current shrink-0" />
 
-      {/* Review Count (Tertiary) */}
+      {/* Review Count (Bigger & Brighter) */}
       {reviewCount !== undefined && (
-        <span className="text-[10px] text-text-muted font-sans font-medium whitespace-nowrap">
+        <span className="text-xs font-bold text-slate-200 font-sans tracking-tight ml-0.5 whitespace-nowrap">
           ({reviewCount})
         </span>
       )}

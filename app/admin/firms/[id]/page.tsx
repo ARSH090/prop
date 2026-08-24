@@ -35,6 +35,7 @@ export default function EditFirmPage() {
     badge_custom: '',
     platform_custom: '',
     max_allocation: '',
+    years_active: '',
     platforms: '',
     category: '',
     description: '',
@@ -93,6 +94,9 @@ export default function EditFirmPage() {
     ea_allowed: false,
     copy_trading_allowed: false,
     news_trading_allowed: false,
+    overnight_holding_allowed: true,
+    weekend_holding_allowed: true,
+    algo_trading_allowed: false,
   })
   const [firmRulesHistory, setFirmRulesHistory] = useState<any[]>([])
   const [savingRules, setSavingRules] = useState(false)
@@ -125,6 +129,7 @@ export default function EditFirmPage() {
             badge_custom: data.badge_custom || '',
             platform_custom: data.platform_custom || '',
             max_allocation: data.max_allocation ? String(data.max_allocation) : '',
+            years_active: data.years_active ? String(data.years_active) : '',
             platforms: data.platforms ? data.platforms.join(', ') : '',
             category: data.category ? data.category.join(', ') : '',
             description: data.description || '',
@@ -191,6 +196,9 @@ export default function EditFirmPage() {
               ea_allowed: !!rulesJson.data.ea_allowed,
               copy_trading_allowed: !!rulesJson.data.copy_trading_allowed,
               news_trading_allowed: !!rulesJson.data.news_trading_allowed,
+              overnight_holding_allowed: rulesJson.data.overnight_holding_allowed !== undefined ? !!rulesJson.data.overnight_holding_allowed : true,
+              weekend_holding_allowed: rulesJson.data.weekend_holding_allowed !== undefined ? !!rulesJson.data.weekend_holding_allowed : true,
+              algo_trading_allowed: rulesJson.data.algo_trading_allowed !== undefined ? !!rulesJson.data.algo_trading_allowed : !!rulesJson.data.ea_allowed,
             })
           }
         }
@@ -514,6 +522,18 @@ export default function EditFirmPage() {
               </div>
 
               <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary">Years in Operation</label>
+                <input
+                  type="number"
+                  name="years_active"
+                  value={formData.years_active}
+                  onChange={handleChange}
+                  placeholder="e.g. 2"
+                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+                />
+              </div>
+
+              <div className="space-y-2">
                 <label className="text-xs font-semibold text-text-secondary">Country Code</label>
                 <input
                   type="text"
@@ -724,6 +744,87 @@ export default function EditFirmPage() {
               </div>
             </div>
 
+            {/* 3D Globe Visual Settings */}
+            <div className="space-y-4 pt-4 border-t border-border-subtle/50">
+              <h4 className="text-sm font-bold text-text-primary flex items-center justify-between">
+                <span>3D Homepage Globe Display</span>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="show_in_globe"
+                    checked={formData.show_in_globe}
+                    onChange={handleChange}
+                    className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+                  />
+                  <span className="text-xs font-semibold text-accent-cyan">Enable on 3D Globe</span>
+                </label>
+              </h4>
+
+              {formData.show_in_globe && (
+                <div className="p-4 rounded-xl bg-bg-base/40 border border-border-subtle space-y-4 animate-fade-in">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-text-secondary">Globe Logo Override (Optional)</label>
+                      <div className="flex gap-3 items-center">
+                        <input
+                          type="text"
+                          name="globe_logo_url"
+                          value={formData.globe_logo_url}
+                          onChange={handleChange}
+                          placeholder="/uploads/... or image URL"
+                          className="flex-1 px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs font-mono"
+                        />
+                        <label className="cursor-pointer px-3 py-2 rounded-xl text-xs font-bold bg-bg-base border border-border-subtle text-text-secondary hover:text-text-primary">
+                          <span>Upload</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0]
+                              if (!file) return
+                              const uploaderData = new FormData()
+                              uploaderData.append('file', file)
+                              try {
+                                setIsUploading(true)
+                                const res = await fetch('/api/admin/upload', { method: 'POST', body: uploaderData })
+                                const result = await res.json()
+                                if (result.success && result.url) {
+                                  setFormData((prev) => ({ ...prev, globe_logo_url: result.url }))
+                                }
+                              } finally {
+                                setIsUploading(false)
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-text-secondary">Globe Marker Glow Color</label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="color"
+                          name="globe_color"
+                          value={formData.globe_color || '#00D2FF'}
+                          onChange={handleChange}
+                          className="w-10 h-10 rounded border border-border-subtle cursor-pointer bg-transparent"
+                        />
+                        <input
+                          type="text"
+                          name="globe_color"
+                          value={formData.globe_color || '#00D2FF'}
+                          onChange={handleChange}
+                          className="flex-1 px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-text-secondary">Custom Button CTA Text</label>
@@ -838,15 +939,62 @@ export default function EditFirmPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-text-secondary">Categories (comma separated)</label>
+              <div className="space-y-2.5 col-span-1 sm:col-span-2">
+                <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Firm Market Categories / Types</label>
+                <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-bg-base border border-border-subtle">
+                  {[
+                    { id: 'forex', label: '📈 Forex / CFDs' },
+                    { id: 'futures', label: '⚡ Futures' },
+                    { id: 'crypto', label: '🪙 Crypto' },
+                  ].map((cat) => {
+                    const currentArr = formData.category
+                      .split(',')
+                      .map((c) => c.trim().toLowerCase())
+                      .filter(Boolean)
+                    const isChecked = currentArr.includes(cat.id)
+
+                    const handleToggle = (e: React.MouseEvent) => {
+                      e.preventDefault()
+                      let nextArr: string[]
+                      if (isChecked) {
+                        nextArr = currentArr.filter((c) => c !== cat.id)
+                      } else {
+                        nextArr = [...currentArr, cat.id]
+                      }
+                      setFormData((prev) => ({
+                        ...prev,
+                        category: nextArr.join(', '),
+                      }))
+                    }
+
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={handleToggle}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black cursor-pointer transition-all border ${
+                          isChecked
+                            ? 'bg-accent-cyan/20 border-accent-cyan text-accent-cyan shadow-[0_0_12px_rgba(34,211,238,0.3)] scale-105'
+                            : 'bg-bg-surface border-white/10 text-text-secondary hover:text-white hover:border-white/30'
+                        }`}
+                      >
+                        <span>{cat.label}</span>
+                        {isChecked && <span className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />}
+                      </button>
+                    )
+                  })}
+                </div>
                 <input
                   type="text"
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+                  placeholder="forex, futures, crypto (custom categories comma-separated)"
+                  className="w-full px-4 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none transition-colors mt-1"
                 />
+                <p className="text-[11px] text-text-muted">
+                  Selecting <span className="text-white font-bold">Forex</span> only ensures this firm strictly appears in Forex data across all public pages (Offers, Challenges, Reviews, Compare, etc.).
+                </p>
               </div>
             </div>
 
@@ -1190,6 +1338,63 @@ export default function EditFirmPage() {
                   >
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
                       firmRulesData.news_trading_allowed ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Overnight Holding Switch */}
+                <div className="flex items-center justify-between p-4 bg-bg-base/40 rounded-2xl border border-border-subtle">
+                  <div>
+                    <p className="text-xs font-bold text-white">Overnight Holding</p>
+                    <p className="text-[10px] text-text-muted">Hold positions overnight</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFirmRulesData(prev => ({ ...prev, overnight_holding_allowed: !prev.overnight_holding_allowed }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      firmRulesData.overnight_holding_allowed ? 'bg-accent-cyan' : 'bg-bg-base border-border-subtle'
+                    }`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      firmRulesData.overnight_holding_allowed ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Weekend Holding Switch */}
+                <div className="flex items-center justify-between p-4 bg-bg-base/40 rounded-2xl border border-border-subtle">
+                  <div>
+                    <p className="text-xs font-bold text-white">Weekend Holding</p>
+                    <p className="text-[10px] text-text-muted">Hold trades over weekend</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFirmRulesData(prev => ({ ...prev, weekend_holding_allowed: !prev.weekend_holding_allowed }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      firmRulesData.weekend_holding_allowed ? 'bg-accent-cyan' : 'bg-bg-base border-border-subtle'
+                    }`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      firmRulesData.weekend_holding_allowed ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Algo Trading Switch */}
+                <div className="flex items-center justify-between p-4 bg-bg-base/40 rounded-2xl border border-border-subtle">
+                  <div>
+                    <p className="text-xs font-bold text-white">Algo Trading</p>
+                    <p className="text-[10px] text-text-muted">Algorithmic executions</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFirmRulesData(prev => ({ ...prev, algo_trading_allowed: !prev.algo_trading_allowed }))}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      firmRulesData.algo_trading_allowed ? 'bg-accent-cyan' : 'bg-bg-base border-border-subtle'
+                    }`}
+                  >
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      firmRulesData.algo_trading_allowed ? 'translate-x-5' : 'translate-x-0'
                     }`} />
                   </button>
                 </div>

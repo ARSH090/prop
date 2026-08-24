@@ -138,6 +138,7 @@ function EventCard({ event }: { event: any }) {
 
 interface EventsClientProps {
   initialEvents: any[]
+  content?: Record<string, any>
 }
 
 export function EventsClient({ initialEvents }: EventsClientProps) {

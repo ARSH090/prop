@@ -65,10 +65,15 @@ export default async function FirmDetailLayout({
 
   let firm: any = null
   if (snapshot.empty) {
-    const allMock = await getFirms()
-    firm = allMock.find((f: any) => f.slug === slug)
-    if (!firm) {
-      notFound()
+    const docSnap = await db.collection('firms').doc(slug).get()
+    if (docSnap.exists) {
+      firm = { id: docSnap.id, ...docSnap.data() }
+    } else {
+      const allMock = await getFirms()
+      firm = allMock.find((f: any) => f.slug === slug || f.id === slug)
+      if (!firm) {
+        notFound()
+      }
     }
   } else {
     const firmDoc = snapshot.docs[0]

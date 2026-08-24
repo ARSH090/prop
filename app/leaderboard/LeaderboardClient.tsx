@@ -40,9 +40,9 @@ interface LeaderboardClientProps {
 }
 
 const RANK_CONFIG = [
-  { rank: 1, icon: Crown,  color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30', label: 'Legend',   gradient: 'from-yellow-400/20 to-amber-400/10' },
-  { rank: 2, icon: Trophy, color: 'text-slate-300',  bg: 'bg-slate-300/10 border-slate-300/30',   label: 'Elite',    gradient: 'from-slate-300/10 to-slate-400/5' },
-  { rank: 3, icon: Medal,  color: 'text-amber-600',  bg: 'bg-amber-600/10 border-amber-600/30',   label: 'Pro',      gradient: 'from-amber-600/10 to-amber-700/5' },
+  { rank: 1, icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30', label: 'Legend', gradient: 'from-yellow-400/20 to-amber-400/10' },
+  { rank: 2, icon: Trophy, color: 'text-slate-300', bg: 'bg-slate-300/10 border-slate-300/30', label: 'Elite', gradient: 'from-slate-300/10 to-slate-400/5' },
+  { rank: 3, icon: Medal, color: 'text-amber-600', bg: 'bg-amber-600/10 border-amber-600/30', label: 'Pro', gradient: 'from-amber-600/10 to-amber-700/5' },
 ]
 
 const ASSET_TABS = ['All', 'Forex', 'Futures', 'Crypto'] as const
@@ -72,7 +72,7 @@ function PayoutGauge({ amount, max }: { amount: number; max: number }) {
   const pct = Math.min((amount / max) * 100, 100)
   const r = 20, cx = 28, cy = 28
   const circ = 2 * Math.PI * r
-  const arc  = circ * 0.75
+  const arc = circ * 0.75
   const dash = (pct / 100) * arc
 
   return (
@@ -152,7 +152,7 @@ function FirmPayoutsTab({ payouts, firms, category }: { payouts: Payout[]; firms
       })
     })
     const maxTotal = Math.max(...Array.from(map.values()).map((s) => s.total), 1)
-    const maxAvg   = Math.max(...Array.from(map.values()).map((s) => s.total / Math.max(s.count, 1)), 1)
+    const maxAvg = Math.max(...Array.from(map.values()).map((s) => s.total / Math.max(s.count, 1)), 1)
 
     return Array.from(map.entries())
       .map(([firmId, stats]) => {
@@ -173,7 +173,7 @@ function FirmPayoutsTab({ payouts, firms, category }: { payouts: Payout[]; firms
 
   const SortIcon = ({ col }: { col: 'total' | 'count' | 'biggest' }) => (
     <span className="inline-flex flex-col ml-1">
-      <ChevronUp   className={`w-2.5 h-2.5 -mb-0.5 ${sortBy === col && sortDir === 'asc'  ? 'text-accent-cyan' : 'text-text-muted/40'}`} />
+      <ChevronUp className={`w-2.5 h-2.5 -mb-0.5 ${sortBy === col && sortDir === 'asc' ? 'text-accent-cyan' : 'text-text-muted/40'}`} />
       <ChevronDown className={`w-2.5 h-2.5 ${sortBy === col && sortDir === 'desc' ? 'text-accent-cyan' : 'text-text-muted/40'}`} />
     </span>
   )
@@ -186,9 +186,8 @@ function FirmPayoutsTab({ payouts, firms, category }: { payouts: Payout[]; firms
         <div className="flex gap-1 bg-bg-surface border border-border-default p-1 rounded-xl">
           {ASSET_TABS.map((tab) => (
             <button key={tab} onClick={() => setAssetFilter(tab)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                assetFilter === tab ? 'bg-accent-cyan text-bg-base' : 'text-text-muted hover:text-text-primary'
-              }`}>
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${assetFilter === tab ? 'bg-accent-cyan text-bg-base' : 'text-text-muted hover:text-text-primary'
+                }`}>
               {tab}
             </button>
           ))}
@@ -200,9 +199,8 @@ function FirmPayoutsTab({ payouts, firms, category }: { payouts: Payout[]; firms
             { id: 'all', label: 'All Time' },
           ].map((p) => (
             <button key={p.id} onClick={() => setPeriod(p.id as any)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                period === p.id ? 'bg-accent-purple text-white shadow-sm' : 'text-text-muted hover:text-text-primary'
-              }`}>
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${period === p.id ? 'bg-accent-purple text-white shadow-sm' : 'text-text-muted hover:text-text-primary'
+                }`}>
               {p.label}
             </button>
           ))}
@@ -255,22 +253,21 @@ function FirmPayoutsTab({ payouts, firms, category }: { payouts: Payout[]; firms
                       {/* Firm / Rank Column */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center border font-bold shrink-0 ${
-                            idx === 0 ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/40 shadow-sm shadow-yellow-400/10' :
-                            idx === 1 ? 'bg-accent-cyan/20 text-accent-cyan border-accent-cyan/40 shadow-sm shadow-cyan-400/10' :
-                            idx === 2 ? 'bg-accent-purple/20 text-accent-purple border-accent-purple/40 shadow-sm shadow-purple-400/10' :
-                            'bg-bg-base text-text-muted border-border-default'
-                          }`}>
+                          <div className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center border font-bold shrink-0 ${idx === 0 ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/40 shadow-sm shadow-yellow-400/10' :
+                              idx === 1 ? 'bg-accent-cyan/20 text-accent-cyan border-accent-cyan/40 shadow-sm shadow-cyan-400/10' :
+                                idx === 2 ? 'bg-accent-purple/20 text-accent-purple border-accent-purple/40 shadow-sm shadow-purple-400/10' :
+                                  'bg-bg-base text-text-muted border-border-default'
+                            }`}>
                             {idx === 0 && <Trophy className="w-5 h-5 text-yellow-400 animate-pulse" />}
                             {idx === 1 && <Medal className="w-5 h-5 text-accent-cyan" />}
                             {idx === 2 && <Award className="w-5 h-5 text-accent-purple" />}
                             {idx > 2 && <span className="text-xs font-mono">#{idx + 1}</span>}
                           </div>
-                           <PropFirmLogo
-                             name={firm?.name ?? firmId}
-                             logoUrl={firm?.logo_url || null}
-                             className="w-10 h-10 rounded-xl"
-                           />
+                          <PropFirmLogo
+                            name={firm?.name ?? firmId}
+                            logoUrl={firm?.logo_url || null}
+                            className="w-10 h-10 rounded-xl"
+                          />
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-extrabold text-text-primary text-sm tracking-tight">{firm?.name ?? firmId}</span>
@@ -338,18 +335,29 @@ function TraderLeaderboardTab({ payouts, firms }: { payouts: Payout[]; firms: Fi
   const [filterFirm, setFilterFirm] = useState('all')
   const [sortMode, setSortMode] = useState<'total' | 'biggest' | 'frequency'>('total')
 
+  const [selectedCategory, setSelectedCategory] = useState<'forex' | 'futures' | 'crypto'>('forex')
+
   const getFirm = (firmId: string) => firms.find((f) => f.id === firmId)
   const getFirmName = (firmId: string) => getFirm(firmId)?.name || 'Prop Program'
 
   const filtered = useMemo(() => payouts.filter((p) => {
+    const firm = getFirm(p.firm_id)
+    if (selectedCategory) {
+      const cats = (firm?.category || ['forex']).map((c: string) => c.toLowerCase().trim())
+      if (selectedCategory === 'forex') {
+        if (!cats.includes('forex') && !cats.includes('cfd') && cats.length > 0) return false
+      } else {
+        if (!cats.includes(selectedCategory)) return false
+      }
+    }
     const now = Date.now()
     const ts = p.payout_date?.seconds ? p.payout_date.seconds * 1000 : new Date(p.payout_date || now).getTime()
     const periodOk = filterPeriod === 'all' ? true
       : filterPeriod === 'month' ? ts >= now - 30 * 86400000
-      : ts >= now - 7 * 86400000
+        : ts >= now - 7 * 86400000
     const firmOk = filterFirm === 'all' || p.firm_id === filterFirm
     return periodOk && firmOk
-  }), [payouts, filterPeriod, filterFirm])
+  }), [payouts, filterPeriod, filterFirm, selectedCategory])
 
   const traderMap = useMemo(() => {
     const map = new Map<string, { total: number; count: number; firm_id: string; biggest: number; lastPayout: number; currency: string; region?: string; account_size?: string; method?: string }>()
@@ -376,9 +384,9 @@ function TraderLeaderboardTab({ payouts, firms }: { payouts: Payout[]; firms: Fi
     Array.from(traderMap.entries())
       .map(([name, data]) => ({ name, ...data }))
       .sort((a, b) =>
-        sortMode === 'total'     ? b.total - a.total :
-        sortMode === 'biggest'   ? b.biggest - a.biggest :
-                                   b.count - a.count
+        sortMode === 'total' ? b.total - a.total :
+          sortMode === 'biggest' ? b.biggest - a.biggest :
+            b.count - a.count
       ),
     [traderMap, sortMode]
   )
@@ -395,6 +403,31 @@ function TraderLeaderboardTab({ payouts, firms }: { payouts: Payout[]; firms: Fi
 
   return (
     <div className="space-y-6">
+      {/* Category Switcher Tabs (📈 Forex / CFDs, ⚡ Futures, 🪙 Crypto) */}
+      <div className="flex justify-center -mt-2 mb-2">
+        <div className="bg-[#0B132B]/90 backdrop-blur-xl border border-white/15 p-1.5 rounded-full inline-flex items-center gap-1.5 shadow-[0_0_25px_rgba(0,0,0,0.5)]">
+          {[
+            { id: 'forex', label: 'Forex / CFDs', icon: '📈' },
+            { id: 'futures', label: 'Futures', icon: '⚡' },
+            { id: 'crypto', label: 'Crypto', icon: '🪙' },
+          ].map((cat) => {
+            const isActive = selectedCategory === cat.id
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id as any)}
+                className={`px-5 sm:px-7 py-2.5 rounded-full text-xs sm:text-sm font-black flex items-center gap-2 transition-all duration-300 cursor-pointer select-none ${isActive
+                    ? 'bg-gradient-to-r from-accent-cyan via-accent-blue to-accent-purple text-white shadow-[0_0_20px_rgba(34,211,238,0.5)] scale-105'
+                    : 'text-text-secondary hover:text-white hover:bg-white/5'
+                  }`}
+              >
+                <span className="text-base leading-none">{cat.icon}</span>
+                <span>{cat.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
       {/* Stats Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
@@ -418,9 +451,8 @@ function TraderLeaderboardTab({ payouts, firms }: { payouts: Payout[]; firms: Fi
         <div className="flex gap-1 bg-bg-surface border border-border-subtle p-1 rounded-xl">
           {(['all', 'month', 'week'] as const).map((p) => (
             <button key={p} onClick={() => setFilterPeriod(p)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                filterPeriod === p ? 'bg-accent-cyan text-bg-base' : 'text-text-muted hover:text-text-primary'
-              }`}>
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${filterPeriod === p ? 'bg-accent-cyan text-bg-base' : 'text-text-muted hover:text-text-primary'
+                }`}>
               {p === 'all' ? 'All Time' : p === 'month' ? 'This Month' : 'This Week'}
             </button>
           ))}
@@ -436,9 +468,8 @@ function TraderLeaderboardTab({ payouts, firms }: { payouts: Payout[]; firms: Fi
         <div className="flex gap-1 bg-bg-surface border border-border-subtle p-1 rounded-xl ml-auto">
           {([['total', 'Most Total'], ['biggest', 'Biggest Payout'], ['frequency', 'Most Frequent']] as const).map(([mode, label]) => (
             <button key={mode} onClick={() => setSortMode(mode)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                sortMode === mode ? 'bg-accent-purple text-white' : 'text-text-muted hover:text-text-primary'
-              }`}>
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${sortMode === mode ? 'bg-accent-purple text-white' : 'text-text-muted hover:text-text-primary'
+                }`}>
               {label}
             </button>
           ))}
@@ -475,14 +506,12 @@ function TraderLeaderboardTab({ payouts, firms }: { payouts: Payout[]; firms: Fi
 
                 return (
                   <tr key={trader.name}
-                    className={`border-b border-border-subtle/50 transition-colors hover:bg-bg-base/20 ${
-                      rank <= 3 ? 'bg-gradient-to-r ' + rankConfig?.gradient : ''
-                    }`}>
+                    className={`border-b border-border-subtle/50 transition-colors hover:bg-bg-base/20 ${rank <= 3 ? 'bg-gradient-to-r ' + rankConfig?.gradient : ''
+                      }`}>
                     {/* Rank */}
                     <td className="px-5 py-4">
-                      <div className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center border font-bold shrink-0 ${
-                        rankConfig ? `${rankConfig.bg}` : 'bg-bg-base border-border-subtle text-text-muted'
-                      }`}>
+                      <div className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center border font-bold shrink-0 ${rankConfig ? `${rankConfig.bg}` : 'bg-bg-base border-border-subtle text-text-muted'
+                        }`}>
                         {rankConfig ? (
                           <>
                             <RankIcon className={`w-4 h-4 ${rankConfig.color}`} />
@@ -571,22 +600,20 @@ export default function LeaderboardClient({ payouts, firms, category }: Leaderbo
       <div className="flex items-center gap-2 bg-bg-surface border border-border-default rounded-2xl p-1.5 w-fit">
         <button
           onClick={() => setActiveTab('payouts')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'payouts'
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'payouts'
               ? 'bg-gradient-to-r from-accent-cyan to-blue-500 text-bg-base shadow-md shadow-cyan-500/20'
               : 'text-text-muted hover:text-text-primary'
-          }`}
+            }`}
         >
           <BarChart2 className="w-4 h-4" />
           Payouts
         </button>
         <button
           onClick={() => setActiveTab('traders')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'traders'
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === 'traders'
               ? 'bg-gradient-to-r from-accent-purple to-violet-600 text-white shadow-md shadow-purple-500/20'
               : 'text-text-muted hover:text-text-primary'
-          }`}
+            }`}
         >
           <Trophy className="w-4 h-4" />
           Trader Leaderboard

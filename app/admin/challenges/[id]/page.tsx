@@ -34,14 +34,19 @@ export default function EditChallengePage() {
   const [isUploading, setIsUploading] = useState(false)
   const [formData, setFormData] = useState({
     firm_id: '',
+    challenge_name: '',
+    challenge_type: '2 STEP',
     account_size: '',
+    min_account_size: '5000',
+    max_account_size: '100000',
     steps: '2',
     profit_target_p1: '',
     profit_target_p2: '',
+    profit_target_p3: '',
     daily_loss_pct: '',
     max_loss_pct: '',
     pt_dd_ratio: '1:1',
-    profit_split_pct: '80',
+    profit_split_pct: '90',
     payout_freq: 'Bi-weekly',
     loyalty_points: '',
     price: '',
@@ -55,14 +60,19 @@ export default function EditChallengePage() {
     logo_url: '',
     is_active: true,
     is_popular: false,
+    is_top_selling: true,
+    show_on_homepage: true,
+    homepage_display_order: '1',
     activation_fee: '',
     max_contract_size_minis: '',
     max_contract_size_micros: '',
     profit_target: '',
     max_loss: '',
-    max_loss_type: 'eod_trailing',
+    max_loss_type: 'STATIC',
     max_payout_amount: '',
     min_payout_threshold: '',
+    review_count: '',
+    rating: '',
     consistency_eval_percent: '',
   })
 
@@ -84,14 +94,19 @@ export default function EditChallengePage() {
 
           setFormData({
             firm_id: chData.firm_id || '',
+            challenge_name: chData.challenge_name || '',
+            challenge_type: chData.challenge_type || (chData.steps === 0 ? 'INSTANT' : chData.steps === 1 ? '1 STEP' : chData.steps === 3 ? '3 STEP' : '2 STEP'),
             account_size: chData.account_size ? String(chData.account_size) : '',
-            steps: chData.steps ? String(chData.steps) : '2',
+            min_account_size: chData.min_account_size !== undefined ? String(chData.min_account_size) : '5000',
+            max_account_size: chData.max_account_size !== undefined ? String(chData.max_account_size) : (chData.account_size ? String(chData.account_size) : '100000'),
+            steps: chData.steps !== undefined ? String(chData.steps) : '2',
             profit_target_p1: chData.profit_target_p1 ? String(chData.profit_target_p1) : '',
             profit_target_p2: chData.profit_target_p2 ? String(chData.profit_target_p2) : '',
+            profit_target_p3: chData.profit_target_p3 ? String(chData.profit_target_p3) : '',
             daily_loss_pct: chData.daily_loss_pct ? String(chData.daily_loss_pct) : '',
             max_loss_pct: chData.max_loss_pct ? String(chData.max_loss_pct) : '',
             pt_dd_ratio: chData.pt_dd_ratio || '1:1',
-            profit_split_pct: chData.profit_split_pct ? String(chData.profit_split_pct) : '80',
+            profit_split_pct: chData.profit_split_pct ? String(chData.profit_split_pct) : '90',
             payout_freq: chData.payout_freq || 'Bi-weekly',
             loyalty_points: chData.loyalty_points ? String(chData.loyalty_points) : '',
             price: chData.price ? String(chData.price) : '',
@@ -103,14 +118,19 @@ export default function EditChallengePage() {
             discount_label: chData.discount_label || '',
             cta_text: chData.cta_text || '',
             logo_url: chData.logo_url || '',
+            review_count: chData.review_count ? String(chData.review_count) : '',
+            rating: chData.rating ? String(chData.rating) : '',
             is_active: chData.is_active !== false,
             is_popular: !!chData.is_popular,
+            is_top_selling: chData.is_top_selling !== false,
+            show_on_homepage: chData.show_on_homepage !== false,
+            homepage_display_order: chData.homepage_display_order ? String(chData.homepage_display_order) : '1',
             activation_fee: chData.activation_fee || '',
             max_contract_size_minis: chData.max_contract_size_minis ? String(chData.max_contract_size_minis) : '',
             max_contract_size_micros: chData.max_contract_size_micros ? String(chData.max_contract_size_micros) : '',
             profit_target: chData.profit_target ? String(chData.profit_target) : '',
             max_loss: chData.max_loss ? String(chData.max_loss) : '',
-            max_loss_type: chData.max_loss_type || 'eod_trailing',
+            max_loss_type: (chData.max_loss_type || 'STATIC').toUpperCase().includes('TRAIL') ? 'TRAILING' : 'STATIC',
             max_payout_amount: chData.max_payout_amount ? String(chData.max_payout_amount) : '',
             min_payout_threshold: chData.min_payout_threshold ? String(chData.min_payout_threshold) : '',
             consistency_eval_percent: chData.consistency_eval_percent ? String(chData.consistency_eval_percent) : '',
@@ -596,26 +616,57 @@ export default function EditChallengePage() {
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-secondary">Actual Price ($)</label>
+                <label className="text-xs font-semibold text-text-secondary">Offered Price ($) [Active Price]</label>
                 <input
                   type="number"
+                  step="any"
                   name="price"
                   value={formData.price}
                   onChange={handleChange}
                   required
+                  placeholder="e.g. 514.80"
                   className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-secondary">Strikethrough Price ($)</label>
+                <label className="text-xs font-semibold text-text-secondary">Real Price ($) [Crossed-out Original Price]</label>
                 <input
                   type="number"
+                  step="any"
                   name="original_price"
                   value={formData.original_price}
                   onChange={handleChange}
+                  placeholder="e.g. 660.00"
                   className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Reviews Count</label>
+                  <input
+                    type="number"
+                    name="review_count"
+                    value={formData.review_count}
+                    onChange={handleChange}
+                    placeholder="e.g. 900"
+                    className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Rating (1-5)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    name="rating"
+                    value={formData.rating}
+                    onChange={handleChange}
+                    placeholder="e.g. 4.7"
+                    className="w-full px-3 py-2 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan font-mono"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1.5">

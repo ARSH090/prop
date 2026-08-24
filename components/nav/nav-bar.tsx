@@ -26,6 +26,7 @@ import {
   Search,
   Bell,
   User,
+  MessageSquare,
 } from 'lucide-react'
 import { auth } from '@/lib/firebase/client'
 import { signOut } from 'firebase/auth'
@@ -44,6 +45,7 @@ const toolsLinks = [
   { label: 'Community Hub', href: '/community', icon: Users },
   { label: 'Payout Proofs', href: '/payouts', icon: DollarSign },
   { label: 'Payout Leaderboard', href: '/leaderboard', icon: Trophy },
+  { label: 'Trader Reviews', href: '/reviews', icon: MessageSquare },
   { label: 'Industry Awards', href: '/awards', icon: Award },
   { label: 'Demo Accounts', href: '/demo-accounts', icon: Globe },
 ]
@@ -53,8 +55,8 @@ const subNavLinks = [
   { label: 'Propfirms', href: '/firms' },
   { label: 'Offers', href: '/deals' },
   { label: 'Challenges', href: '/challenges' },
-  { label: 'POPULAR FIRMS', href: '/favorites' },
   { label: 'PropFirm RULES', href: '/rules' },
+  { label: 'Reviews', href: '/reviews' },
   { label: 'COMMUNITY', href: '/community' },
   { label: 'Compare Firms', href: '/compare' },
 ]
@@ -66,6 +68,7 @@ const mobileMenuCategories = [
       { label: 'Home', href: '/', icon: Home },
       { label: 'Prop Firms', href: '/firms', icon: Building2 },
       { label: 'Challenges', href: '/challenges', icon: Award },
+      { label: 'Trader Reviews', href: '/reviews', icon: MessageSquare },
       { label: 'Compare Firms', href: '/compare', icon: BarChart3 },
     ],
   },
@@ -73,14 +76,13 @@ const mobileMenuCategories = [
     title: 'DEALS & OFFERS',
     links: [
       { label: 'Discount Codes', href: '/deals', icon: Percent },
-      { label: 'Favorite Firms', href: '/favorites', icon: Star },
       { label: 'Loyalty Rewards', href: '/loyalty', icon: Zap },
     ],
   },
   {
     title: 'TOOLS',
     links: [
-      {label: 'Community Hub', href: '/community', icon: Users },
+      { label: 'Community Hub', href: '/community', icon: Users },
       { label: 'Payout Proofs', href: '/payouts', icon: DollarSign },
       { label: 'Payout Leaderboard', href: '/leaderboard', icon: Trophy },
       { label: 'Industry Awards', href: '/awards', icon: Award },
@@ -124,7 +126,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
       if (res.ok) {
         const data = await res.json()
         const list = data.data || []
-        
+
         let readIds: string[] = []
         if (typeof window !== 'undefined') {
           try {
@@ -166,9 +168,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const isChallengesPage = pathname?.includes('/challenges')
-  const navBgClass = isChallengesPage
-    ? 'bg-[#061b36]/90 border-b border-sky-500/30 shadow-[0_4px_20px_rgba(14,165,233,0.15)]'
-    : 'bg-bg-surface/80 border-b border-border-subtle'
+  const navBgClass = 'bg-transparent border-none shadow-none'
 
   const handleNotifMouseEnter = () => {
     if (notifCloseTimer.current) clearTimeout(notifCloseTimer.current)
@@ -234,13 +234,13 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
   const getSubNavLinkHref = (href: string) => {
     if (activeCategory === 'forex') return href
     if (href === '/') return `/${activeCategory}`
-    const isGlobalRoute = ['/favorites', '/rules', '/spreads', '/payouts'].includes(href)
+    const isGlobalRoute = ['/rules', '/spreads', '/payouts', '/reviews'].includes(href)
     if (isGlobalRoute) return href
     return `/${activeCategory}${href}`
   }
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged((user) => {
+    const unsub = auth.onAuthStateChanged((user: any) => {
       setCurrentUser(user)
     })
     return unsub
@@ -291,11 +291,10 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
 
   return (
     <>
-      <nav className={`sticky top-0 z-50 backdrop-blur-md transition-all duration-300 ${navBgClass}`}>
+      <header className="relative z-50 bg-transparent">
+        {/* Row 1: Brand Logo, Category Switcher & Main Actions (Non-sticky: scrolls with page) */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          
-          {/* Row 1: Brand Logo, Mock Search, Category Switcher & Main Actions */}
-          <div className="flex h-16 items-center justify-between gap-4 border-b border-border-subtle/30">
+          <div className="flex h-16 items-center justify-between gap-4 border-b-0">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 text-text-primary shrink-0">
               <img src="/logo.png" alt="EMPIRIAL Logo" className="h-8 w-auto rounded-lg object-contain" />
@@ -304,37 +303,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
               </span>
             </Link>
 
-            {/* Category Switcher Row */}
-            <div className="hidden lg:flex items-center gap-4 flex-1 max-w-xl justify-center">
-              {/* Category Pills Switcher */}
-              <div className="flex items-center gap-1 bg-bg-base border border-border-subtle rounded-full p-1 shadow-lg shadow-black/10">
-                {[
-                  { id: 'forex', label: 'Forex', badge: null },
-                  { id: 'futures', label: 'Futures', badge: null },
-                  { id: 'crypto', label: 'Crypto', badge: 'NEW' },
-                ].map((tab) => {
-                  const isActive = activeCategory === tab.id
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => handleCategoryChange(tab.id)}
-                      className={`relative px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
-                        isActive
-                          ? 'bg-gradient-cta text-bg-base shadow-sm shadow-cyan-500/10'
-                          : 'text-text-secondary hover:text-text-primary bg-transparent'
-                      }`}
-                    >
-                      {tab.label}
-                      {tab.badge && (
-                        <span className="bg-emerald-500 text-white text-[8px] font-black px-1 py-0.5 rounded leading-none">
-                          {tab.badge}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
+
 
             {/* Action Buttons & Hamburger Menu */}
             <div className="flex items-center gap-3">
@@ -361,14 +330,6 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                         <p className="text-xs font-bold text-text-primary truncate">{getUserDisplayName(currentUser)}</p>
                         <p className="text-[10px] text-text-muted truncate">{currentUser.email}</p>
                       </div>
-                      <Link
-                        href="/favorites"
-                        className="flex items-center gap-3 px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        <Star className="w-3.5 h-3.5" />
-                        Favorite Firms
-                      </Link>
                       <Link
                         href="/loyalty"
                         className="flex items-center gap-3 px-4 py-2.5 text-xs text-text-secondary hover:text-accent-cyan hover:bg-bg-base/50 transition-colors font-medium"
@@ -418,7 +379,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                 onMouseEnter={handleNotifMouseEnter}
                 onMouseLeave={handleNotifMouseLeave}
               >
-                <button 
+                <button
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
                   className="relative p-2 rounded-xl bg-bg-base border border-border-subtle text-text-secondary hover:text-accent-cyan hover:border-accent-cyan/40 transition-all focus:outline-none cursor-pointer flex items-center justify-center"
                 >
@@ -429,14 +390,14 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                     </span>
                   )}
                 </button>
-                
+
                 {notificationsOpen && (
                   <div className="absolute top-9 right-0 w-80 bg-bg-surface border border-border-subtle rounded-2xl shadow-2xl py-3 mt-1.5 backdrop-blur-md animate-fade-in z-50 space-y-2">
                     <div className="flex items-center justify-between px-4 pb-2 border-b border-border-subtle/50">
                       <span className="text-xs font-black text-text-primary uppercase tracking-wider">Notifications</span>
                       <div className="flex items-center gap-2">
                         {unreadCount > 0 && (
-                          <button 
+                          <button
                             onClick={markAllRead}
                             className="text-[10px] text-accent-cyan hover:underline font-bold bg-transparent cursor-pointer"
                           >
@@ -444,7 +405,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                           </button>
                         )}
                         {notifications.length > 0 && (
-                          <button 
+                          <button
                             onClick={clearAllNotifications}
                             className="text-[10px] text-red-400 hover:text-red-300 hover:underline font-bold bg-transparent cursor-pointer"
                           >
@@ -453,7 +414,7 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="max-h-64 overflow-y-auto divide-y divide-border-subtle/30 px-2 space-y-1">
                       {notifications.length === 0 ? (
                         <div className="py-8 text-center">
@@ -461,8 +422,8 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                         </div>
                       ) : (
                         notifications.map((notif) => (
-                          <div 
-                            key={notif.id} 
+                          <div
+                            key={notif.id}
                             className={`p-2.5 rounded-xl transition-colors text-xs ${notif.read ? 'hover:bg-bg-base/30' : 'bg-accent-cyan/[0.03] hover:bg-accent-cyan/[0.06] border-l-2 border-accent-cyan'}`}
                           >
                             <div className="flex justify-between items-start gap-2 mb-0.5">
@@ -476,10 +437,10 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                         ))
                       )}
                     </div>
-                    
+
                     <div className="text-center pt-2 border-t border-border-subtle/50">
-                      <Link 
-                        href="/community" 
+                      <Link
+                        href="/community"
                         className="text-[10px] font-bold text-text-muted hover:text-accent-cyan uppercase tracking-wider transition-colors"
                         onClick={() => setNotificationsOpen(false)}
                       >
@@ -527,46 +488,50 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
               </button>
             </div>
           </div>
-
-          {/* Row 2: Sub-navigation links */}
-          <div className="flex items-center justify-center py-2 pb-3">
-            <div className="flex h-11 items-center justify-center bg-[#0c0926]/90 border border-white/10 backdrop-blur-md rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] px-4 py-1 gap-1.5 md:gap-2 mx-auto max-w-fit overflow-x-auto scrollbar-none">
-              {links.map((link) => {
-                const resolvedHref = getSubNavLinkHref(link.href)
-                const isActive = pathname === resolvedHref
-                return (
-                  <Link
-                    key={link.href}
-                    href={resolvedHref}
-                    className={`px-3.5 py-1.5 rounded-full text-[10.5px] font-black uppercase tracking-wider transition-all whitespace-nowrap border select-none ${
-                      isActive 
-                        ? 'bg-accent-cyan/10 text-accent-cyan border-accent-cyan/30 shadow-[0_0_12px_rgba(34,211,238,0.15)] font-black' 
-                        : 'text-text-secondary hover:text-text-primary border-transparent'
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-
         </div>
-      </nav>
+      </header>
+
+      {/* Row 2: Sticky Sub-navigation pages option pill bar (Exact Screenshot Pink/Purple #b038ff container with matching border depth, Blue BG & White Text for active elements) */}
+      <div className="sticky top-0 z-40 py-2 pb-3 flex items-center justify-center bg-transparent pointer-events-none">
+        <div
+          className="pointer-events-auto flex h-11 items-center justify-center backdrop-blur-md rounded-full px-4 py-1 gap-1.5 md:gap-2 mx-auto max-w-fit overflow-x-auto scrollbar-none border transition-all"
+          style={{
+            backgroundColor: 'rgba(176, 56, 255, 0.22)',
+            borderColor: 'rgba(176, 56, 255, 0.65)',
+            boxShadow: '0 8px 32px rgba(176, 56, 255, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 0 16px rgba(176, 56, 255, 0.25)',
+          }}
+        >
+          {links.map((link) => {
+            const resolvedHref = getSubNavLinkHref(link.href)
+            const isActive = pathname === resolvedHref
+            return (
+              <Link
+                key={link.href}
+                href={resolvedHref}
+                className={`px-3.5 py-1.5 rounded-full text-[10.5px] font-black uppercase tracking-wider transition-all whitespace-nowrap border select-none ${isActive
+                    ? 'bg-blue-600 text-white border-blue-400/60 shadow-[0_0_14px_rgba(37,99,235,0.6)] font-black'
+                    : 'text-white/90 hover:text-white hover:bg-blue-600/30 border-transparent'
+                  }`}
+              >
+                {link.label}
+              </Link>
+            )
+          })}
+        </div>
+      </div>
 
       {/* Mobile Menu Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-fade-in"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Mobile Slide-in Sidebar */}
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-80 max-w-[90vw] bg-bg-surface border-l border-border-subtle flex flex-col transition-transform duration-300 ease-in-out ${
-          mobileOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed top-0 right-0 z-[70] h-full w-80 max-w-[90vw] bg-bg-surface border-l border-border-subtle flex flex-col transition-transform duration-300 ease-in-out ${mobileOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b border-border-subtle">
@@ -628,11 +593,10 @@ export function NavBar({ links = subNavLinks }: NavBarProps) {
                       handleCategoryChange(tab)
                       setMobileOpen(false)
                     }}
-                    className={`relative px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex-1 text-center ${
-                      isActive
+                    className={`relative px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer flex-1 text-center ${isActive
                         ? 'bg-gradient-cta text-bg-base'
                         : 'text-text-secondary hover:text-text-primary bg-transparent'
-                    }`}
+                      }`}
                   >
                     {tab}
                   </button>

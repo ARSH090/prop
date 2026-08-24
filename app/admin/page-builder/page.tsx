@@ -16,6 +16,7 @@ interface ContentItem {
 
 const pageList = [
   { id: 'home', label: 'Homepage Sections' },
+  { id: 'challenges', label: 'Challenges Page' },
   { id: 'nav', label: 'Header Navigation' },
   { id: 'footer', label: 'Footer Content' },
   { id: 'globe', label: '3D Globe Nodes' },
@@ -418,6 +419,23 @@ function SectionOrderEditor({ list, onChange }: { list: string[]; onChange: (lis
 // Sub-components: GlobeNodesEditor
 function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (list: any[]) => void }) {
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null)
+  const [uploadingType, setUploadingType] = useState<'logo' | 'image'>('logo')
+
+  const geoPresets = [
+    { label: 'Prague, CZ', lat: 50.0755, lng: 14.4378 },
+    { label: 'Chicago, US', lat: 41.8781, lng: -87.6298 },
+    { label: 'Dubai, UAE', lat: 25.2048, lng: 55.2708 },
+    { label: 'London, UK', lat: 51.5074, lng: -0.1278 },
+    { label: 'Dallas, US', lat: 32.7767, lng: -96.797 },
+    { label: 'New York, US', lat: 40.7128, lng: -74.006 },
+    { label: 'Singapore', lat: 1.3521, lng: 103.8198 },
+    { label: 'Tokyo, JP', lat: 35.6762, lng: 139.6503 },
+    { label: 'Sydney, AU', lat: -33.8688, lng: 151.2093 },
+    { label: 'Frankfurt, DE', lat: 50.1109, lng: 8.6821 },
+    { label: 'Sao Paulo, BR', lat: -23.5505, lng: -46.6333 },
+    { label: 'Hong Kong', lat: 22.3193, lng: 114.1694 },
+    { label: 'Delhi, IN (HQ)', lat: 28.6139, lng: 77.209 },
+  ]
 
   const handleFieldChange = (index: number, key: string, val: any) => {
     const updated = [...list]
@@ -425,8 +443,49 @@ function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (lis
     onChange(updated)
   }
 
-  const handleLogoUpload = async (index: number, file: File) => {
+  const handleGeoSelect = (index: number, presetLabel: string) => {
+    const preset = geoPresets.find((p) => p.label === presetLabel)
+    if (!preset) return
+    const updated = [...list]
+    updated[index] = {
+      ...updated[index],
+      sublabel: preset.label,
+      lat: preset.lat,
+      lng: preset.lng,
+    }
+    onChange(updated)
+  }
+
+  const handleAddNode = () => {
+    const nextIdx = list.length + 1
+    const preset = geoPresets[(nextIdx - 1) % geoPresets.length]
+    const newNode = {
+      id: `slot-custom-${Date.now()}`,
+      name: `FIRM ${nextIdx}`,
+      full_name: `Prop Firm ${nextIdx}`,
+      href: `https://example.com/affiliate-${nextIdx}`,
+      affiliate_url: `https://example.com/affiliate-${nextIdx}`,
+      color: '#22D3EE',
+      logo_url: '',
+      firm_image_url: '',
+      lat: preset.lat,
+      lng: preset.lng,
+      sublabel: preset.label,
+      is_active: true,
+      display_order: nextIdx,
+    }
+    onChange([...list, newNode])
+  }
+
+  const handleDeleteNode = (index: number) => {
+    if (confirm('Are you sure you want to delete this Globe firm entry?')) {
+      onChange(list.filter((_, i) => i !== index))
+    }
+  }
+
+  const handleFileUpload = async (index: number, file: File, type: 'logo' | 'image') => {
     setUploadingIdx(index)
+    setUploadingType(type)
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -437,7 +496,8 @@ function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (lis
       })
       if (res.ok) {
         const data = await res.json()
-        handleFieldChange(index, 'logo_url', data.url)
+        const targetField = type === 'logo' ? 'logo_url' : 'firm_image_url'
+        handleFieldChange(index, targetField, data.url)
       } else {
         alert('Upload failed')
       }
@@ -451,26 +511,61 @@ function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (lis
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center bg-bg-base/40 p-4 rounded-2xl border border-border-subtle">
+        <div>
+          <h4 className="text-sm font-bold text-text-primary">3D Globe Prop Firm Nodes ({list.length})</h4>
+          <p className="text-xs text-text-secondary">Configure dynamic logos, affiliate tracking links, and global sphere positions.</p>
+        </div>
+        <button
+          onClick={handleAddNode}
+          className="px-4 py-2 rounded-xl text-xs font-bold bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan hover:bg-accent-cyan/20 transition-all flex items-center gap-1.5"
+        >
+          <Plus className="w-4 h-4" /> Add Globe Firm Node
+        </button>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6">
         {list.map((node, idx) => (
           <div
             key={node.id || idx}
-            className="p-5 rounded-2xl bg-bg-base/30 border border-border-subtle flex flex-col space-y-4"
+            className={`p-5 rounded-2xl bg-bg-base/30 border transition-all flex flex-col space-y-4 ${
+              node.is_active !== false ? 'border-border-subtle' : 'border-red-500/30 opacity-60'
+            }`}
           >
             <div className="flex justify-between items-center border-b border-border-subtle/50 pb-2">
-              <span className="text-xs font-mono font-bold text-accent-purple tracking-wider uppercase">
-                Slot {idx + 1}
-              </span>
-              <span className="text-[10px] text-text-muted font-bold uppercase">{node.id}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-accent-cyan tracking-wider uppercase">
+                  Slot {idx + 1}
+                </span>
+                <span className="text-[10px] text-text-muted font-mono font-bold uppercase">({node.id})</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={node.is_active !== false}
+                    onChange={(e) => handleFieldChange(idx, 'is_active', e.target.checked)}
+                    className="w-3.5 h-3.5 accent-accent-cyan cursor-pointer"
+                  />
+                  <span className="text-[11px] font-bold text-text-secondary">Active</span>
+                </label>
+                <button
+                  onClick={() => handleDeleteNode(idx)}
+                  className="p-1 text-text-muted hover:text-red-400 transition-colors"
+                  title="Delete Globe Node"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-text-secondary uppercase">Label / Initials</label>
+                <label className="text-[10px] font-bold text-text-secondary uppercase">Firm Short Name</label>
                 <input
                   type="text"
                   value={node.name || ''}
-                  maxLength={6}
+                  placeholder="e.g. FTMO"
                   onChange={(e) => handleFieldChange(idx, 'name', e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none transition-colors"
                 />
@@ -496,32 +591,78 @@ function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (lis
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-text-secondary uppercase">Full Name</label>
+              <label className="text-[10px] font-bold text-text-secondary uppercase">Full Title / Sublabel</label>
               <input
                 type="text"
                 value={node.full_name || ''}
+                placeholder="e.g. FTMO Evaluation Program"
                 onChange={(e) => handleFieldChange(idx, 'full_name', e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none transition-colors"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-text-secondary uppercase">Target Link</label>
+              <label className="text-[10px] font-bold text-text-secondary uppercase">Affiliate Link Target URL</label>
               <input
                 type="text"
-                value={node.href || ''}
-                onChange={(e) => handleFieldChange(idx, 'href', e.target.value)}
+                value={node.affiliate_url || node.href || ''}
+                placeholder="https://partner.com?ref=empirial"
+                onChange={(e) => {
+                  handleFieldChange(idx, 'affiliate_url', e.target.value)
+                  handleFieldChange(idx, 'href', e.target.value)
+                }}
                 className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none transition-colors font-mono"
               />
             </div>
 
-            {/* Logo upload element */}
+            {/* Geographic position preset */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-text-secondary uppercase">Geographic Region Preset</label>
+                <select
+                  value={geoPresets.find((p) => p.lat === node.lat && p.lng === node.lng)?.label || 'Custom'}
+                  onChange={(e) => handleGeoSelect(idx, e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs focus:border-accent-cyan focus:outline-none transition-colors"
+                >
+                  <option value="Custom">Custom Coordinates</option>
+                  {geoPresets.map((preset) => (
+                    <option key={preset.label} value={preset.label}>
+                      {preset.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-text-secondary uppercase">Lat</label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={node.lat !== undefined && node.lat !== null ? node.lat : ''}
+                    onChange={(e) => handleFieldChange(idx, 'lat', parseFloat(e.target.value) || 0)}
+                    className="w-full px-2 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs font-mono text-center"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-text-secondary uppercase">Lng</label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={node.lng !== undefined && node.lng !== null ? node.lng : ''}
+                    onChange={(e) => handleFieldChange(idx, 'lng', parseFloat(e.target.value) || 0)}
+                    className="w-full px-2 py-2 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-xs font-mono text-center"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Logo Image Upload element */}
             <div className="space-y-2 pt-2 border-t border-border-subtle/50">
-              <label className="text-[10px] font-bold text-text-secondary uppercase block">Node Logo Image</label>
+              <label className="text-[10px] font-bold text-text-secondary uppercase block">Prop Firm Logo Image</label>
               <div className="flex items-center gap-4">
-                {/* 3D glass bubble preview */}
                 <div
-                  className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center relative overflow-hidden shrink-0"
+                  className="w-12 h-12 rounded-2xl border border-white/20 flex items-center justify-center relative overflow-hidden shrink-0"
                   style={{
                     background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 60%, rgba(0,0,0,0.6) 100%)',
                     backdropFilter: 'blur(10px)',
@@ -531,15 +672,15 @@ function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (lis
                   {node.logo_url ? (
                     <img
                       src={node.logo_url}
-                      alt="Globe Preview"
-                      className="w-[82%] h-[82%] rounded-full object-contain filter brightness-110"
+                      alt="Logo Preview"
+                      className="w-[82%] h-[82%] rounded-xl object-contain filter brightness-110"
                     />
                   ) : (
                     <span
                       className="text-[10px] font-black uppercase"
                       style={{ color: node.color || '#00D2FF' }}
                     >
-                      {node.name ? node.name.substring(0, 4) : 'SLOT'}
+                      {node.name ? node.name.substring(0, 4) : 'LOGO'}
                     </span>
                   )}
                 </div>
@@ -547,13 +688,13 @@ function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (lis
                 <div className="flex-grow space-y-1">
                   <div className="flex items-center gap-2">
                     <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-bg-base hover:bg-bg-surface border border-border-subtle text-[11px] font-bold text-text-secondary transition-all">
-                      {uploadingIdx === idx ? 'Uploading...' : 'Upload Image'}
+                      {uploadingIdx === idx && uploadingType === 'logo' ? 'Uploading...' : 'Upload Logo'}
                       <input
                         type="file"
                         accept="image/*"
                         onChange={(e) => {
                           const file = e.target.files?.[0]
-                          if (file) handleLogoUpload(idx, file)
+                          if (file) handleFileUpload(idx, file, 'logo')
                         }}
                         className="hidden"
                         disabled={uploadingIdx !== null}
@@ -564,11 +705,68 @@ function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (lis
                         onClick={() => handleFieldChange(idx, 'logo_url', '')}
                         className="px-2 py-1.5 rounded-lg border border-red-500/30 hover:border-red-500/60 bg-red-500/5 hover:bg-red-500/10 text-red-400 text-[11px] font-bold transition-all"
                       >
-                        Remove Logo
+                        Remove
                       </button>
                     )}
                   </div>
-                  <p className="text-[9px] text-text-muted">Requires transparent SVG/PNG.</p>
+                  <input
+                    type="text"
+                    value={node.logo_url || ''}
+                    placeholder="/uploads/... or https://..."
+                    onChange={(e) => handleFieldChange(idx, 'logo_url', e.target.value)}
+                    className="w-full px-2 py-1 rounded bg-bg-base border border-border-subtle/50 text-[10px] text-text-muted font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Optional Firm Image Upload */}
+            <div className="space-y-2 pt-2 border-t border-border-subtle/50">
+              <label className="text-[10px] font-bold text-text-secondary uppercase block">Firm Banner / Image (Optional)</label>
+              <div className="flex items-center gap-4">
+                {node.firm_image_url ? (
+                  <img
+                    src={node.firm_image_url}
+                    alt="Firm Image Preview"
+                    className="w-12 h-12 rounded-xl border border-border-subtle object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl border border-border-subtle bg-bg-base flex items-center justify-center shrink-0 text-[9px] text-text-muted font-mono">
+                    NO IMG
+                  </div>
+                )}
+
+                <div className="flex-grow space-y-1">
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-bg-base hover:bg-bg-surface border border-border-subtle text-[11px] font-bold text-text-secondary transition-all">
+                      {uploadingIdx === idx && uploadingType === 'image' ? 'Uploading...' : 'Upload Image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) handleFileUpload(idx, file, 'image')
+                        }}
+                        className="hidden"
+                        disabled={uploadingIdx !== null}
+                      />
+                    </label>
+                    {node.firm_image_url && (
+                      <button
+                        onClick={() => handleFieldChange(idx, 'firm_image_url', '')}
+                        className="px-2 py-1.5 rounded-lg border border-red-500/30 hover:border-red-500/60 bg-red-500/5 hover:bg-red-500/10 text-red-400 text-[11px] font-bold transition-all"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={node.firm_image_url || ''}
+                    placeholder="/uploads/... or image URL"
+                    onChange={(e) => handleFieldChange(idx, 'firm_image_url', e.target.value)}
+                    className="w-full px-2 py-1 rounded bg-bg-base border border-border-subtle/50 text-[10px] text-text-muted font-mono"
+                  />
                 </div>
               </div>
             </div>
@@ -578,5 +776,6 @@ function GlobeNodesEditor({ list = [], onChange }: { list: any[]; onChange: (lis
     </div>
   )
 }
+
 
 export const dynamic = 'force-dynamic'

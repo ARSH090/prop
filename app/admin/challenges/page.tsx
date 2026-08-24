@@ -11,6 +11,11 @@ interface Challenge {
   account_size: number
   steps: number
   price: number
+  original_price?: number
+  profit_split_pct?: number
+  review_count?: number
+  rating?: number
+  is_popular?: boolean
   is_active: boolean
   logo_url?: string
 }
@@ -76,7 +81,7 @@ export default function AdminChallengesPage() {
           <h1 className="text-4xl font-extrabold tracking-tight text-text-primary mb-2 afx-gradient-heading">
             Manage Challenge Packages
           </h1>
-          <p className="text-text-secondary text-sm">Add or edit target limits, profit splits, and parameters.</p>
+          <p className="text-text-secondary text-sm">Add or edit target limits, profit splits, real/offered pricing, and reviews.</p>
         </div>
         <Link
           href="/admin/challenges/new"
@@ -95,21 +100,23 @@ export default function AdminChallengesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border-subtle bg-bg-base/30 text-text-secondary font-mono">
-                  <th className="px-6 py-4 text-left font-bold">Prop Firm</th>
-                  <th className="px-6 py-4 text-center font-bold">Account Size</th>
-                  <th className="px-6 py-4 text-center font-bold">Steps</th>
-                  <th className="px-6 py-4 text-center font-bold">Price</th>
-                  <th className="px-6 py-4 text-center font-bold">Status</th>
-                  <th className="px-6 py-4 text-center font-bold">Actions</th>
+                  <th className="px-5 py-4 text-left font-bold">Prop Firm / Challenge</th>
+                  <th className="px-4 py-4 text-center font-bold">Type</th>
+                  <th className="px-4 py-4 text-center font-bold">Account Range</th>
+                  <th className="px-4 py-4 text-center font-bold">Offer / Real Price</th>
+                  <th className="px-4 py-4 text-center font-bold">Profit Split</th>
+                  <th className="px-4 py-4 text-center font-bold">Homepage</th>
+                  <th className="px-4 py-4 text-center font-bold">Status</th>
+                  <th className="px-4 py-4 text-center font-bold">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {challenges.map((c) => (
+                {challenges.map((c: any) => (
                   <tr
                     key={c.id}
                     className="border-b border-border-subtle hover:bg-bg-base/20 transition-all text-text-secondary"
                   >
-                    <td className="px-6 py-4 text-left font-bold text-text-primary">
+                    <td className="px-5 py-4 text-left font-bold text-text-primary">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-bg-base border border-border-subtle flex items-center justify-center p-1 overflow-hidden shrink-0">
                           {c.logo_url || firms.find((f) => f.id === c.firm_id)?.logo_url ? (
@@ -122,19 +129,43 @@ export default function AdminChallengesPage() {
                             <span className="text-[10px] font-bold text-accent-cyan">{getFirmName(c.firm_id)[0]}</span>
                           )}
                         </div>
-                        <span>{getFirmName(c.firm_id)}</span>
+                        <div className="min-w-0">
+                          <span className="block truncate font-bold">{getFirmName(c.firm_id)}</span>
+                          <span className="block text-xs text-text-muted font-mono">{c.challenge_name || 'Standard Program'}</span>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center font-mono font-bold">
-                      ${(c.account_size / 1000).toFixed(0)}K
+                    <td className="px-4 py-4 text-center">
+                      <span className="px-2 py-0.5 rounded-md bg-pink-500/10 border border-pink-500/30 text-pink-400 font-mono text-xs font-bold uppercase">
+                        {c.challenge_type || (c.steps === 0 ? 'INSTANT' : c.steps === 1 ? '1 STEP' : c.steps === 3 ? '3 STEP' : '2 STEP')}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 text-center font-mono text-xs">
-                      {c.steps}-Step
+                    <td className="px-4 py-4 text-center font-mono font-bold text-accent-cyan">
+                      {c.min_account_size && c.max_account_size && c.min_account_size < c.max_account_size
+                        ? `$${(c.min_account_size / 1000).toFixed(0)}K - $${(c.max_account_size / 1000).toFixed(0)}K`
+                        : `$${((c.account_size || c.max_account_size || 100000) / 1000).toFixed(0)}K`}
                     </td>
-                    <td className="px-6 py-4 text-center font-mono font-bold text-text-primary">
-                      ${c.price}
+                    <td className="px-4 py-4 text-center font-mono">
+                      <span className="font-bold text-text-primary">${c.price}</span>
+                      {c.original_price && c.original_price > c.price && (
+                        <span className="block text-[11px] text-slate-400 line-through">
+                          ${c.original_price}
+                        </span>
+                      )}
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-4 py-4 text-center font-mono font-bold text-purple-400">
+                      {c.profit_split_pct || 90}%
+                    </td>
+                    <td className="px-4 py-4 text-center text-xs font-mono">
+                      {c.show_on_homepage !== false || c.is_top_selling ? (
+                        <span className="text-emerald-400 font-bold">
+                          ★ Top #{c.homepage_display_order || c.display_order || 1}
+                        </span>
+                      ) : (
+                        <span className="text-text-muted">No</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 text-center">
                       <span
                         className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
                           c.is_active
@@ -145,17 +176,19 @@ export default function AdminChallengesPage() {
                         {c.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-4 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <Link
                           href={`/admin/challenges/${c.id}`}
                           className="p-2 bg-bg-base/50 hover:bg-bg-base rounded-xl text-text-muted hover:text-accent-cyan transition-all border border-border-subtle"
+                          title="Edit Challenge"
                         >
                           <Edit2 className="w-4 h-4" />
                         </Link>
                         <button
                           onClick={() => handleDelete(c.id)}
                           className="p-2 bg-bg-base/50 hover:bg-bg-base rounded-xl text-text-muted hover:text-red-400 transition-all border border-border-subtle"
+                          title="Delete Challenge"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

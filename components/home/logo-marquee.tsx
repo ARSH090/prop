@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { FirmLink } from '../ui/firm-link'
+import Link from 'next/link'
 import { PropFirmLogo } from '../ui/prop-firm-logo'
 
 interface MarqueeFirm {
@@ -21,39 +21,43 @@ interface LogoMarqueeProps {
 export function LogoMarquee({ firms, title = 'Direct Verified Partners & Trusted Evaluation Programs' }: LogoMarqueeProps) {
   if (firms.length === 0) return null
 
-  // Duplicate items to ensure seamless loop
-  const items = [...firms, ...firms, ...firms]
+  // Ensure enough items are present to fill ultra-wide viewports from border to border seamlessly
+  const repeatFactor = Math.max(3, Math.ceil(24 / Math.max(1, firms.length))) * 3
+  const items = Array(repeatFactor).fill(firms).flat()
 
   return (
-    <section className="py-6 bg-transparent overflow-hidden relative w-full select-none">
-
-      {/* Decorative background ambient glows */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-10 bg-accent-cyan/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-72 h-10 bg-accent-purple/5 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative w-full overflow-hidden">
-        {/* Soft fading edges for premium look using deep slate background variables */}
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-bg-base to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-bg-base to-transparent z-10 pointer-events-none" />
-
-        <div className="animate-marquee flex gap-12 items-center py-4">
+    <section className="py-4 bg-transparent overflow-hidden relative w-full select-none">
+      {/* Marquee Wrapper with subtle edge mask allowing logos to flow continuously from the border */}
+      <div 
+        className="relative w-full overflow-hidden"
+        style={{
+          maskImage: 'linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%)',
+        }}
+      >
+        <div className="animate-marquee flex gap-12 sm:gap-16 md:gap-24 items-center py-4">
           {items.map((firm, idx) => {
+            const firmSlug = firm.slug ? (firm.slug.startsWith('/') ? firm.slug : `/firms/${firm.slug}`) : '/firms'
             return (
-              <FirmLink
+              <Link
                 key={`${firm.id}-${idx}`}
-                firm={firm}
-                className="flex-shrink-0 group block transition-transform duration-300 hover:scale-110 p-2 bg-transparent border-transparent border-0 shadow-none outline-none"
+                href={firmSlug}
+                title={`View ${firm.name} details`}
+                className="flex-shrink-0 group block transition-all duration-300 outline-none"
               >
-                <PropFirmLogo
-                  name={firm.name}
-                  logoUrl={firm.marquee_logo_url || firm.logo_url}
-                  frame="none"
-                  circleCrop={false}
-                  transparentBg={true}
-                  className="h-16 w-36 object-contain rounded-2xl overflow-hidden"
-                  imgClassName="max-h-full max-w-full object-contain transition-all duration-300 rounded-2xl"
-                />
-              </FirmLink>
+                {/* Frameless Large Logo with subtle slight edge rounding and generous spacing */}
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_20px_rgba(34,211,238,0.35)]">
+                  <PropFirmLogo
+                    name={firm.name}
+                    logoUrl={firm.marquee_logo_url || firm.logo_url}
+                    frame="none"
+                    circleCrop={false}
+                    transparentBg={true}
+                    className="w-full h-full flex items-center justify-center rounded-[4px]"
+                    imgClassName="max-h-full max-w-full object-contain rounded-[4px] transition-all duration-300 group-hover:scale-105"
+                  />
+                </div>
+              </Link>
             )
           })}
         </div>

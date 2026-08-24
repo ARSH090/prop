@@ -5,6 +5,7 @@ import { AFXBadge } from '@/components/ui/afx-badge'
 import Link from 'next/link'
 import { FirmLink } from '@/components/ui/firm-link'
 import { useEffect, useRef, useState } from 'react'
+import { InteractiveGlobe } from '@/components/ui/interactive-globe'
 import { PropGlobe } from '@/components/home/prop-globe'
 import { getCleanLogoUrl } from '@/lib/utils/logo-url'
 
@@ -91,7 +92,7 @@ export function HeroSection({
   }, [])
 
   return (
-    <section className="relative min-h-[auto] md:min-h-screen bg-bg-base overflow-hidden pt-28 pb-24 md:pb-24 flex items-center">
+    <section className="relative min-h-[auto] md:min-h-screen bg-transparent overflow-hidden pt-28 pb-24 md:pb-24 flex items-center">
       {/* Dynamic Neon Background with subtle parallax */}
       <div style={{ transform: `translate3d(0, ${scrollY * 0.2}px, 0)` }} className="absolute inset-0 pointer-events-none">
         <NeonBackground />
@@ -101,6 +102,14 @@ export function HeroSection({
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left Column - Content */}
           <div className="space-y-8 z-10">
+            {/* FULL PINK BOX BADGE */}
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#EC4899] to-[#d946ef] text-white shadow-[0_0_25px_rgba(236,72,153,0.5)] border border-pink-300/30">
+              <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
+              <span className="text-xs font-black text-white uppercase tracking-wider font-mono">
+                INDIA'S #1 PROP TRADING COMMAND CENTER
+              </span>
+            </div>
+
             <h1 className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight">
               <span className="afx-gradient-heading">{headlinePart1}</span>
               <br />
@@ -116,52 +125,57 @@ export function HeroSection({
                 <AFXButton
                   variant="primary"
                   size="lg"
-                  className="font-bold px-8"
+                  className="font-black px-8 py-3.5 text-base shadow-[0_0_25px_rgba(34,211,238,0.4)]"
                 >
                   {ctaExplore}
                 </AFXButton>
               </Link>
               <a href={discordUrl} target="_blank" rel="noopener noreferrer">
                 <AFXButton
-                  variant="secondary"
+                  variant="glass"
                   size="lg"
-                  className="px-8 font-medium"
+                  className="px-8 font-extrabold text-white bg-white/[0.08] backdrop-blur-xl border border-white/20 hover:border-[#EC4899] hover:bg-[#EC4899]/20 transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                 >
                   {ctaBrokers}
                 </AFXButton>
               </a>
             </div>
 
-            {/* Quick Stats with tabular numbers */}
-            <div className="flex gap-6 pt-4">
+            {/* Quick Stats with Full Pink Box Cards suited for Blue BG */}
+            <div className="grid grid-cols-3 gap-3.5 pt-4 max-w-md">
               {[
-                { label: 'Prop Firms', value: '60+' },
-                { label: 'Active Codes', value: '150+' },
-                { label: 'Traders', value: '50K+' },
+                { label: 'Prop Firms', value: '60+', bg: 'bg-gradient-to-br from-[#EC4899] to-[#c026d3]' },
+                { label: 'Active Codes', value: '150+', bg: 'bg-gradient-to-br from-[#d946ef] to-[#9333ea]' },
+                { label: 'Traders', value: '50K+', bg: 'bg-gradient-to-br from-[#EC4899] to-[#06b6d4]' },
               ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="text-xl font-bold font-numeric text-accent-cyan">{stat.value}</p>
-                  <p className="text-[10px] text-text-muted uppercase tracking-wider">{stat.label}</p>
+                <div
+                  key={stat.label}
+                  className={`text-center p-3.5 rounded-2xl ${stat.bg} text-white shadow-[0_4px_20px_rgba(236,72,153,0.3)] border border-white/20 hover:scale-105 transition-all duration-300 group`}
+                >
+                  <p className="text-2xl font-black font-numeric text-white group-hover:scale-105 transition-transform drop-shadow-md">
+                    {stat.value}
+                  </p>
+                  <p className="text-[10px] text-white/90 font-black uppercase tracking-wider mt-0.5">{stat.label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right Column - 3D Globe Visual with subtle parallax */}
+          {/* Right Column - 21st.dev 3D Interactive Globe Visual with subtle parallax */}
           <div
             style={{ transform: `translate3d(0, ${scrollY * 0.1}px, 0)` }}
-            className="h-[300px] xs:h-[340px] sm:h-[400px] md:h-[500px] flex items-center justify-center relative transition-transform duration-75 ease-out"
+            className="h-[320px] xs:h-[360px] sm:h-[420px] md:h-[500px] lg:h-[540px] flex items-center justify-center relative transition-transform duration-75 ease-out w-full"
           >
-            <div className="relative w-full h-full flex items-center justify-center">
+            <div className="relative w-full h-full max-w-[500px] max-h-[500px] flex items-center justify-center">
               {/* Outer neon ring */}
-              <div className="absolute w-72 h-72 rounded-full border border-accent-cyan/20 animate-spin" style={{ animationDuration: '20s' }} />
-              <div className="absolute w-56 h-56 rounded-full border border-accent-purple/20 animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }} />
+              <div className="absolute w-72 h-72 rounded-full border border-accent-cyan/20 animate-spin pointer-events-none" style={{ animationDuration: '25s' }} />
+              <div className="absolute w-56 h-56 rounded-full border border-accent-purple/20 animate-spin pointer-events-none" style={{ animationDuration: '18s', animationDirection: 'reverse' }} />
 
               {/* Glow orbs */}
-              <div className="absolute w-60 h-60 rounded-full bg-gradient-to-br from-accent-cyan/15 to-accent-purple/20 blur-2xl animate-pulse" />
+              <div className="absolute w-64 h-64 rounded-full bg-gradient-to-br from-accent-cyan/15 via-accent-purple/15 to-transparent blur-3xl animate-pulse pointer-events-none" />
 
-              {/* 2D Globe Component */}
-              <PropGlobe globeFirms={globeFirms} />
+              {/* 21st.dev Interactive Globe Component */}
+              <InteractiveGlobe className="w-full h-full z-10" globeFirms={globeFirms} />
             </div>
           </div>
         </div>

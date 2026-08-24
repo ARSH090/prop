@@ -15,6 +15,32 @@ export function SparklingStars() {
   const [stars, setStars] = useState<Star[]>([])
 
   useEffect(() => {
+    // Suppress benign IndexedDB connection closing errors during dev HMR/navigation
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event?.reason
+      const message = typeof reason === 'string' ? reason : reason?.message || ''
+      if (
+        message.includes('The database connection is closing') ||
+        message.includes("Failed to execute 'transaction' on 'IDBDatabase'") ||
+        message.includes('IDBDatabase')
+      ) {
+        event.preventDefault()
+      }
+    }
+
+    const handleError = (event: ErrorEvent) => {
+      const message = event?.message || ''
+      if (
+        message.includes('The database connection is closing') ||
+        message.includes("Failed to execute 'transaction' on 'IDBDatabase'")
+      ) {
+        event.preventDefault()
+      }
+    }
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection)
+    window.addEventListener('error', handleError)
+
     // Generate 45 random stars with random placements, sizes, delays, and durations
     const generatedStars = Array.from({ length: 45 }).map((_, idx) => ({
       id: idx,
@@ -25,10 +51,15 @@ export function SparklingStars() {
       delay: Math.random() * 5, // 0s to 5s
     }))
     setStars(generatedStars)
+
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+      window.removeEventListener('error', handleError)
+    }
   }, [])
 
   return (
-    <div className="sparkling-stars fixed inset-0 pointer-events-none overflow-hidden z-20">
+    <div className="sparkling-stars fixed inset-0 pointer-events-none overflow-hidden z-0">
       {stars.map((star) => (
         <div
           key={star.id}

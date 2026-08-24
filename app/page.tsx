@@ -2,15 +2,12 @@ import { NavBar } from '@/components/nav/nav-bar'
 import { HeroSection } from '@/components/home/hero'
 import { FeaturedFirms } from '@/components/home/featured-firms'
 import { TrustStats } from '@/components/home/trust-stats'
-import { FeaturedDeals } from '@/components/home/featured-deals'
 import { BlogPreview } from '@/components/home/blog-preview'
-import { Newsletter } from '@/components/home/newsletter'
 import { HomeFAQ } from '@/components/home/faq'
 import { Footer } from '@/components/footer'
 import { LogoMarquee } from '@/components/home/logo-marquee'
 import { CursorGlow } from '@/components/home/cursor-glow'
 import { EventPopup } from '@/components/home/event-popup'
-import { HomeChallenges } from '@/components/home/home-challenges'
 import { HomeBestSellers } from '@/components/home/home-best-sellers'
 import { HomeFavFirms } from '@/components/home/home-fav-firms'
 import { ScrollReveal } from '@/components/ui/scroll-reveal'
@@ -104,21 +101,27 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
 
   const trustStats = homeContent.trust_stats || []
 
-  // Top challenges for home section (sorted by popularity, top 6)
-  const activeChallengesForHome = allChallenges
+  // Best sellers for home section (exactly 3 challenges controlled by Admin)
+  const allActiveChallenges = allChallenges
     .filter((c) => c.is_active !== false)
     .map((c) => {
       const firm = allFirms.find((f) => f.id === c.firm_id)
       return { ...c, firm }
     })
     .filter((c) => c.firm)
-    .sort((a, b) => (b.popularity_score || 0) - (a.popularity_score || 0))
-    .slice(0, 6)
 
-  // Best sellers for home section
-  const bestSellersForHome = [...activeChallengesForHome]
-    .sort((a, b) => (b.popularity_score || 0) - (a.popularity_score || 0))
-    .slice(0, 5)
+  const topSellingMarked = allActiveChallenges.filter(
+    (c) => c.show_on_homepage !== false || c.is_top_selling === true
+  )
+
+  const bestSellersForHome = (topSellingMarked.length > 0 ? topSellingMarked : allActiveChallenges)
+    .sort((a, b) => {
+      const orderA = a.homepage_display_order ?? a.display_order ?? 99
+      const orderB = b.homepage_display_order ?? b.display_order ?? 99
+      if (orderA !== orderB) return orderA - orderB
+      return (b.popularity_score || 0) - (a.popularity_score || 0)
+    })
+    .slice(0, 3)
 
   // Fav firms - show top rated featured firms on home
   const favFirmsForHome = allFirms
@@ -127,7 +130,7 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
     .slice(0, 6)
 
   return (
-    <main className="min-h-screen bg-bg-base relative">
+    <main className="min-h-screen bg-transparent relative">
       <NavBar />
       <CursorGlow />
       <EventPopup initialData={eventPopup} />
@@ -169,23 +172,11 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
 
       {/* PARTNER LOGO MARQUEE WITH SPACER WRAPPER */}
       <div className="my-10 md:my-16">
-        <LogoMarquee 
-          firms={verifiedMarqueeFirms} 
-          title="Direct Verified Partners & Trusted Evaluation Programs" 
+        <LogoMarquee
+          firms={verifiedMarqueeFirms}
+          title="Direct Verified Partners & Trusted Evaluation Programs"
         />
       </div>
-
-      {/* 3. CHALLENGES - Popular challenges section */}
-      <ScrollReveal>
-        <HomeChallenges
-          challenges={activeChallengesForHome}
-          firms={allFirms}
-          badge={homeContent.challenges_badge}
-          title={homeContent.challenges_title}
-          subtext={homeContent.challenges_subtext}
-          ctaText={homeContent.challenges_cta}
-        />
-      </ScrollReveal>
 
       {/* 4. BEST SELLERS */}
       <ScrollReveal>
@@ -204,15 +195,6 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
           firms={featuredFirms}
           title={homeContent.featured_firms_title}
           subtext={homeContent.featured_firms_subtext}
-        />
-      </ScrollReveal>
-
-      {/* 6. FEATURED DEALS */}
-      <ScrollReveal>
-        <FeaturedDeals
-          deals={filteredDeals}
-          title={homeContent.featured_deals_title}
-          subtext={homeContent.featured_deals_subtext}
         />
       </ScrollReveal>
 
@@ -236,12 +218,6 @@ export default async function Home({ params }: { params?: Promise<{ category?: s
           ctaText={homeContent.blog_cta}
         />
       </ScrollReveal>
-
-      {/* 11. NEWSLETTER */}
-      <Newsletter
-        title={homeContent.newsletter_title}
-        subtext={homeContent.newsletter_subtext}
-      />
 
       {/* 12. FAQ */}
       <HomeFAQ

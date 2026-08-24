@@ -53,7 +53,7 @@ export function CommentsSection({ firmId, blogPostId, communityPostId }: Comment
 
   useEffect(() => {
     fetchComments()
-    const unsub = auth.onAuthStateChanged((user) => {
+    const unsub = auth.onAuthStateChanged((user: any) => {
       setCurrentUser(user)
     })
     return unsub

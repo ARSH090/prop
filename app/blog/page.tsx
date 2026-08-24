@@ -71,11 +71,11 @@ export default async function BlogPage({
             {/* Featured Post */}
             {filteredPosts[0] && (
               <Link href={`/blog/${filteredPosts[0].slug}`}>
-                <div className="bg-bg-surface border border-border-subtle hover:border-accent-cyan/40 p-8 mb-12 cursor-pointer transition-all rounded-3xl relative overflow-hidden">
+                <div className="bg-white/[0.04] hover:bg-white/[0.07] backdrop-blur-xl border border-white/10 hover:border-accent-cyan/40 p-8 mb-12 cursor-pointer transition-all rounded-3xl relative overflow-hidden shadow-2xl">
                   <div className="absolute inset-0 bg-gradient-to-br from-accent-blue/5 to-accent-purple/5 pointer-events-none" />
                   <div className="grid md:grid-cols-2 gap-8 items-center relative z-10">
                     {filteredPosts[0].cover_image_url && (
-                      <div className="hidden md:block overflow-hidden rounded-2xl border border-border-subtle">
+                      <div className="hidden md:block overflow-hidden rounded-2xl border border-white/10">
                         <img
                           src={filteredPosts[0].cover_image_url}
                           alt={filteredPosts[0].title}
@@ -84,7 +84,7 @@ export default async function BlogPage({
                       </div>
                     )}
                     <div className="space-y-4">
-                      <span className="px-2 py-0.5 rounded bg-accent-cyan/15 text-accent-cyan text-[10px] font-bold uppercase tracking-wider font-mono">
+                      <span className="px-2.5 py-1 rounded-md bg-accent-cyan/15 border border-accent-cyan/30 text-accent-cyan text-[10px] font-bold uppercase tracking-wider font-mono">
                         Featured
                       </span>
                       <h2 className="text-3xl font-extrabold text-text-primary leading-tight">
@@ -94,7 +94,7 @@ export default async function BlogPage({
                         {filteredPosts[0].excerpt}
                       </p>
 
-                      <div className="flex items-center gap-4 pt-4 border-t border-border-subtle text-xs text-text-muted font-mono">
+                      <div className="flex items-center gap-4 pt-4 border-t border-white/10 text-xs text-text-muted font-mono">
                         <span>Anuraj FX Editorial</span>
                         {filteredPosts[0].published_at && (
                           <div className="flex items-center gap-1">
@@ -128,10 +128,10 @@ export default async function BlogPage({
                   : 'Recent'
                 return (
                   <Link key={post.id} href={`/blog/${post.slug}`}>
-                    <AFXCard className="bg-bg-surface border-border-subtle h-full hover:border-accent-cyan/40 transition-all cursor-pointer group flex flex-col justify-between p-0 overflow-hidden">
+                    <AFXCard className="bg-white/[0.03] hover:bg-white/[0.07] backdrop-blur-xl border-white/10 h-full hover:border-accent-cyan/40 transition-all cursor-pointer group flex flex-col justify-between p-0 overflow-hidden shadow-xl">
                       <div>
                         {post.cover_image_url && (
-                          <div className="overflow-hidden rounded-t-2xl border-b border-border-subtle">
+                          <div className="overflow-hidden rounded-t-2xl border-b border-white/10">
                             <img
                               src={post.cover_image_url}
                               alt={post.title}
@@ -151,7 +151,7 @@ export default async function BlogPage({
                       </div>
 
                       <div className="p-6 pt-0 space-y-4">
-                        <div className="flex items-center justify-between pt-4 border-t border-border-subtle text-xs text-text-muted font-mono">
+                        <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs text-text-muted font-mono">
                           <span>By Anuraj FX</span>
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />

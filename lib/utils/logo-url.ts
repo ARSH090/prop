@@ -79,9 +79,9 @@ export const getCleanLogoUrl = (name: string, url: string | null | undefined): s
 export const isDarkLogo = (name: string | null | undefined): boolean => {
   if (!name) return true
   const clean = name.toLowerCase()
-  // Zerodha uses a light logo that requires a white background
-  if (clean.includes('zerodha')) {
+  // The 5%ers and Zerodha use logos that require a white background container
+  if (clean.includes('5ers') || clean.includes('5%') || clean.includes('5%ers') || clean.includes('the5ers') || clean.includes('zerodha')) {
     return false
   }
-  return true // Default to dark background for all other prop firms/brokers
+  return true // Default to black/dark background for dark logos (E8, FTMO, GFT, etc.)
 }

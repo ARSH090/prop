@@ -21,9 +21,16 @@ export default function NewDealPage() {
     code: '',
     title: '',
     discount_label: '',
+    tag: '',
     description: '',
     firm_id: '',
     is_featured: false,
+    is_bogo: false,
+    is_best_offer: false,
+    is_main_offer: false,
+    priority: 0,
+    discord_code: '',
+    affiliate_url: '',
     logo_url: '',
     expires_at: '',
     status: 'active',
@@ -72,7 +79,15 @@ export default function NewDealPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    setFormData((prev) => ({ ...prev, [name]: val }))
+    setFormData((prev) => {
+      const next = { ...prev, [name]: val }
+      // Auto sync is_bogo / is_best_offer if deal_type changes
+      if (name === 'deal_type') {
+        if (val === 'bogo') next.is_bogo = true
+        if (val === 'best_value') next.is_best_offer = true
+      }
+      return next
+    })
   }
 
   const [error, setError] = useState<string | null>(null)
@@ -116,13 +131,13 @@ export default function NewDealPage() {
         </Link>
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-text-primary mb-2 afx-gradient-heading">
-            Create Promo Code
+            Create Promo Code / Offer
           </h1>
-          <p className="text-text-secondary text-sm">Configure coupon codes, discount labels, and details.</p>
+          <p className="text-text-secondary text-sm">Configure coupon codes, discount labels, display tags, and details.</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-2xl">
+      <form onSubmit={handleSubmit} className="max-w-3xl">
         <AFXCard className="bg-bg-surface border-border-subtle p-6 space-y-6">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -145,7 +160,7 @@ export default function NewDealPage() {
                 name="discount_label"
                 value={formData.discount_label}
                 onChange={handleChange}
-                placeholder="e.g. 20% OFF / FREE TRIAL"
+                placeholder="e.g. 50% OFF / BOGO / FREE ACCOUNT"
                 className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
               />
             </div>
@@ -170,6 +185,20 @@ export default function NewDealPage() {
             </div>
 
             <div className="space-y-2">
+              <label className="text-xs font-semibold text-text-secondary">Custom Blue Display Tag</label>
+              <input
+                type="text"
+                name="tag"
+                value={formData.tag}
+                onChange={handleChange}
+                placeholder="e.g. BOGO, BEST OFFER, 50% OFF, LIMITED TIME"
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="space-y-2">
               <label className="text-xs font-semibold text-text-secondary">Deal Type Tab Category</label>
               <select
                 name="deal_type"
@@ -184,9 +213,7 @@ export default function NewDealPage() {
                 <option value="extra_points">{tabLabels.extra_points}</option>
               </select>
             </div>
-          </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-secondary">Expiration Date</label>
               <input
@@ -197,18 +224,55 @@ export default function NewDealPage() {
                 className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
               />
             </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-text-secondary">Priority Order (Higher = First)</label>
+              <input
+                type="number"
+                name="priority"
+                value={formData.priority}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-text-secondary">Campaign Title</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+                placeholder="e.g. 50% Off Evaluation Challenges"
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-text-secondary">Discord / Community Code Info (Optional)</label>
+              <input
+                type="text"
+                name="discord_code"
+                value={formData.discord_code}
+                onChange={handleChange}
+                placeholder="e.g. Join Discord #deals channel for code"
+                className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-text-secondary">Campaign Title</label>
+            <label className="text-xs font-semibold text-text-secondary">Custom Offer Affiliate URL Override (Optional)</label>
             <input
-              type="text"
-              name="title"
-              value={formData.title}
+              type="url"
+              name="affiliate_url"
+              value={formData.affiliate_url}
               onChange={handleChange}
-              required
-              placeholder="e.g. 20% Off Summit Challenges"
-              className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors"
+              placeholder="https://... (leaves empty to use default firm affiliate link)"
+              className="w-full px-4 py-2.5 rounded-xl bg-bg-base border border-border-subtle text-text-primary text-sm focus:border-accent-cyan focus:outline-none transition-colors font-mono"
             />
           </div>
 
@@ -295,6 +359,53 @@ export default function NewDealPage() {
             />
           </div>
 
+          {/* Classification Checkboxes */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-bg-base/40 border border-border-subtle">
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                name="is_bogo"
+                checked={formData.is_bogo}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+              />
+              <span className="text-xs font-semibold text-text-primary">BOGO Offer</span>
+            </label>
+
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                name="is_best_offer"
+                checked={formData.is_best_offer}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+              />
+              <span className="text-xs font-semibold text-text-primary">Best Offer</span>
+            </label>
+
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                name="is_main_offer"
+                checked={formData.is_main_offer}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+              />
+              <span className="text-xs font-semibold text-text-primary">Main Offer (Pink Box)</span>
+            </label>
+
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                name="is_featured"
+                checked={formData.is_featured}
+                onChange={handleChange}
+                className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
+              />
+              <span className="text-xs font-semibold text-text-primary">Featured Offer</span>
+            </label>
+          </div>
+
           {error && (
             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-400 font-mono">
               {error}
@@ -302,31 +413,18 @@ export default function NewDealPage() {
           )}
 
           <div className="flex justify-between items-center gap-4 pt-4 border-t border-border-subtle">
-            <div className="flex gap-6">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="is_featured"
-                  checked={formData.is_featured}
-                  onChange={handleChange}
-                  className="w-4 h-4 rounded border-border-subtle bg-bg-base text-accent-cyan focus:ring-0"
-                />
-                <span className="text-xs font-semibold text-text-primary">Featured Offer</span>
-              </label>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                <span className="text-xs font-semibold text-text-secondary">Status:</span>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="px-2 py-1 text-xs bg-bg-base border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent-cyan"
-                >
-                  <option value="active">Active</option>
-                  <option value="draft">Draft / Expired</option>
-                </select>
-              </label>
-            </div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <span className="text-xs font-semibold text-text-secondary">Status:</span>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="px-3 py-1.5 text-xs bg-bg-base border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-accent-cyan"
+              >
+                <option value="active">Active</option>
+                <option value="draft">Draft / Expired</option>
+              </select>
+            </label>
 
             <AFXButton
               type="submit"
@@ -335,7 +433,7 @@ export default function NewDealPage() {
               className="bg-gradient-to-r from-accent-cyan to-accent-purple font-bold flex items-center gap-2 px-6 py-2.5 rounded-xl text-bg-base text-sm"
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Creating...' : 'Create Code'}
+              {loading ? 'Creating...' : 'Create Offer'}
             </AFXButton>
           </div>
         </AFXCard>
